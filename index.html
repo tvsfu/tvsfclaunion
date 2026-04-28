@@ -1138,7 +1138,7 @@
     function fixStreamUrl(url) {
         // Si la página está en HTTPS y la URL es HTTP, pasamos por proxy para evitar bloqueo Mixed Content
         if (location.protocol === 'https:' && url.startsWith('http://')) {
-            return 'https://corsproxy.io/?' + encodeURIComponent(url);
+            return '/api/proxy?url=' + encodeURIComponent(url);
         }
         return url;
     }
