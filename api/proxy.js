@@ -15,7 +15,6 @@ export default async function handler(req, res) {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': '*/*',
         'Accept-Encoding': 'identity',
-        'Connection': 'keep-alive',
       },
       redirect: 'follow',
     });
@@ -25,30 +24,46 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', '*');
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Cache-Control', 'no-cache, no-store');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
-    if (contentType.includes('mpegurl') || url.includes('.m3u8')) {
+    // Manejo especial para playlists M3U8
+    if (contentType.includes('mpegurl') || contentType.includes('x-mpegurl') || url.includes('.m3u8')) {
       const text = await response.text();
       const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
-      
+
       const rewritten = text.split('\n').map(line => {
-        line = line.trim();
-        if (line.startsWith('#') || line === '') return line;
-        if (!line.startsWith('http')) {
-          line = baseUrl + line;
-        }
-        return '/api/proxy?url=' + encodeURIComponent(line);
+        const trimmed = line.trim();
+        if (trimmed.startsWith('#') || trimmed === '') return line;
+        let absoluteUrl = trimmed.startsWith('http') ? trimmed : baseUrl + trimmed;
+        return '/api/proxy?url=' + encodeURIComponent(absoluteUrl);
       }).join('\n');
 
       res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
       return res.status(200).send(rewritten);
     }
 
-    const buffer = await response.arrayBuffer();
-    res.status(response.status).send(Buffer.from(buffer));
+    // Para segmentos .ts y streams binarios — streaming en tiempo real
+    res.setHeader('Content-Type', contentType);
+    
+    if (response.body) {
+      const reader = response.body.getReader();
+      const pump = async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(Buffer.from(value));
+        }
+        res.end();
+      };
+      await pump();
+    } else {
+      const buffer = await response.arrayBuffer();
+      res.status(response.status).send(Buffer.from(buffer));
+    }
 
   } catch (e) {
-    res.status(500).send('Proxy error: ' + e.message);
+    if (!res.headersSent) {
+      res.status(500).send('Proxy error: ' + e.message);
+    }
   }
 }
