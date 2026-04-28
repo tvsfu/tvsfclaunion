@@ -21,5 +21,4 @@ export default async function handler(req, res) {
   } catch (e) {
     res.status(500).send('Proxy error: ' + e.message);
   }
-    }
-      
+}
