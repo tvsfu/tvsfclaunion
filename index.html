@@ -1138,7 +1138,7 @@
     function fixStreamUrl(url) {
         // Si la página está en HTTPS y la URL es HTTP, pasamos por proxy para evitar bloqueo Mixed Content
         if (location.protocol === 'https:' && url.startsWith('http://')) {
-            return 'https://tvsfclaunion-proxy.launiontvsfc.workers.dev/?url=' + encodeURIComponent(url);
+            return 'https://corsproxy.io/?' + encodeURIComponent(url);
         }
         return url;
     }
