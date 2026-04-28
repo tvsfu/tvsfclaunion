@@ -147,9 +147,13 @@
         .player-wrapper video::-webkit-media-controls-time-remaining-display { display: none !important; }
 
         /* Botón y menú de ajuste de pantalla */
-        .fit-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; z-index: 20; display: none; gap: 5px; align-items: center; backdrop-filter: blur(4px); }
+        .fit-btn { position: absolute; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; z-index: 20; display: none; gap: 5px; align-items: center; backdrop-filter: blur(4px); }
+        .fit-btn.top { top: 10px; right: 10px; }
+        .fit-btn.bottom { bottom: 10px; right: 10px; }
         .player-wrapper.playing .fit-btn { display: flex; }
-        .fit-menu { position: absolute; top: 45px; left: 8px; right: 8px; background: rgba(20,20,20,0.95); border-radius: 12px; overflow: visible; z-index: 30; display: none; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.7); padding: 10px; box-sizing: border-box; }
+        .fit-menu { position: absolute; left: 8px; right: 8px; background: rgba(20,20,20,0.95); border-radius: 12px; overflow: visible; z-index: 30; display: none; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.7); padding: 10px; box-sizing: border-box; }
+        .fit-menu.top-menu { top: 45px; }
+        .fit-menu.bottom-menu { bottom: 45px; }
         .fit-menu.open { display: flex; }
         .fit-menu button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 8px; text-align: center; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; border-radius: 8px; }
         .fit-menu button:hover { background: rgba(255,255,255,0.1); }
@@ -375,9 +379,8 @@
         <div class="grid" id="canalesGrid"></div>
         <div class="player-wrapper" id="wrapperCanal" ondblclick="toggleUI('wrapperCanal')">
             <div class="live-badge">🔴 EN VIVO</div>
-            <div class="fit-btn" onclick="toggleFitMenu('fitMenuCanal')">⚙️ Ajuste</div>
-            <div class="fit-menu" id="fitMenuCanal">
-                <div class="section-title">Pantalla</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuCanal')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuCanal">
                 <div class="btn-group">
                     <button class="active" onclick="setFit('tvPlayer','contain','fitMenuCanal',this)">Ajustar</button>
                     <button onclick="setFit('tvPlayer','fill','fitMenuCanal',this)">Rellenar</button>
@@ -385,14 +388,15 @@
                     <button onclick="setFitCustom('tvPlayer','100%','auto','fitMenuCanal',this)">Alt. fija</button>
                     <button onclick="setFitCustom('tvPlayer','auto','100%','fitMenuCanal',this)">Ancho fijo</button>
                 </div>
-                <hr class="divider">
-                <div class="section-title">Calidad</div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuCanalQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuCanalQ">
                 <div class="btn-group-quality">
-                    <button onclick="setQuality('tvPlayer', 'auto', 'fitMenuCanal', this)" class="active">Auto</button>
-                    <button onclick="setQuality('tvPlayer', 180, 'fitMenuCanal', this)">180p</button>
-                    <button onclick="setQuality('tvPlayer', 360, 'fitMenuCanal', this)">360p</button>
-                    <button onclick="setQuality('tvPlayer', 480, 'fitMenuCanal', this)">480p</button>
-                    <button onclick="setQuality('tvPlayer', 720, 'fitMenuCanal', this)">720p</button>
+                    <button onclick="setQuality('tvPlayer', 'auto', 'fitMenuCanalQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayer', 180, 'fitMenuCanalQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayer', 360, 'fitMenuCanalQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayer', 480, 'fitMenuCanalQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayer', 720, 'fitMenuCanalQ', this)">720p</button>
                 </div>
             </div>
             <video id="tvPlayer" controls autoplay></video>
@@ -428,9 +432,8 @@
         <div class="grid" id="canalesIntGrid"></div>
         <div class="player-wrapper" id="wrapperCanalInt" ondblclick="toggleUI('wrapperCanalInt')">
             <div class="live-badge">🔴 EN VIVO</div>
-            <div class="fit-btn" onclick="toggleFitMenu('fitMenuInt')">⚙️ Ajuste</div>
-            <div class="fit-menu" id="fitMenuInt">
-                <div class="section-title">Pantalla</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuInt')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuInt">
                 <div class="btn-group">
                     <button class="active" onclick="setFit('tvPlayerInt','contain','fitMenuInt',this)">Ajustar</button>
                     <button onclick="setFit('tvPlayerInt','fill','fitMenuInt',this)">Rellenar</button>
@@ -438,14 +441,15 @@
                     <button onclick="setFitCustom('tvPlayerInt','100%','auto','fitMenuInt',this)">Alt. fija</button>
                     <button onclick="setFitCustom('tvPlayerInt','auto','100%','fitMenuInt',this)">Ancho fijo</button>
                 </div>
-                <hr class="divider">
-                <div class="section-title">Calidad</div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuIntQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuIntQ">
                 <div class="btn-group-quality">
-                    <button onclick="setQuality('tvPlayerInt', 'auto', 'fitMenuInt', this)" class="active">Auto</button>
-                    <button onclick="setQuality('tvPlayerInt', 180, 'fitMenuInt', this)">180p</button>
-                    <button onclick="setQuality('tvPlayerInt', 360, 'fitMenuInt', this)">360p</button>
-                    <button onclick="setQuality('tvPlayerInt', 480, 'fitMenuInt', this)">480p</button>
-                    <button onclick="setQuality('tvPlayerInt', 720, 'fitMenuInt', this)">720p</button>
+                    <button onclick="setQuality('tvPlayerInt', 'auto', 'fitMenuIntQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerInt', 180, 'fitMenuIntQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerInt', 360, 'fitMenuIntQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerInt', 480, 'fitMenuIntQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerInt', 720, 'fitMenuIntQ', this)">720p</button>
                 </div>
             </div>
             <video id="tvPlayerInt" controls autoplay></video>
@@ -481,9 +485,8 @@
         <div class="grid" id="canalesDeportesGrid"></div>
         <div class="player-wrapper" id="wrapperCanalDeportes" ondblclick="toggleUI('wrapperCanalDeportes')">
             <div class="live-badge">🔴 EN VIVO</div>
-            <div class="fit-btn" onclick="toggleFitMenu('fitMenuDep')">⚙️ Ajuste</div>
-            <div class="fit-menu" id="fitMenuDep">
-                <div class="section-title">Pantalla</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuDep')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuDep">
                 <div class="btn-group">
                     <button class="active" onclick="setFit('tvPlayerDeportes','contain','fitMenuDep',this)">Ajustar</button>
                     <button onclick="setFit('tvPlayerDeportes','fill','fitMenuDep',this)">Rellenar</button>
@@ -491,14 +494,15 @@
                     <button onclick="setFitCustom('tvPlayerDeportes','100%','auto','fitMenuDep',this)">Alt. fija</button>
                     <button onclick="setFitCustom('tvPlayerDeportes','auto','100%','fitMenuDep',this)">Ancho fijo</button>
                 </div>
-                <hr class="divider">
-                <div class="section-title">Calidad</div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuDepQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuDepQ">
                 <div class="btn-group-quality">
-                    <button onclick="setQuality('tvPlayerDeportes', 'auto', 'fitMenuDep', this)" class="active">Auto</button>
-                    <button onclick="setQuality('tvPlayerDeportes', 180, 'fitMenuDep', this)">180p</button>
-                    <button onclick="setQuality('tvPlayerDeportes', 360, 'fitMenuDep', this)">360p</button>
-                    <button onclick="setQuality('tvPlayerDeportes', 480, 'fitMenuDep', this)">480p</button>
-                    <button onclick="setQuality('tvPlayerDeportes', 720, 'fitMenuDep', this)">720p</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 'auto', 'fitMenuDepQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 180, 'fitMenuDepQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 360, 'fitMenuDepQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 480, 'fitMenuDepQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 720, 'fitMenuDepQ', this)">720p</button>
                 </div>
             </div>
             <video id="tvPlayerDeportes" controls autoplay></video>
