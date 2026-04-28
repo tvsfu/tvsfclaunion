@@ -154,6 +154,12 @@
         .fit-menu button { background: none; border: none; color: white; padding: 14px 20px; text-align: left; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; }
         .fit-menu button:hover { background: rgba(255,255,255,0.1); }
         .fit-menu button.active { color: var(--primary); font-weight: bold; }
+        .fit-menu .divider { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 4px 0; }
+        .fit-menu .section-title { color: #94a3b8; font-size: 0.75rem; padding: 8px 20px 4px; text-transform: uppercase; letter-spacing: 1px; }
+        /* Ocultar badges con doble toque */
+        .player-wrapper.hide-ui .live-badge,
+        .player-wrapper.hide-ui .fit-btn { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .live-badge, .fit-btn { transition: opacity 0.3s; }
         audio { width: 100%; margin-top: 15px; filter: invert(0.9) hue-rotate(180deg); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .btn { background: var(--primary); color: var(--dark-bg); padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; margin: 5px; text-shadow: none; }
         .btn-danger { background: #ef4444; color: white; padding: 5px 10px; font-size: 0.8rem; }
@@ -365,7 +371,7 @@
     <div class="card">
        <h2>📺 Canales Nacionales</h2>
         <div class="grid" id="canalesGrid"></div>
-        <div class="player-wrapper" id="wrapperCanal">
+        <div class="player-wrapper" id="wrapperCanal" ondblclick="toggleUI('wrapperCanal')">
             <div class="live-badge">🔴 EN VIVO</div>
             <div class="fit-btn" onclick="toggleFitMenu('fitMenuCanal')">⚙️ Ajuste</div>
             <div class="fit-menu" id="fitMenuCanal">
@@ -374,6 +380,13 @@
                 <button onclick="setFit('tvPlayer','cover','fitMenuCanal',this)">Zoom</button>
                 <button onclick="setFitCustom('tvPlayer','100%','auto','fitMenuCanal',this)">Altura fija</button>
                 <button onclick="setFitCustom('tvPlayer','auto','100%','fitMenuCanal',this)">Ancho fijo</button>
+                <hr class="divider">
+                <div class="section-title">Calidad</div>
+                <button onclick="setQuality('tvPlayer', 'auto', 'fitMenuCanal', this)" class="active">Automático</button>
+                <button onclick="setQuality('tvPlayer', 180, 'fitMenuCanal', this)">180p</button>
+                <button onclick="setQuality('tvPlayer', 360, 'fitMenuCanal', this)">360p</button>
+                <button onclick="setQuality('tvPlayer', 480, 'fitMenuCanal', this)">480p</button>
+                <button onclick="setQuality('tvPlayer', 720, 'fitMenuCanal', this)">720p</button>
             </div>
             <video id="tvPlayer" controls autoplay></video>
         </div>
@@ -406,7 +419,7 @@
     <div class="card">
        <h2>🌐 Canales Internacionales</h2>
         <div class="grid" id="canalesIntGrid"></div>
-        <div class="player-wrapper" id="wrapperCanalInt">
+        <div class="player-wrapper" id="wrapperCanalInt" ondblclick="toggleUI('wrapperCanalInt')">
             <div class="live-badge">🔴 EN VIVO</div>
             <div class="fit-btn" onclick="toggleFitMenu('fitMenuInt')">⚙️ Ajuste</div>
             <div class="fit-menu" id="fitMenuInt">
@@ -415,6 +428,13 @@
                 <button onclick="setFit('tvPlayerInt','cover','fitMenuInt',this)">Zoom</button>
                 <button onclick="setFitCustom('tvPlayerInt','100%','auto','fitMenuInt',this)">Altura fija</button>
                 <button onclick="setFitCustom('tvPlayerInt','auto','100%','fitMenuInt',this)">Ancho fijo</button>
+                <hr class="divider">
+                <div class="section-title">Calidad</div>
+                <button onclick="setQuality('tvPlayerInt', 'auto', 'fitMenuInt', this)" class="active">Automático</button>
+                <button onclick="setQuality('tvPlayerInt', 180, 'fitMenuInt', this)">180p</button>
+                <button onclick="setQuality('tvPlayerInt', 360, 'fitMenuInt', this)">360p</button>
+                <button onclick="setQuality('tvPlayerInt', 480, 'fitMenuInt', this)">480p</button>
+                <button onclick="setQuality('tvPlayerInt', 720, 'fitMenuInt', this)">720p</button>
             </div>
             <video id="tvPlayerInt" controls autoplay></video>
         </div>
@@ -447,7 +467,7 @@
     <div class="card">
        <h2>⚽ Canales De Deportes</h2>
         <div class="grid" id="canalesDeportesGrid"></div>
-        <div class="player-wrapper" id="wrapperCanalDeportes">
+        <div class="player-wrapper" id="wrapperCanalDeportes" ondblclick="toggleUI('wrapperCanalDeportes')">
             <div class="live-badge">🔴 EN VIVO</div>
             <div class="fit-btn" onclick="toggleFitMenu('fitMenuDep')">⚙️ Ajuste</div>
             <div class="fit-menu" id="fitMenuDep">
@@ -456,6 +476,13 @@
                 <button onclick="setFit('tvPlayerDeportes','cover','fitMenuDep',this)">Zoom</button>
                 <button onclick="setFitCustom('tvPlayerDeportes','100%','auto','fitMenuDep',this)">Altura fija</button>
                 <button onclick="setFitCustom('tvPlayerDeportes','auto','100%','fitMenuDep',this)">Ancho fijo</button>
+                <hr class="divider">
+                <div class="section-title">Calidad</div>
+                <button onclick="setQuality('tvPlayerDeportes', 'auto', 'fitMenuDep', this)" class="active">Automático</button>
+                <button onclick="setQuality('tvPlayerDeportes', 180, 'fitMenuDep', this)">180p</button>
+                <button onclick="setQuality('tvPlayerDeportes', 360, 'fitMenuDep', this)">360p</button>
+                <button onclick="setQuality('tvPlayerDeportes', 480, 'fitMenuDep', this)">480p</button>
+                <button onclick="setQuality('tvPlayerDeportes', 720, 'fitMenuDep', this)">720p</button>
             </div>
             <video id="tvPlayerDeportes" controls autoplay></video>
         </div>
@@ -1308,6 +1335,40 @@
         const url = `${window.location.origin}${window.location.pathname}#${section}`;
         if (navigator.share) navigator.share({ title: 'TV SFC', url: url });
         else navigator.clipboard.writeText(url).then(() => showToast('✅ Copiado'));
+    }
+
+    function toggleUI(wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        wrapper.classList.toggle('hide-ui');
+    }
+
+    function setQuality(videoId, level, menuId, btn) {
+        const v = document.getElementById(videoId);
+        if (!v._hls) { 
+            document.getElementById(menuId).classList.remove('open');
+            return; 
+        }
+        // Marcar activo solo en botones de calidad (los últimos 5)
+        const allBtns = document.querySelectorAll('#' + menuId + ' button');
+        const qualityBtns = Array.from(allBtns).slice(-5);
+        qualityBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (level === 'auto') {
+            v._hls.currentLevel = -1;
+        } else {
+            // Buscar el nivel más cercano al solicitado
+            const levels = v._hls.levels;
+            let best = 0;
+            let bestDiff = Infinity;
+            levels.forEach((l, i) => {
+                const h = l.height || 0;
+                const diff = Math.abs(h - level);
+                if (diff < bestDiff) { bestDiff = diff; best = i; }
+            });
+            v._hls.currentLevel = best;
+        }
+        document.getElementById(menuId).classList.remove('open');
     }
 
     function toggleFitMenu(menuId) {
