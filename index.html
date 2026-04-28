@@ -134,6 +134,17 @@
 
         .video-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-top: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.1); }
         .video-box iframe, .video-box video { width: 100%; height: 100%; border: 0; }
+
+        /* Reproductor personalizado EN VIVO */
+        .player-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-top: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.1); }
+        .player-wrapper video { width: 100%; height: 100%; border: 0; display: block; }
+        .live-badge { position: absolute; top: 10px; left: 10px; background: #ef4444; color: white; font-size: 0.8rem; font-weight: bold; padding: 5px 12px; border-radius: 20px; display: none; align-items: center; gap: 6px; z-index: 10; letter-spacing: 1px; }
+        .live-badge::before { content: ""; width: 8px; height: 8px; background: white; border-radius: 50%; display: inline-block; animation: blinkDot 1s infinite; }
+        @keyframes blinkDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .player-wrapper.playing .live-badge { display: flex; }
+        .player-wrapper video::-webkit-media-controls-timeline { display: none !important; }
+        .player-wrapper video::-webkit-media-controls-current-time-display { display: none !important; }
+        .player-wrapper video::-webkit-media-controls-time-remaining-display { display: none !important; }
         audio { width: 100%; margin-top: 15px; filter: invert(0.9) hue-rotate(180deg); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .btn { background: var(--primary); color: var(--dark-bg); padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; margin: 5px; text-shadow: none; }
         .btn-danger { background: #ef4444; color: white; padding: 5px 10px; font-size: 0.8rem; }
@@ -345,7 +356,8 @@
     <div class="card">
        <h2>📺 Canales Nacionales</h2>
         <div class="grid" id="canalesGrid"></div>
-        <div class="video-box">
+        <div class="player-wrapper" id="wrapperCanal">
+            <div class="live-badge">🔴 EN VIVO</div>
             <video id="tvPlayer" controls autoplay></video>
         </div>
         <div class="reactions-bar">
@@ -377,7 +389,8 @@
     <div class="card">
        <h2>🌐 Canales Internacionales</h2>
         <div class="grid" id="canalesIntGrid"></div>
-        <div class="video-box">
+        <div class="player-wrapper" id="wrapperCanalInt">
+            <div class="live-badge">🔴 EN VIVO</div>
             <video id="tvPlayerInt" controls autoplay></video>
         </div>
         <div class="reactions-bar">
@@ -409,7 +422,8 @@
     <div class="card">
        <h2>⚽ Canales De Deportes</h2>
         <div class="grid" id="canalesDeportesGrid"></div>
-        <div class="video-box">
+        <div class="player-wrapper" id="wrapperCanalDeportes">
+            <div class="live-badge">🔴 EN VIVO</div>
             <video id="tvPlayerDeportes" controls autoplay></video>
         </div>
         <div class="reactions-bar">
@@ -1145,43 +1159,46 @@
     function playHLS(videoId, url) {
         const v = document.getElementById(videoId);
         if (!v) return;
+        const wrapper = v.closest(".player-wrapper");
         const streamUrl = fixStreamUrl(url);
         if (v._hls) { v._hls.destroy(); v._hls = null; }
         if (Hls.isSupported()) {
             const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
             hls.loadSource(streamUrl);
             hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => v.play().catch(()=>{}));
+            hls.on(Hls.Events.MANIFEST_PARSED, () => { v.play().catch(()=>{}); if(wrapper) wrapper.classList.add("playing"); });
             v._hls = hls;
         } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
             v.src = streamUrl;
             v.play().catch(()=>{});
+            if(wrapper) wrapper.classList.add("playing");
         } else {
             alert('Tu navegador no soporta HLS. Usa Chrome, Firefox o Safari.');
         }
     }
     function playCanal(url) {
         const v = document.getElementById("tvPlayer");
+        const wrapper = document.getElementById("wrapperCanal");
         const streamUrl = fixStreamUrl(url);
-        // Intentar primero con HLS
         if (Hls.isSupported()) {
             if (v._hls) { v._hls.destroy(); v._hls = null; }
             const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
             hls.loadSource(streamUrl);
             hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => v.play().catch(()=>{}));
+            hls.on(Hls.Events.MANIFEST_PARSED, () => { v.play().catch(()=>{}); if(wrapper) wrapper.classList.add("playing"); });
             hls.on(Hls.Events.ERROR, function(event, data) {
                 if (data.fatal) {
                     hls.destroy();
-                    // Si falla HLS, intentar como video directo
                     v.src = streamUrl;
                     v.play().catch(()=>{});
+                    if(wrapper) wrapper.classList.add("playing");
                 }
             });
             v._hls = hls;
         } else {
             v.src = streamUrl;
             v.play().catch(()=>{});
+            if(wrapper) wrapper.classList.add("playing");
         }
     }
     function playCanalInt(url) { playHLS("tvPlayerInt", url); }
