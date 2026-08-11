@@ -27,76 +27,6 @@
             padding-bottom: 60px;
         }
 
-        /* --- MENÚ HAMBURGUESA --- */
-        .menu-btn {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            width: 45px;
-            height: 45px;
-            background: rgba(2, 6, 23, 0.85);
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            cursor: pointer;
-            z-index: 2000;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        .menu-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 1800;
-            display: none;
-            backdrop-filter: blur(2px);
-        }
-        .menu-overlay.open {
-            display: block;
-        }
-
-        /* --- AQUÍ ESTÁ EL AJUSTE PARA QUE SE VEA EL ADMIN EN CELULAR --- */
-        nav {
-            background: rgba(2, 6, 23, 0.98);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            /* Se aumentó el padding de abajo a 120px para dar espacio al scroll en móviles */
-            padding: 80px 20px 120px 20px; 
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 250px;
-            height: 100vh;
-            z-index: 1900;
-            box-shadow: 2px 0 20px rgba(0,0,0,0.8);
-            transition: left 0.3s ease;
-            overflow-y: auto; /* Permite deslizar si no cabe */
-            border-right: 1px solid #1e293b;
-            box-sizing: border-box; /* IMPORTANTE: Esto evita que el padding rompa el tamaño */
-        }
-        /* ------------------------------------------------------------------ */
-
-        nav.open {
-            left: 0;
-        }
-        nav a {
-            color: var(--text-light);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1rem;
-            padding: 10px 15px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            flex-shrink: 0; /* Evita que los botones se aplasten */
-        }
-        nav a:hover, nav a.active { background: var(--primary); color: var(--dark-bg); }
-        
         .logo-float { display: block; margin: 20px auto; max-width: 150px; filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.5)); padding-top: 20px; }
         section { padding: 15px; max-width: 1100px; margin: auto; }
         
@@ -267,13 +197,56 @@
             background: rgba(239, 68, 68, 0.3);
             border-color: #ef4444;
         }
+
+        /* --- BARRA DE NAVEGACIÓN SUPERIOR --- */
+        .topbar-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1500;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 12px 15px;
+            background: rgba(2, 6, 23, 0.97);
+            backdrop-filter: blur(8px);
+            border-bottom: 2px solid rgba(34, 197, 94, 0.4);
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+        .topbar-nav::-webkit-scrollbar { height: 5px; }
+        .topbar-nav::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .topbar-link {
+            flex-shrink: 0;
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.25s;
+            text-shadow: none;
+        }
+        .topbar-link:hover { border-color: var(--primary); background: rgba(30, 41, 59, 0.95); }
+        .topbar-link.active { background: var(--primary); color: var(--dark-bg); border-color: var(--primary); }
+
+        /* --- SECCIONES SEPARADAS POR BLOQUE (solo se muestra la activa) --- */
+        section { display: none; animation: fadeInSection 0.35s ease; }
+        section.active-section { display: block; }
+        @keyframes fadeInSection { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cada bloque de sección se marca claramente como una tarjeta independiente */
+        .card {
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.4);
+        }
     </style>
 </head>
 <body>
 <div id="toast-container"></div>
-
-<div class="menu-btn" onclick="toggleMenu()">☰</div>
-<div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
 
 <div id="loginModal" class="custom-modal-overlay">
     <div class="custom-modal" style="text-align:center;">
@@ -286,29 +259,29 @@
 
 <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png" class="logo-float" alt="Logo">
 
-<nav id="sideMenu">
-    <a href="#inicio">Inicio</a>
-    <a href="#facebooklive">FB Live</a>
-    <a href="#canales">Canales Nacionales</a>
-    <a href="#canalesInt">Canales Internacionales</a>
-    <a href="#canalesDeportes">Canales De Deportes</a>
-    <a href="#radio">Emisoras Nac. e Int.</a>
-    <a href="#radioSFC">Emisoras SFC</a>
-    <a href="#radioCristianaSFC">Emisoras Cristianas SFC</a>
-    <a href="#radioCristianaNac">Emisoras Cristianas Nac/Int</a>
-    <a href="#radioCatolicaSFC">Emisoras Católicas SFC</a>
-    <a href="#radioCatolicaNac">Emisoras Católicas Nac/Int</a>
-    <a href="#videos">Videos 24/7</a>
-    <a href="#noticias">Noticias 24/7</a>
-    <a href="#religiosos">Videos Cristiano 24/7</a>
-    <a href="#videosCatolicos">Videos Católicos 24/7</a>
-    <a href="#deportes">Deportes</a>
-    <a href="#anuncios">Anuncios</a>
-    <a href="#anunciosCristianos">Anuncios Cristianos</a>
-    <a href="#anunciosCatolicos">Anuncios Católicos</a>
-    <a href="#contacto">Contacto</a>
-    <a href="#" onclick="openLogin()" style="background:#334155; margin-top:10px; text-align:center;">🛠️ Admin</a>
-</nav>
+<div class="topbar-nav" id="topbarNav">
+    <button class="topbar-link" data-target="inicio">🏠 Inicio</button>
+    <button class="topbar-link" data-target="facebooklive">📡 FB Live</button>
+    <button class="topbar-link" data-target="canales">📺 Nacionales</button>
+    <button class="topbar-link" data-target="canalesInt">🌐 Internacionales</button>
+    <button class="topbar-link" data-target="canalesDeportes">⚽ Deportes TV</button>
+    <button class="topbar-link" data-target="radio">📻 Radio Nac/Int</button>
+    <button class="topbar-link" data-target="radioSFC">📻 Radio SFC</button>
+    <button class="topbar-link" data-target="radioCristianaSFC">✝️ Radio Crist. SFC</button>
+    <button class="topbar-link" data-target="radioCristianaNac">✝️ Radio Crist. Nac/Int</button>
+    <button class="topbar-link" data-target="radioCatolicaSFC">⛪ Radio Cat. SFC</button>
+    <button class="topbar-link" data-target="radioCatolicaNac">⛪ Radio Cat. Nac/Int</button>
+    <button class="topbar-link" data-target="videos">🎬 Videos 24/7</button>
+    <button class="topbar-link" data-target="noticias">📰 Noticias</button>
+    <button class="topbar-link" data-target="religiosos">🙏 Videos Cristianos</button>
+    <button class="topbar-link" data-target="videosCatolicos">📿 Videos Católicos</button>
+    <button class="topbar-link" data-target="deportes">🏆 Deportes</button>
+    <button class="topbar-link" data-target="anuncios">📢 Anuncios</button>
+    <button class="topbar-link" data-target="anunciosCristianos">📢 Anun. Cristianos</button>
+    <button class="topbar-link" data-target="anunciosCatolicos">📢 Anun. Católicos</button>
+    <button class="topbar-link" data-target="contacto">☎️ Contacto</button>
+    <button class="topbar-link" onclick="openLogin()" style="background:#334155; border-color:#475569;">🛠️ Admin</button>
+</div>
 
 <section id="inicio">
     <div class="card" style="text-align:center">
@@ -937,14 +910,6 @@
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // ============================================
-    // FUNCIONES DEL NUEVO MENÚ LATERAL
-    // ============================================
-    function toggleMenu() {
-        document.getElementById('sideMenu').classList.toggle('open');
-        document.getElementById('menuOverlay').classList.toggle('open');
-    }
-
-    // ============================================
     // CONFIGURACIÓN DE FIREBASE Y LÓGICA ANTERIOR
     // ============================================
     const firebaseConfig = {
@@ -1343,9 +1308,6 @@
         } else {
             document.getElementById("loginModal").style.display = "flex";
         }
-        // Cerrar menú lateral si estaba abierto al tocar Admin
-        document.getElementById('sideMenu').classList.remove('open');
-        document.getElementById('menuOverlay').classList.remove('open');
     }
     function cerrarSesion() { isAdmin = false; document.getElementById("adminPanel").style.display = "none"; }
     function compartirApp() {
@@ -1423,6 +1385,28 @@
         }
     });
 
+    // --- CONTROL DE BLOQUES/SECCIONES (navegación tipo pestañas) ---
+    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','radio','radioSFC','radioCristianaSFC','radioCristianaNac','radioCatolicaSFC','radioCatolicaNac','videos','noticias','religiosos','videosCatolicos','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
+
+    function showSection(id) {
+        if (!sectionOrder.includes(id)) id = 'inicio';
+        document.querySelectorAll('section').forEach(sec => {
+            sec.classList.toggle('active-section', sec.id === id);
+        });
+        document.querySelectorAll('.topbar-link').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.target === id);
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        try { history.replaceState(null, '', '#' + id); } catch (e) { /* Algunos entornos de vista previa no permiten cambiar la URL */ }
+        // Centra el botón activo dentro de la barra superior
+        const activeBtn = document.querySelector('.topbar-link.active');
+        if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
+    document.querySelectorAll('.topbar-link').forEach(btn => {
+        btn.addEventListener('click', () => showSection(btn.dataset.target));
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
         if (!firebaseInitialized) {
             storage = JSON.parse(localStorage.getItem("tv_sfc_data")) || { 
@@ -1438,17 +1422,10 @@
         }
         renderAllGrids();
         updateAllReactionCounts();
-        
-        // Función para cerrar el menú lateral al hacer click en un enlace
-        document.querySelectorAll('nav a').forEach(link => {
-            link.addEventListener('click', function() {
-                document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Cierra el menú hamburguesa al elegir una opción
-                document.getElementById('sideMenu').classList.remove('open');
-                });
-        });
+
+        // Muestra el bloque inicial: el de la URL (#hash) o "inicio" por defecto
+        const initialId = window.location.hash ? window.location.hash.substring(1) : 'inicio';
+        showSection(initialId);
     });
 </script>
 </body>
