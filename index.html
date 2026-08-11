@@ -7,6 +7,7 @@
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
     
     <style>
@@ -251,7 +252,8 @@
 <div id="loginModal" class="custom-modal-overlay">
     <div class="custom-modal" style="text-align:center;">
         <h3 style="color:var(--primary)">🔐 Acceso Administrador</h3>
-        <input type="password" id="adminPassInput" class="admin-input" placeholder="Contraseña">
+        <input type="email" id="adminEmailInput" class="admin-input" placeholder="Correo del administrador" autocomplete="username">
+        <input type="password" id="adminPassInput" class="admin-input" placeholder="Contraseña" autocomplete="current-password">
         <button onclick="attemptLogin()" class="btn" style="width:100%">Entrar</button>
         <button onclick="document.getElementById('loginModal').style.display='none'" class="btn btn-gray" style="width:100%; margin-top:10px; background:#64748b; color:white;">Cancelar</button>
     </div>
@@ -980,6 +982,9 @@
                 if(isAdmin) mostrarTodosElementos();
                 showToast('✅ Contenido actualizado');
             }
+        }, (error) => {
+            console.error('Error de lectura en "contenido":', error);
+            updateFirebaseStatus('⚠️ Sin permiso para leer "contenido" (revisa las reglas de la Realtime Database)', true);
         });
         database.ref('reactions').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -987,6 +992,8 @@
                 reactions = data;
                 updateAllReactionCounts();
             }
+        }, (error) => {
+            console.error('Error de lectura en "reactions":', error);
         });
     }
 
@@ -1036,7 +1043,8 @@
                 cancelarEdicion();
                 mostrarTodosElementos();
             } catch (error) {
-                showToast("❌ Error al guardar", "error");
+                console.error('Error al guardar en Firebase:', error);
+                showToast("❌ Error al guardar: " + (error.message || error.code || "desconocido"), "error");
             }
         } else {
             if (!storage[cat]) storage[cat] = {};
@@ -1056,7 +1064,10 @@
                 await database.ref(`contenido/${cat}/${id}`).remove();
                 showToast("🗑️ Eliminado");
                 mostrarTodosElementos();
-            } catch (error) { showToast("❌ Error al eliminar", "error"); }
+            } catch (error) {
+                console.error('Error al eliminar en Firebase:', error);
+                showToast("❌ Error al eliminar: " + (error.message || error.code || "desconocido"), "error");
+            }
         } else {
             delete storage[cat][id];
             localStorage.setItem("tv_sfc_data", JSON.stringify(storage));
@@ -1104,12 +1115,17 @@
         const hasReacted = reactions[section][type].users && reactions[section][type].users[userId];
         
         if (firebaseInitialized) {
-            if (hasReacted) {
-                await database.ref(`reactions/${section}/${type}/users/${userId}`).remove();
-                await database.ref(`reactions/${section}/${type}/count`).transaction(c => (c || 1) - 1);
-            } else {
-                await database.ref(`reactions/${section}/${type}/users/${userId}`).set(true);
-                await database.ref(`reactions/${section}/${type}/count`).transaction(c => (c || 0) + 1);
+            try {
+                if (hasReacted) {
+                    await database.ref(`reactions/${section}/${type}/users/${userId}`).remove();
+                    await database.ref(`reactions/${section}/${type}/count`).transaction(c => (c || 1) - 1);
+                } else {
+                    await database.ref(`reactions/${section}/${type}/users/${userId}`).set(true);
+                    await database.ref(`reactions/${section}/${type}/count`).transaction(c => (c || 0) + 1);
+                }
+            } catch (error) {
+                console.error('Error al reaccionar en Firebase:', error);
+                showToast("❌ Error al reaccionar: " + (error.message || error.code || "desconocido"), "error");
             }
         } else {
             if (hasReacted) {
@@ -1293,14 +1309,34 @@
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
     function attemptLogin() {
-        sha256(document.getElementById("adminPassInput").value).then(hash => {
-            if(hash === PASS_HASH) {
-                isAdmin = true;
-                document.getElementById("loginModal").style.display = "none";
-                document.getElementById("adminPanel").style.display = "block";
-                showToast("✅ Acceso Concedido");
-            } else showToast("❌ Contraseña Incorrecta", "error");
-        });
+        const email = document.getElementById("adminEmailInput").value.trim();
+        const pass = document.getElementById("adminPassInput").value;
+
+        if (firebaseInitialized) {
+            // Login real contra Firebase Authentication.
+            // El usuario admin debe existir en Firebase Console > Authentication > Users.
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(() => {
+                    isAdmin = true;
+                    document.getElementById("loginModal").style.display = "none";
+                    document.getElementById("adminPanel").style.display = "block";
+                    showToast("✅ Acceso Concedido");
+                })
+                .catch((error) => {
+                    console.error('Error de autenticación:', error);
+                    showToast("❌ Correo o contraseña incorrectos", "error");
+                });
+        } else {
+            // Sin conexión a Firebase: se permite el modo local con la contraseña de respaldo.
+            sha256(pass).then(hash => {
+                if (hash === PASS_HASH) {
+                    isAdmin = true;
+                    document.getElementById("loginModal").style.display = "none";
+                    document.getElementById("adminPanel").style.display = "block";
+                    showToast("✅ Acceso Concedido (modo local)");
+                } else showToast("❌ Contraseña Incorrecta", "error");
+            });
+        }
     }
     function openLogin() { 
         if (isAdmin) {
@@ -1309,7 +1345,11 @@
             document.getElementById("loginModal").style.display = "flex";
         }
     }
-    function cerrarSesion() { isAdmin = false; document.getElementById("adminPanel").style.display = "none"; }
+    function cerrarSesion() {
+        isAdmin = false;
+        document.getElementById("adminPanel").style.display = "none";
+        if (firebaseInitialized) firebase.auth().signOut();
+    }
     function compartirApp() {
         if (navigator.share) navigator.share({ title: 'TV SFC LA UNION', text: 'Mira TV SFC LA UNION', url: window.location.href });
         else navigator.clipboard.writeText(window.location.href).then(() => showToast('✅ Copiado'));
