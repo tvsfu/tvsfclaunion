@@ -96,6 +96,12 @@
         /* Ocultar controles nativos con doble toque */
         .player-wrapper.hide-ui video::-webkit-media-controls { display: none !important; }
         .player-wrapper.hide-ui video { pointer-events: none; }
+        .player-wrapper.hide-ui .live-badge,
+        .player-wrapper.hide-ui .fit-btn,
+        .player-wrapper.hide-ui .fit-menu { 
+            opacity: 0;
+            pointer-events: none;
+        }
         .live-badge, .fit-btn { transition: opacity 0.3s; }
         audio { width: 100%; margin-top: 15px; filter: invert(0.9) hue-rotate(180deg); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .btn { background: var(--primary); color: var(--dark-bg); padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; margin: 5px; text-shadow: none; }
@@ -927,15 +933,42 @@
     let database;
     let firebaseInitialized = false;
     
-    try {
-        firebase.initializeApp(firebaseConfig);
-        database = firebase.database();
-        firebaseInitialized = true;
-        updateFirebaseStatus('✅ Conectado a Firebase', false);
-        listenToFirebaseChanges();
-    } catch (error) {
-        console.error('Error inicializando Firebase:', error);
-        updateFirebaseStatus('⚠️ Firebase no configurado - Usando modo local', true);
+    // Definir updateFirebaseStatus primero
+    function updateFirebaseStatus(message, isError) {
+        const status = document.getElementById('firebaseStatus');
+        const adminStatus = document.getElementById('adminFirebaseStatus');
+        if (status) { status.textContent = message; status.className = isError ? 'firebase-status error' : 'firebase-status'; }
+        if (adminStatus) { adminStatus.textContent = message; adminStatus.className = isError ? 'firebase-status error' : 'firebase-status'; }
+    }
+    
+    function initializeFirebase() {
+        // Verificar si Firebase está disponible
+        if (typeof firebase === 'undefined') {
+            console.warn('Firebase no está disponible, usando modo local');
+            updateFirebaseStatus('⚠️ Firebase no disponible - Usando modo local', true);
+            firebaseInitialized = false;
+            return;
+        }
+        
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            firebaseInitialized = true;
+            updateFirebaseStatus('✅ Conectado a Firebase', false);
+            listenToFirebaseChanges();
+        } catch (error) {
+            console.error('Error inicializando Firebase:', error);
+            updateFirebaseStatus('⚠️ Firebase no configurado - Usando modo local', true);
+            firebaseInitialized = false;
+        }
+    }
+
+    // Esperar a que los scripts de Firebase se carguen
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeFirebase);
+    } else {
+        // Si el script ya está en el DOM, inicializar directamente
+        setTimeout(initializeFirebase, 100);
     }
 
     const PASS_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; // admin123
@@ -964,13 +997,6 @@
     let storage = {};
     let likes = JSON.parse(localStorage.getItem("tv_sfc_likes")) || {};
     let reactions = {};
-
-    function updateFirebaseStatus(message, isError) {
-        const status = document.getElementById('firebaseStatus');
-        const adminStatus = document.getElementById('adminFirebaseStatus');
-        if (status) { status.textContent = message; status.className = isError ? 'firebase-status error' : 'firebase-status'; }
-        if (adminStatus) { adminStatus.textContent = message; adminStatus.className = isError ? 'firebase-status error' : 'firebase-status'; }
-    }
 
     function listenToFirebaseChanges() {
         if (!firebaseInitialized) return;
@@ -1237,6 +1263,8 @@
         } else {
             alert('Tu navegador no soporta HLS. Usa Chrome, Firefox o Safari.');
         }
+        // Inicializar click handler si existe el wrapper
+        if(wrapper && wrapper.id) { setupPlayerClickHandler(wrapper.id); }
     }
     function playCanal(url) {
         const v = document.getElementById("tvPlayer");
@@ -1262,6 +1290,8 @@
             v.play().catch(()=>{});
             if(wrapper) wrapper.classList.add("playing");
         }
+        // Inicializar click handler
+        if(wrapper) { setupPlayerClickHandler("wrapperCanal"); }
     }
     function playCanalInt(url) { playHLS("tvPlayerInt", url); }
     function playCanalDeportes(url) { playHLS("tvPlayerDeportes", url); }
@@ -1363,6 +1393,38 @@
     function toggleUI(wrapperId) {
         const wrapper = document.getElementById(wrapperId);
         wrapper.classList.toggle('hide-ui');
+    }
+
+    // Sistema de detección de clics simple y doble en el reproductor
+    function setupPlayerClickHandler(wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        let clickCount = 0;
+        let clickTimer = null;
+
+        wrapper.addEventListener('click', function(e) {
+            // Ignorar clics en botones o menús
+            if (e.target.closest('.fit-btn') || e.target.closest('.fit-menu')) {
+                return;
+            }
+
+            clickCount++;
+
+            if (clickCount === 1) {
+                // Primer clic: esperar a ver si hay un segundo clic
+                clickTimer = setTimeout(function() {
+                    // Pasaron 300ms sin segundo clic = UN CLIC
+                    // Ocultar controles
+                    wrapper.classList.add('hide-ui');
+                    clickCount = 0;
+                }, 300);
+            } else if (clickCount === 2) {
+                // Segundo clic detectado = DOS CLICS
+                clearTimeout(clickTimer);
+                // Mostrar controles
+                wrapper.classList.remove('hide-ui');
+                clickCount = 0;
+            }
+        });
     }
 
     function setQuality(videoId, level, menuId, btn) {
