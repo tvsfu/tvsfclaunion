@@ -69,23 +69,43 @@
         /* Reproductor personalizado EN VIVO */
         .player-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-top: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.1); }
         .player-wrapper video { width: 100%; height: 100%; border: 0; display: block; }
-        .live-badge { position: absolute; top: 10px; left: 10px; background: #ef4444; color: white; font-size: 0.8rem; font-weight: bold; padding: 5px 12px; border-radius: 20px; display: none; align-items: center; gap: 6px; z-index: 10; letter-spacing: 1px; }
+        .live-badge { position: absolute; top: 10px; left: 10px; background: #ef4444; color: white; font-size: 0.8rem; font-weight: bold; padding: 5px 12px; border-radius: 20px; display: none; align-items: center; gap: 6px; z-index: 10; letter-spacing: 1px; transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; }
         .live-badge::before { content: ""; width: 8px; height: 8px; background: white; border-radius: 50%; display: inline-block; animation: blinkDot 1s infinite; }
         @keyframes blinkDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
         .player-wrapper.playing .live-badge { display: flex; }
-        .player-wrapper video::-webkit-media-controls-timeline { display: none !important; }
-        .player-wrapper video::-webkit-media-controls-current-time-display { display: none !important; }
-        .player-wrapper video::-webkit-media-controls-time-remaining-display { display: none !important; }
+        
+        /* Ocultar badge cuando hide-ui está activo */
+        .player-wrapper.hide-ui .live-badge {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
 
         /* Botón y menú de ajuste de pantalla */
-        .fit-btn { position: absolute; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; z-index: 20; display: none; gap: 5px; align-items: center; backdrop-filter: blur(4px); }
+        .fit-btn { position: absolute; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; z-index: 20; display: flex; gap: 5px; align-items: center; backdrop-filter: blur(4px); transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; }
         .fit-btn.top { top: 10px; right: 10px; }
         .fit-btn.bottom { bottom: 10px; left: 10px; }
         .player-wrapper.playing .fit-btn { display: flex; }
-        .fit-menu { position: absolute; left: 8px; right: 8px; background: rgba(20,20,20,0.95); border-radius: 12px; overflow: visible; z-index: 30; display: none; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.7); padding: 10px; box-sizing: border-box; }
+        
+        /* Ocultar botones cuando hide-ui está activo */
+        .player-wrapper.hide-ui .fit-btn {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        .fit-menu { position: absolute; left: 8px; right: 8px; background: rgba(20,20,20,0.95); border-radius: 12px; overflow: visible; z-index: 30; display: none; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.7); padding: 10px; box-sizing: border-box; transition: opacity 0.3s ease; }
         .fit-menu.top-menu { top: 45px; }
         .fit-menu.bottom-menu { bottom: 45px; left: 8px; right: 8px; }
         .fit-menu.open { display: flex; }
+        
+        /* Ocultar menú cuando hide-ui está activo */
+        .player-wrapper.hide-ui .fit-menu {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            display: none !important;
+        }
         .fit-menu button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 8px; text-align: center; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; border-radius: 8px; }
         .fit-menu button:hover { background: rgba(255,255,255,0.1); }
         .fit-menu button.active { color: var(--primary); font-weight: bold; }
@@ -93,16 +113,16 @@
         .fit-menu .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 4px; }
         .fit-menu .btn-group-quality { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
         .fit-menu .section-title { color: #94a3b8; font-size: 0.75rem; padding: 6px 4px 4px; text-transform: uppercase; letter-spacing: 1px; grid-column: 1/-1; }
-        /* Ocultar controles nativos con doble toque */
+        /* Ocultar controles nativos con hide-ui */
         .player-wrapper.hide-ui video::-webkit-media-controls { display: none !important; }
         .player-wrapper.hide-ui video { pointer-events: none; }
         .player-wrapper.hide-ui .live-badge,
         .player-wrapper.hide-ui .fit-btn,
         .player-wrapper.hide-ui .fit-menu { 
-            opacity: 0;
-            pointer-events: none;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
         }
-        .live-badge, .fit-btn { transition: opacity 0.3s; }
         audio { width: 100%; margin-top: 15px; filter: invert(0.9) hue-rotate(180deg); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .btn { background: var(--primary); color: var(--dark-bg); padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; margin: 5px; text-shadow: none; }
         .btn-danger { background: #ef4444; color: white; padding: 5px 10px; font-size: 0.8rem; }
@@ -358,7 +378,7 @@
     <div class="card">
        <h2>📺 Canales Nacionales</h2>
         <div class="grid" id="canalesGrid"></div>
-        <div class="player-wrapper" id="wrapperCanal" ondblclick="toggleUI('wrapperCanal')">
+        <div class="player-wrapper" id="wrapperCanal">
             <div class="live-badge">🔴 EN VIVO</div>
             <div class="fit-btn top" onclick="toggleFitMenu('fitMenuCanal')">⚙️ Pantalla</div>
             <div class="fit-menu top-menu" id="fitMenuCanal">
@@ -1254,17 +1274,24 @@
             const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
             hls.loadSource(streamUrl);
             hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => { v.play().catch(()=>{}); if(wrapper) wrapper.classList.add("playing"); });
+            hls.on(Hls.Events.MANIFEST_PARSED, () => { 
+                v.play().catch(()=>{}); 
+                if(wrapper) {
+                    wrapper.classList.add("playing");
+                    setTimeout(() => setupPlayerClickHandler(wrapper.id), 100);
+                }
+            });
             v._hls = hls;
         } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
             v.src = streamUrl;
             v.play().catch(()=>{});
-            if(wrapper) wrapper.classList.add("playing");
+            if(wrapper) {
+                wrapper.classList.add("playing");
+                setTimeout(() => setupPlayerClickHandler(wrapper.id), 100);
+            }
         } else {
             alert('Tu navegador no soporta HLS. Usa Chrome, Firefox o Safari.');
         }
-        // Inicializar click handler si existe el wrapper
-        if(wrapper && wrapper.id) { setupPlayerClickHandler(wrapper.id); }
     }
     function playCanal(url) {
         const v = document.getElementById("tvPlayer");
@@ -1275,23 +1302,33 @@
             const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
             hls.loadSource(streamUrl);
             hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => { v.play().catch(()=>{}); if(wrapper) wrapper.classList.add("playing"); });
+            hls.on(Hls.Events.MANIFEST_PARSED, () => { 
+                v.play().catch(()=>{}); 
+                if(wrapper) {
+                    wrapper.classList.add("playing");
+                    setTimeout(() => setupPlayerClickHandler("wrapperCanal"), 100);
+                }
+            });
             hls.on(Hls.Events.ERROR, function(event, data) {
                 if (data.fatal) {
                     hls.destroy();
                     v.src = streamUrl;
                     v.play().catch(()=>{});
-                    if(wrapper) wrapper.classList.add("playing");
+                    if(wrapper) {
+                        wrapper.classList.add("playing");
+                        setTimeout(() => setupPlayerClickHandler("wrapperCanal"), 100);
+                    }
                 }
             });
             v._hls = hls;
         } else {
             v.src = streamUrl;
             v.play().catch(()=>{});
-            if(wrapper) wrapper.classList.add("playing");
+            if(wrapper) {
+                wrapper.classList.add("playing");
+                setTimeout(() => setupPlayerClickHandler("wrapperCanal"), 100);
+            }
         }
-        // Inicializar click handler
-        if(wrapper) { setupPlayerClickHandler("wrapperCanal"); }
     }
     function playCanalInt(url) { playHLS("tvPlayerInt", url); }
     function playCanalDeportes(url) { playHLS("tvPlayerDeportes", url); }
@@ -1395,36 +1432,86 @@
         wrapper.classList.toggle('hide-ui');
     }
 
-    // Sistema de detección de clics simple y doble en el reproductor
+    // Sistema mejorado de detección de clics simple y doble en el reproductor
     function setupPlayerClickHandler(wrapperId) {
         const wrapper = document.getElementById(wrapperId);
-        let clickCount = 0;
-        let clickTimer = null;
+        if (!wrapper) {
+            console.warn('Wrapper no encontrado:', wrapperId);
+            return;
+        }
+        
+        // Evitar agregar múltiples listeners al mismo wrapper
+        if (wrapper._clickHandlerAdded) return;
+        wrapper._clickHandlerAdded = true;
+        
+        let lastClickTime = 0;
+        let clickTimeout = null;
 
-        wrapper.addEventListener('click', function(e) {
-            // Ignorar clics en botones o menús
+        function handleTap(e) {
+            // Ignorar si es en botones o menús
             if (e.target.closest('.fit-btn') || e.target.closest('.fit-menu')) {
                 return;
             }
 
-            clickCount++;
+            const currentTime = new Date().getTime();
+            const timeSinceLastClick = currentTime - lastClickTime;
 
-            if (clickCount === 1) {
-                // Primer clic: esperar a ver si hay un segundo clic
-                clickTimer = setTimeout(function() {
-                    // Pasaron 300ms sin segundo clic = UN CLIC
-                    // Ocultar controles
-                    wrapper.classList.add('hide-ui');
-                    clickCount = 0;
-                }, 300);
-            } else if (clickCount === 2) {
-                // Segundo clic detectado = DOS CLICS
-                clearTimeout(clickTimer);
-                // Mostrar controles
+            console.log('📱 Toque detectado. Tiempo desde último toque:', timeSinceLastClick + 'ms');
+
+            if (timeSinceLastClick < 350) {
+                // DOBLE TOQUE - Mostrar controles
+                clearTimeout(clickTimeout);
+                console.log('✓✓ DOS TOQUES detectados - Mostrando controles');
                 wrapper.classList.remove('hide-ui');
-                clickCount = 0;
+                wrapper.style.cursor = 'pointer';
+                lastClickTime = 0;
+            } else {
+                // PRIMER TOQUE - Ocultar controles después de 300ms
+                lastClickTime = currentTime;
+                clearTimeout(clickTimeout);
+                
+                clickTimeout = setTimeout(() => {
+                    console.log('✓ UN TOQUE detectado - Ocultando controles');
+                    wrapper.classList.add('hide-ui');
+                    wrapper.style.cursor = 'pointer';
+                }, 300);
+            }
+        }
+
+        // Agregar listeners con captura en la burbuja
+        wrapper.addEventListener('click', handleTap, { capture: false, passive: true });
+        wrapper.addEventListener('touchend', handleTap, { capture: false, passive: true });
+        
+        // Asegurar que el wrapper sea clickeable
+        wrapper.style.cursor = 'pointer';
+        wrapper.style.userSelect = 'none';
+        wrapper.style.WebkitUserSelect = 'none';
+        
+        console.log('✓ Click handler configurado para:', wrapperId);
+    }
+
+    // Inicializar todos los click handlers después de que el DOM esté listo
+    function initializeAllClickHandlers() {
+        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes'];
+        wrapperIds.forEach(id => {
+            const wrapper = document.getElementById(id);
+            if (wrapper) {
+                console.log('Inicializando click handler para:', id);
+                setupPlayerClickHandler(id);
+            } else {
+                console.warn('Wrapper no encontrado:', id);
             }
         });
+        console.log('✓ Click handlers inicializados');
+    }
+    
+    // Intentar inicializar handlers cuando estén listos
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initializeAllClickHandlers, 500);
+        });
+    } else {
+        setTimeout(initializeAllClickHandlers, 500);
     }
 
     function setQuality(videoId, level, menuId, btn) {
@@ -1528,6 +1615,9 @@
         // Muestra el bloque inicial: el de la URL (#hash) o "inicio" por defecto
         const initialId = window.location.hash ? window.location.hash.substring(1) : 'inicio';
         showSection(initialId);
+        
+        // Inicializar click handlers para todos los reproductores
+        initializeAllClickHandlers();
     });
 </script>
 </body>
