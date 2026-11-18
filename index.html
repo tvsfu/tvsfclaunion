@@ -287,6 +287,12 @@
         .lightbox.open { display: flex; }
         .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; touch-action: pinch-zoom pan-x pan-y; }
         .lightbox-close { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.6); color: white; font-size: 1.3rem; cursor: pointer; z-index: 2; }
+
+        /* --- CONTACTO --- */
+        .contacto-botones { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+        .btn-contacto { width: 90%; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 16px; border-radius: 12px; font-weight: bold; font-size: 1rem; text-decoration: none; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); box-sizing: border-box; }
+        .btn-contacto img { width: 30px; height: 30px; object-fit: contain; border-radius: 6px; }
+        .btn-contacto .emoji-icon { font-size: 1.5rem; line-height: 1; }
     </style>
 </head>
 <body>
@@ -328,7 +334,7 @@
     <button class="topbar-link" data-target="anuncios">📢 Anuncios</button>
     <button class="topbar-link" data-target="anunciosCristianos">📢 Anun. Cristianos</button>
     <button class="topbar-link" data-target="anunciosCatolicos">📢 Anun. Católicos</button>
-    <button class="topbar-link" data-target="contacto">☎️ Contacto</button>
+    <button class="topbar-link" data-target="contacto">🛒 Adquirir servicio</button>
     <button class="topbar-link" onclick="openLogin()" style="background:#334155; border-color:#475569;">🛠️ Admin</button>
 </div>
 
@@ -1140,11 +1146,9 @@
 
 <section id="contacto">
     <div class="card" style="text-align:center">
-        <h2>📞 Contacto</h2>
-        <p style="font-size:1.1rem; margin-bottom:20px;">TV SFC LA UNION</p>
-        <a href="tel:+50241680075" class="btn" style="width:90%; margin:10px auto; display:block;">📞 Llamar: (502) 4168-0075</a>
-        <a href="https://www.facebook.com/100077985564115" target="_blank" class="btn" style="width:90%; margin:10px auto; display:block; background:#1877f2; color:white;">📘 Facebook</a>
-        <a href="/cdn-cgi/l/email-protection#81e8efe7eec1f5f7f2e7e2afe2eeec" class="btn" style="width:90%; margin:10px auto; display:block; background:#ea4335; color:white;">✉️ Email</a>
+        <h2>🛒 Adquirir servicio</h2>
+        <p style="font-size:1.1rem; margin-bottom:20px;">Adquirir de servicios TV en línea</p>
+        <div class="contacto-botones" id="contactoBotones"></div>
         <div class="reactions-bar" style="justify-content: center;">
             <div class="reaction-btn" onclick="toggleReaction('contacto', 'like')">
                 <span class="reaction-emoji">👍</span>
@@ -1211,6 +1215,17 @@
         <button id="btnGuardar" class="btn" onclick="guardarContenido()" style="width:100%; margin-bottom:10px">💾 Guardar</button>
         <button id="btnCancelar" class="btn btn-gray" onclick="cancelarEdicion()" style="width:100%; margin-bottom:20px; background:#64748b; display:none;">🚫 Cancelar Edición</button>
         
+        <hr style="border-color:#334155">
+        <h3>📞 Configurar Contacto</h3>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Deja un campo vacío para ocultar ese botón. Los iconos son enlaces a una imagen (cualquier formato).</p>
+        <input type="text" id="ctWhatsapp" class="admin-input" placeholder="Número de WhatsApp con código de país (ej. 50241680075)" inputmode="tel">
+        <input type="text" id="ctIconWhatsapp" class="admin-input" placeholder="URL del icono de WhatsApp (imagen)">
+        <input type="text" id="ctFacebook" class="admin-input" placeholder="Enlace de Facebook">
+        <input type="text" id="ctIconFacebook" class="admin-input" placeholder="URL del icono de Facebook (imagen)">
+        <input type="text" id="ctGmail" class="admin-input" placeholder="Correo Gmail">
+        <input type="text" id="ctIconGmail" class="admin-input" placeholder="URL del icono de Gmail (imagen)">
+        <button class="btn" onclick="guardarContacto()" style="width:100%; margin-bottom:20px">💾 Guardar Contacto</button>
+
         <hr style="border-color:#334155">
         <h3>Gestionar Contenido</h3>
         <select id="verCategoria" class="admin-select" onchange="mostrarTodosElementos()">
@@ -1555,6 +1570,7 @@
     }
 
     function renderAllGrids() {
+        renderContacto();
         renderGrid('canales', 'canalesGrid', 'playCanal');
         renderGrid('canalesInt', 'canalesIntGrid', 'playCanalInt');
         renderGrid('canalesDeportes', 'canalesDeportesGrid', 'playCanalDeportes');
@@ -1729,6 +1745,98 @@
             showToast('✅ Enlace del anuncio copiado');
         } catch (err) {
             showToast('❌ No se pudo compartir', 'error');
+        }
+    }
+
+    // ============================================
+    // CONTACTO (configurable desde el panel de administración)
+    // ============================================
+    const CONTACTO_DEFAULT = {
+        whatsapp: '50241680075',
+        facebook: 'https://www.facebook.com/100077985564115',
+        gmail: 'info@tvsfc.com',
+        iconWhatsapp: '', iconFacebook: '', iconGmail: ''
+    };
+
+    function getContactoCfg() {
+        return { ...CONTACTO_DEFAULT, ...((storage && storage.contactoConfig) || {}) };
+    }
+
+    function renderContacto() {
+        const box = document.getElementById('contactoBotones');
+        if (!box) return;
+        const c = getContactoCfg();
+        const wa = String(c.whatsapp || '').replace(/\D/g, '');
+        let fb = String(c.facebook || '').trim();
+        if (fb && !/^https?:\/\//i.test(fb)) fb = 'https://' + fb;
+        const mail = String(c.gmail || '').trim();
+
+        const botones = [];
+        if (wa) botones.push({
+            href: 'https://wa.me/' + wa + '?text=' + encodeURIComponent('Hola, quiero adquirir el servicio de TV en línea'),
+            texto: 'Escribirnos al WhatsApp', color: '#25d366', emoji: '💬', icon: c.iconWhatsapp
+        });
+        if (fb) botones.push({ href: fb, texto: 'Facebook', color: '#1877f2', emoji: '📘', icon: c.iconFacebook });
+        if (mail) botones.push({ href: 'mailto:' + mail, texto: 'Gmail', color: '#ea4335', emoji: '✉️', icon: c.iconGmail });
+
+        box.innerHTML = '';
+        botones.forEach(b => {
+            const a = document.createElement('a');
+            a.className = 'btn-contacto';
+            a.href = b.href;
+            a.style.background = b.color;
+            if (!b.href.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; }
+            const ico = document.createElement(b.icon ? 'img' : 'span');
+            if (b.icon) {
+                ico.src = b.icon;
+                ico.alt = b.texto;
+                ico.onerror = () => { const e = document.createElement('span'); e.className = 'emoji-icon'; e.textContent = b.emoji; ico.replaceWith(e); };
+            } else {
+                ico.className = 'emoji-icon';
+                ico.textContent = b.emoji;
+            }
+            const t = document.createElement('span');
+            t.textContent = b.texto;
+            a.append(ico, t);
+            box.appendChild(a);
+        });
+        if (!botones.length) box.textContent = 'Próximamente';
+    }
+
+    function cargarFormContacto() {
+        const c = getContactoCfg();
+        document.getElementById('ctWhatsapp').value = c.whatsapp || '';
+        document.getElementById('ctIconWhatsapp').value = c.iconWhatsapp || '';
+        document.getElementById('ctFacebook').value = c.facebook || '';
+        document.getElementById('ctIconFacebook').value = c.iconFacebook || '';
+        document.getElementById('ctGmail').value = c.gmail || '';
+        document.getElementById('ctIconGmail').value = c.iconGmail || '';
+    }
+
+    async function guardarContacto() {
+        const v = id => document.getElementById(id).value.trim();
+        const cfg = {
+            whatsapp: v('ctWhatsapp').replace(/\D/g, ''),
+            facebook: v('ctFacebook'),
+            gmail: v('ctGmail'),
+            iconWhatsapp: v('ctIconWhatsapp'),
+            iconFacebook: v('ctIconFacebook'),
+            iconGmail: v('ctIconGmail')
+        };
+        if (cfg.gmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cfg.gmail)) return showToast('⚠️ Correo no válido', 'error');
+        if (firebaseInitialized) {
+            try {
+                await database.ref('contenido/contactoConfig').set(cfg);
+                showToast('✅ Contacto guardado');
+            } catch (error) {
+                console.error('Error al guardar contacto:', error);
+                showToast('❌ Error al guardar: ' + (error.message || error.code || 'desconocido'), 'error');
+            }
+        } else {
+            storage.contactoConfig = cfg;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+            renderContacto();
+            showToast('✅ Contacto guardado localmente');
         }
     }
 
@@ -1920,7 +2028,7 @@
                 .then(() => {
                     isAdmin = true;
                     document.getElementById("loginModal").style.display = "none";
-                    document.getElementById("adminPanel").style.display = "block";
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto();
                     showToast("✅ Acceso Concedido");
                 })
                 .catch((error) => {
@@ -1933,7 +2041,7 @@
                 if (hash === PASS_HASH) {
                     isAdmin = true;
                     document.getElementById("loginModal").style.display = "none";
-                    document.getElementById("adminPanel").style.display = "block";
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto();
                     showToast("✅ Acceso Concedido (modo local)");
                 } else showToast("❌ Contraseña Incorrecta", "error");
             });
@@ -1941,7 +2049,7 @@
     }
     function openLogin() { 
         if (isAdmin) {
-            document.getElementById("adminPanel").style.display = "block";
+            document.getElementById("adminPanel").style.display = "block"; cargarFormContacto();
         } else {
             document.getElementById("loginModal").style.display = "flex";
         }
