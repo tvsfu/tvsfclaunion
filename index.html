@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
     
     <style>
         :root {
@@ -879,7 +880,7 @@
         <hr style="border-color:#334155">
         
         <h3 id="formTitle">Agregar Contenido</h3>
-        <select id="categoria" class="admin-select">
+        <select id="categoria" class="admin-select" onchange="toggleTipoStream()">
             <option value="">Seleccionar Categoría</option>
             <option value="canales">Canales Nacionales</option>
             <option value="canalesInt">Canales Internacionales</option>
@@ -901,7 +902,14 @@
             <option value="eventos">FB Live</option>
         </select>
         <input type="text" id="nombre" class="admin-input" placeholder="Nombre del contenido">
-        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream">
+        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8 o .ts)">
+        <div id="tipoStreamBox" style="display:none;">
+            <select id="tipoStream" class="admin-select">
+                <option value="auto">Formato: Automático (detecta .m3u8 / .ts)</option>
+                <option value="hls">Formato: HLS (.m3u8)</option>
+                <option value="ts">Formato: MPEG-TS directo (.ts)</option>
+            </select>
+        </div>
         <input type="text" id="logo" class="admin-input" placeholder="URL del logo (opcional)">
         
         <button id="btnGuardar" class="btn" onclick="guardarContenido()" style="width:100%; margin-bottom:10px">💾 Guardar</button>
@@ -1053,6 +1061,8 @@
             document.getElementById("nombre").value = item.nombre;
             document.getElementById("stream1").value = item.url;
             document.getElementById("logo").value = item.logo;
+            document.getElementById("tipoStream").value = item.tipo || "auto";
+            toggleTipoStream();
             
             editModeId = id;
             document.getElementById("formTitle").textContent = "✏️ Editando Contenido";
@@ -1067,6 +1077,7 @@
         document.getElementById("nombre").value = "";
         document.getElementById("stream1").value = "";
         document.getElementById("logo").value = "";
+        document.getElementById("tipoStream").value = "auto";
         document.getElementById("formTitle").textContent = "Agregar Contenido";
         document.getElementById("btnGuardar").textContent = "💾 Guardar en Firebase";
         document.getElementById("btnCancelar").style.display = "none";
@@ -1077,6 +1088,7 @@
         const nombre = document.getElementById("nombre").value;
         const url = document.getElementById("stream1").value;
         const logo = document.getElementById("logo").value || "https://via.placeholder.com/80";
+        const tipo = TV_CATEGORIAS.includes(cat) ? (document.getElementById("tipoStream").value || "auto") : "auto";
         
         if(!cat || !nombre || !url) return showToast("⚠️ Faltan datos", "error");
         
@@ -1084,7 +1096,7 @@
         
         if (firebaseInitialized) {
             try {
-                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, timestamp: Date.now() });
+                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, tipo: tipo, timestamp: Date.now() });
                 showToast(editModeId ? "✅ Contenido Actualizado" : "✅ Guardado en Firebase");
                 cancelarEdicion();
                 mostrarTodosElementos();
@@ -1094,7 +1106,7 @@
             }
         } else {
             if (!storage[cat]) storage[cat] = {};
-            storage[cat][id] = { nombre, url, logo };
+            storage[cat][id] = { nombre, url, logo, tipo };
             localStorage.setItem("tv_sfc_data", JSON.stringify(storage));
             showToast("✅ Guardado localmente");
             cancelarEdicion();
@@ -1230,7 +1242,7 @@
             const isLiked = likes[likeId] ? 'active' : '';
             const div = document.createElement("div");
             div.className = "item";
-            div.onclick = () => window[clickFn](item.url);
+            div.onclick = () => window[clickFn](item.url, item);
             div.innerHTML = `<div class="like-container ${isLiked}" onclick="toggleLike(event, '${likeId}')">👍</div><img src="${item.logo}" onerror="this.src='https://via.placeholder.com/80'"><p>${item.nombre}</p>`;
             grid.appendChild(div);
         });
@@ -1264,74 +1276,119 @@
         }
         return url;
     }
-    function playHLS(videoId, url) {
-        const v = document.getElementById(videoId);
-        if (!v) return;
-        const wrapper = v.closest(".player-wrapper");
+    // ============================================
+    // REPRODUCTOR DE TV: HLS (.m3u8) y MPEG-TS (.ts)
+    // ============================================
+    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes'];
+
+    function toggleTipoStream() {
+        const cat = document.getElementById("categoria").value;
+        document.getElementById("tipoStreamBox").style.display = TV_CATEGORIAS.includes(cat) ? "block" : "none";
+    }
+
+    function proxyUrl(url) {
+        return '/api/proxy?url=' + encodeURIComponent(url);
+    }
+
+    // Decide si el canal es HLS o MPEG-TS (por la opción elegida o por la extensión)
+    function getStreamType(url, item) {
+        if (item && (item.tipo === 'ts' || item.tipo === 'hls')) return item.tipo;
+        const path = (url || '').split('#')[0].split('?')[0].toLowerCase();
+        return path.endsWith('.ts') ? 'ts' : 'hls';
+    }
+
+    function destroyPlayers(v) {
+        if (v._hls) { try { v._hls.destroy(); } catch (e) {} v._hls = null; }
+        if (v._ts) {
+            try { v._ts.pause(); v._ts.unload(); v._ts.detachMediaElement(); v._ts.destroy(); } catch (e) {}
+            v._ts = null;
+        }
+    }
+
+    function markPlaying(wrapper) {
+        if (!wrapper) return;
+        wrapper.classList.add("playing");
+        setTimeout(() => setupPlayerClickHandler(wrapper.id), 100);
+    }
+
+    // Reproduce un stream MPEG-TS continuo (.ts) con mpegts.js
+    function playTS(v, wrapper, url, viaProxy) {
+        if (typeof mpegts === 'undefined' || !mpegts.getFeatureList().mseLivePlayback) {
+            showToast('Tu navegador no soporta canales .ts directos', 'error');
+            return;
+        }
+        const src = viaProxy ? proxyUrl(url) : fixStreamUrl(url);
+        const usingProxy = src.startsWith('/api/proxy');
+        const player = mpegts.createPlayer(
+            { type: 'mpegts', isLive: true, url: src },
+            { enableWorker: true, liveBufferLatencyChasing: true, liveBufferLatencyMaxLatency: 10, liveBufferLatencyMinRemain: 1 }
+        );
+        player.attachMediaElement(v);
+        player.on(mpegts.Events.ERROR, (type, detail) => {
+            console.warn('Error mpegts:', type, detail);
+            // Si falló directo (CORS, etc.), reintenta una vez por el proxy
+            if (!usingProxy) {
+                destroyPlayers(v);
+                playTS(v, wrapper, url, true);
+            } else {
+                showToast('No se pudo reproducir el canal .ts', 'error');
+            }
+        });
+        v._ts = player;
+        player.load();
+        const p = player.play();
+        if (p && p.catch) p.catch(() => {});
+        markPlaying(wrapper);
+    }
+
+    function playHLSStream(v, wrapper, url, allowTSFallback) {
         const streamUrl = fixStreamUrl(url);
-        if (v._hls) { v._hls.destroy(); v._hls = null; }
         if (Hls.isSupported()) {
             const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
             hls.loadSource(streamUrl);
             hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => { 
-                v.play().catch(()=>{}); 
-                if(wrapper) {
-                    wrapper.classList.add("playing");
-                    setTimeout(() => setupPlayerClickHandler(wrapper.id), 100);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                v.play().catch(() => {});
+                markPlaying(wrapper);
+            });
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (!data.fatal) return;
+                // Si no era una lista .m3u8 (URL sin extensión que en realidad es .ts), prueba como MPEG-TS
+                if (allowTSFallback && data.details === Hls.ErrorDetails.MANIFEST_PARSING_ERROR) {
+                    destroyPlayers(v);
+                    playTS(v, wrapper, url, false);
+                    return;
                 }
+                hls.destroy();
+                v._hls = null;
+                v.src = streamUrl;
+                v.play().catch(() => {});
+                markPlaying(wrapper);
             });
             v._hls = hls;
         } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
             v.src = streamUrl;
-            v.play().catch(()=>{});
-            if(wrapper) {
-                wrapper.classList.add("playing");
-                setTimeout(() => setupPlayerClickHandler(wrapper.id), 100);
-            }
+            v.play().catch(() => {});
+            markPlaying(wrapper);
         } else {
             alert('Tu navegador no soporta HLS. Usa Chrome, Firefox o Safari.');
         }
     }
-    function playCanal(url) {
-        const v = document.getElementById("tvPlayer");
-        const wrapper = document.getElementById("wrapperCanal");
-        const streamUrl = fixStreamUrl(url);
-        if (Hls.isSupported()) {
-            if (v._hls) { v._hls.destroy(); v._hls = null; }
-            const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-            hls.loadSource(streamUrl);
-            hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => { 
-                v.play().catch(()=>{}); 
-                if(wrapper) {
-                    wrapper.classList.add("playing");
-                    setTimeout(() => setupPlayerClickHandler("wrapperCanal"), 100);
-                }
-            });
-            hls.on(Hls.Events.ERROR, function(event, data) {
-                if (data.fatal) {
-                    hls.destroy();
-                    v.src = streamUrl;
-                    v.play().catch(()=>{});
-                    if(wrapper) {
-                        wrapper.classList.add("playing");
-                        setTimeout(() => setupPlayerClickHandler("wrapperCanal"), 100);
-                    }
-                }
-            });
-            v._hls = hls;
-        } else {
-            v.src = streamUrl;
-            v.play().catch(()=>{});
-            if(wrapper) {
-                wrapper.classList.add("playing");
-                setTimeout(() => setupPlayerClickHandler("wrapperCanal"), 100);
-            }
-        }
+
+    function playStream(videoId, url, item) {
+        const v = document.getElementById(videoId);
+        if (!v) return;
+        const wrapper = v.closest(".player-wrapper");
+        destroyPlayers(v);
+        const type = getStreamType(url, item);
+        if (type === 'ts') playTS(v, wrapper, url, false);
+        else playHLSStream(v, wrapper, url, !(item && item.tipo === 'hls'));
     }
-    function playCanalInt(url) { playHLS("tvPlayerInt", url); }
-    function playCanalDeportes(url) { playHLS("tvPlayerDeportes", url); }
+
+    function playHLS(videoId, url, item) { playStream(videoId, url, item); }
+    function playCanal(url, item) { playStream("tvPlayer", url, item); }
+    function playCanalInt(url, item) { playStream("tvPlayerInt", url, item); }
+    function playCanalDeportes(url, item) { playStream("tvPlayerDeportes", url, item); }
     function playRadio(url) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); }
     function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
     function playRadioCristianaSFC(url) { const a = document.getElementById("radioCristianaSFCPlayer"); a.src = url; a.play(); }
