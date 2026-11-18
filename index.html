@@ -337,6 +337,9 @@
         .admin-acc > summary::after { content: "▾"; font-size: 1.3rem; color: var(--primary); transition: transform 0.2s; }
         .admin-acc[open] > summary::after { transform: rotate(180deg); }
         .admin-acc-body { padding-bottom: 10px; }
+
+        .btn-yt { display: block; width: 100%; margin: 10px 0 0; padding: 11px 14px; background: #ff0000; color: #fff; border: none; border-radius: 10px; font-weight: bold; font-size: 0.9rem; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.4); }
+        .btn-yt small { display: block; font-weight: normal; opacity: 0.85; font-size: 0.72rem; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -905,7 +908,7 @@
         <h2>🎥 Entretenimiento 24/7</h2>
         <div class="grid" id="videosGrid"></div>
         <div class="video-box">
-            <iframe id="videoFrame" allowfullscreen></iframe>
+            <iframe id="videoFrame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('videos', 'like')">
@@ -982,7 +985,7 @@
         <h2>📰 Noticias 24/7</h2>
         <div class="grid" id="noticiasGrid"></div>
         <div class="video-box">
-            <iframe id="noticiasFrame" allowfullscreen></iframe>
+            <iframe id="noticiasFrame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('noticias', 'like')">
@@ -1006,7 +1009,7 @@
         <h2>🎵 Música Cristiano</h2>
         <div class="grid" id="religiososGrid"></div>
         <div class="video-box">
-            <iframe id="religiosoFrame" allowfullscreen></iframe>
+            <iframe id="religiosoFrame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('religiosos', 'like')">
@@ -1083,7 +1086,7 @@
         <h2>📿 Música Católica 24/7</h2>
         <div class="grid" id="videosCatolicosGrid"></div>
         <div class="video-box">
-            <iframe id="videosCatolicosFrame" allowfullscreen></iframe>
+            <iframe id="videosCatolicosFrame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('videosCatolicos', 'like')">
@@ -1107,7 +1110,7 @@
         <h2>🎵 Music 24/7</h2>
         <div class="grid" id="music247Grid"></div>
         <div class="video-box">
-            <iframe id="music247Frame" allowfullscreen></iframe>
+            <iframe id="music247Frame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('music247', 'like')">
@@ -1131,7 +1134,7 @@
         <h2>🍿 Películas 24/7</h2>
         <div class="grid" id="peliculas247Grid"></div>
         <div class="video-box">
-            <iframe id="peliculas247Frame" allowfullscreen></iframe>
+            <iframe id="peliculas247Frame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('peliculas247', 'like')">
@@ -1155,7 +1158,7 @@
         <h2>⚽ Deportes</h2>
         <div class="grid" id="deportesGrid"></div>
         <div class="video-box">
-            <iframe id="deportesFrame" allowfullscreen></iframe>
+            <iframe id="deportesFrame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('deportes', 'like')">
@@ -1478,12 +1481,12 @@
     let editModeId = null;
 
     const dataInicial = {
-        canales: {},
-        radio: {},
-        radioSFC: {},
-        videos: {},
+        canales: {1: {nombre: "Vision TV", logo: "https://static.wixstatic.com/media/7acae1_a1343f704ae0412ba28bab4239e78411~mv2.png/v1/fill/w_540,h_540,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/visiontv.png", url: "https://cdn.streamhispanatv.net:3531/live/tvsretrogtlive.m3u8"}},
+        radio: {1: {nombre: "EmisorasUnidas", logo: "https://cdn-profiles.tunein.com/s17610/images/logog.png", url: "https://stream-170.zeno.fm/tfcgfdag9ueuv"}},
+        radioSFC: {1: {nombre: "Radio SFU 94.1FM", logo: "https://municipalidadsanfranciscolaunion.gob.gt/wp-content/uploads/2025/12/radio-sfu-portada-pagina-web.png", url: "https://stream-166.zeno.fm/34ctc9etir7uv"}},
+        videos: {1: {nombre: "The Best EDM Mix 2025", logo: "https://www.pikpng.com/pngl/b/417-4170276_24-7-music-bot-graphic-design-clipart.png", url: "https://www.youtube.com/embed/GJ5WqZJVJqc"}},
         noticias: {},
-        religiosos: {},
+        religiosos: {1: {nombre: "Musica Cristiana 24/7", logo: "https://play-lh.googleusercontent.com/V7i7zLC9dlX62MQCDbvsYD0zpirJp-peQA8SBiOKvxafYB5VRRfj0t0k4pv3h5lyAK4", url: "https://www.youtube.com/embed/VEzQKnsCd3I"}},
         deportes: {},
         anuncios: {},
         eventos: {},
@@ -1795,6 +1798,7 @@
         if (esYouTube(item.url)) {
             const f = document.createElement('iframe');
             f.src = item.url;
+            f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
             f.allowFullscreen = true;
             box.appendChild(f);
         } else {
@@ -2324,6 +2328,46 @@
         });
     }
 
+    // ============================================
+    // YOUTUBE: abrir en la app de YouTube (reproducción en segundo plano con Premium)
+    // ============================================
+    const YT_FRAMES = ['videoFrame', 'noticiasFrame', 'religiosoFrame', 'videosCatolicosFrame', 'music247Frame', 'peliculas247Frame', 'deportesFrame'];
+
+    function ytWatchUrl(src) {
+        try {
+            const u = new URL(src);
+            if (!/(^|\.)youtube(-nocookie)?\.com$|(^|\.)youtu\.be$/i.test(u.hostname)) return null;
+            const list = u.searchParams.get('list');
+            const m = u.pathname.match(/^\/embed\/([^\/?]+)/);
+            if (!m) return u.href;
+            if (m[1] === 'videoseries' && list) return 'https://www.youtube.com/playlist?list=' + encodeURIComponent(list);
+            if (m[1] === 'live_stream' && u.searchParams.get('channel')) return 'https://www.youtube.com/channel/' + encodeURIComponent(u.searchParams.get('channel')) + '/live';
+            return 'https://www.youtube.com/watch?v=' + encodeURIComponent(m[1]) + (list ? '&list=' + encodeURIComponent(list) : '');
+        } catch (e) { return null; }
+    }
+
+    function abrirEnYouTube(frameId) {
+        const f = document.getElementById(frameId);
+        const src = f && f.getAttribute('src');
+        if (!src) return showToast('Primero elige un video de la lista', 'error');
+        const url = ytWatchUrl(src);
+        if (!url) return showToast('Este video no es de YouTube', 'error');
+        window.open(url, '_blank', 'noopener');
+    }
+
+    function iniciarBotonesYouTube() {
+        YT_FRAMES.forEach(id => {
+            const f = document.getElementById(id);
+            const box = f && f.closest('.video-box');
+            if (!box || box.nextElementSibling?.classList.contains('btn-yt')) return;
+            const b = document.createElement('button');
+            b.className = 'btn-yt';
+            b.innerHTML = '📲 Abrir en YouTube<small>Para escucharlo en segundo plano (requiere YouTube Premium)</small>';
+            b.onclick = () => abrirEnYouTube(id);
+            box.insertAdjacentElement('afterend', b);
+        });
+    }
+
     function fixStreamUrl(url) {
         // Si la página está en HTTPS y la URL es HTTP, pasamos por proxy para evitar bloqueo Mixed Content
         if (location.protocol === 'https:' && url.startsWith('http://')) {
@@ -2743,6 +2787,7 @@
         // Muestra el bloque inicial: el de la URL (#hash) o "inicio" por defecto
         try { renderLogo(JSON.parse(localStorage.getItem('tv_sfc_logo') || '{}')); } catch (e) { renderLogo({}); }
         iniciarInstalacion();
+        iniciarBotonesYouTube();
         const rawHash = window.location.hash ? window.location.hash.substring(1) : 'inicio';
         const [initialId, extraId] = rawHash.split('/');
         if (extraId && ANUNCIO_CATS[initialId]) {
