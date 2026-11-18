@@ -1,13 +1,16 @@
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   const { url } = req.query;
   if (!url) return res.status(400).send('Missing url parameter');
 
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', '*');
-    return res.status(200).end();
-  }
+  // Si el cliente cierra la conexión (cambia de canal), cortamos la descarga
+  const controller = new AbortController();
+  req.on('close', () => controller.abort());
 
   try {
     const response = await fetch(url, {
@@ -17,24 +20,28 @@ export default async function handler(req, res) {
         'Accept-Encoding': 'identity',
       },
       redirect: 'follow',
+      signal: controller.signal,
     });
 
     const contentType = response.headers.get('content-type') || 'application/octet-stream';
-
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', '*');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('X-Accel-Buffering', 'no');
 
-    // Manejo especial para playlists M3U8
-    if (contentType.includes('mpegurl') || contentType.includes('x-mpegurl') || url.includes('.m3u8')) {
+    // Playlists M3U8: reescribir las URLs para que también pasen por el proxy
+    const isPlaylist =
+      contentType.includes('mpegurl') ||
+      contentType.includes('x-mpegurl') ||
+      url.split('?')[0].toLowerCase().endsWith('.m3u8');
+
+    if (isPlaylist) {
       const text = await response.text();
-      const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+      const finalUrl = response.url || url;
 
       const rewritten = text.split('\n').map(line => {
         const trimmed = line.trim();
         if (trimmed.startsWith('#') || trimmed === '') return line;
-        let absoluteUrl = trimmed.startsWith('http') ? trimmed : baseUrl + trimmed;
+        let absoluteUrl;
+        try { absoluteUrl = new URL(trimmed, finalUrl).href; } catch { return line; }
         return '/api/proxy?url=' + encodeURIComponent(absoluteUrl);
       }).join('\n');
 
@@ -42,28 +49,31 @@ export default async function handler(req, res) {
       return res.status(200).send(rewritten);
     }
 
-    // Para segmentos .ts y streams binarios — streaming en tiempo real
+    // Segmentos .ts y streams MPEG-TS continuos: se envían en tiempo real
+    res.status(response.status);
     res.setHeader('Content-Type', contentType);
-    
+
     if (response.body) {
       const reader = response.body.getReader();
-      const pump = async () => {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          res.write(Buffer.from(value));
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        // Respeta la contrapresión para no saturar la memoria con streams en vivo
+        if (!res.write(Buffer.from(value))) {
+          await new Promise(resolve => res.once('drain', resolve));
         }
-        res.end();
-      };
-      await pump();
+      }
+      res.end();
     } else {
       const buffer = await response.arrayBuffer();
-      res.status(response.status).send(Buffer.from(buffer));
+      res.send(Buffer.from(buffer));
     }
-
   } catch (e) {
+    if (e.name === 'AbortError') return res.end();
     if (!res.headersSent) {
       res.status(500).send('Proxy error: ' + e.message);
+    } else {
+      res.end();
     }
   }
 }
