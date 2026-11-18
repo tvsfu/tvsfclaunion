@@ -13,15 +13,20 @@ export default async function handler(req, res) {
   req.on('close', () => controller.abort());
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': '*/*',
-        'Accept-Encoding': 'identity',
-      },
+    const UA_NAVEGADOR = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+    const UA_VLC = 'VLC/3.0.20 LibVLC/3.0.20';
+    const pedir = (ua) => fetch(url, {
+      headers: { 'User-Agent': ua, 'Accept': '*/*', 'Accept-Encoding': 'identity' },
       redirect: 'follow',
       signal: controller.signal,
     });
+
+    let response = await pedir(UA_NAVEGADOR);
+    // Algunos paneles IPTV rechazan navegadores: reintenta como reproductor VLC
+    if ([401, 403, 404, 458].includes(response.status)) {
+      const reintento = await pedir(UA_VLC);
+      if (reintento.ok) response = reintento;
+    }
 
     const contentType = response.headers.get('content-type') || 'application/octet-stream';
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
