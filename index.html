@@ -1087,31 +1087,10 @@
 
 <section id="music247">
     <div class="card">
-       <h2>🎵 Music 24/7</h2>
+        <h2>🎵 Music 24/7</h2>
         <div class="grid" id="music247Grid"></div>
-        <div class="player-wrapper" id="wrapperMusic247" ondblclick="toggleUI('wrapperMusic247')">
-            <div class="live-badge">🔴 EN VIVO</div>
-            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuMusic')">⚙️ Pantalla</div>
-            <div class="fit-menu top-menu" id="fitMenuMusic">
-                <div class="btn-group">
-                    <button class="active" onclick="setFit('tvPlayerMusic247','contain','fitMenuMusic',this)">Ajustar</button>
-                    <button onclick="setFit('tvPlayerMusic247','fill','fitMenuMusic',this)">Rellenar</button>
-                    <button onclick="setFit('tvPlayerMusic247','cover','fitMenuMusic',this)">Zoom</button>
-                    <button onclick="setFitCustom('tvPlayerMusic247','100%','auto','fitMenuMusic',this)">Alt. fija</button>
-                    <button onclick="setFitCustom('tvPlayerMusic247','auto','100%','fitMenuMusic',this)">Ancho fijo</button>
-                </div>
-            </div>
-            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuMusicQ')">🎬 Calidad</div>
-            <div class="fit-menu bottom-menu" id="fitMenuMusicQ">
-                <div class="btn-group-quality">
-                    <button onclick="setQuality('tvPlayerMusic247', 'auto', 'fitMenuMusicQ', this)" class="active">Auto</button>
-                    <button onclick="setQuality('tvPlayerMusic247', 180, 'fitMenuMusicQ', this)">180p</button>
-                    <button onclick="setQuality('tvPlayerMusic247', 360, 'fitMenuMusicQ', this)">360p</button>
-                    <button onclick="setQuality('tvPlayerMusic247', 480, 'fitMenuMusicQ', this)">480p</button>
-                    <button onclick="setQuality('tvPlayerMusic247', 720, 'fitMenuMusicQ', this)">720p</button>
-                </div>
-            </div>
-            <video id="tvPlayerMusic247" controls autoplay></video>
+        <div class="video-box">
+            <iframe id="music247Frame" allowfullscreen></iframe>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('music247', 'like')">
@@ -1121,14 +1100,6 @@
             <div class="reaction-btn" onclick="toggleReaction('music247', 'love')">
                 <span class="reaction-emoji">❤️</span>
                 <span class="reaction-count" id="music247-love-count">0</span>
-            </div>
-            <div class="reaction-btn" onclick="toggleReaction('music247', 'haha')">
-                <span class="reaction-emoji">😂</span>
-                <span class="reaction-count" id="music247-haha-count">0</span>
-            </div>
-            <div class="reaction-btn" onclick="toggleReaction('music247', 'wow')">
-                <span class="reaction-emoji">😮</span>
-                <span class="reaction-count" id="music247-wow-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('music247')">
                 <span>📤</span>
@@ -2283,7 +2254,7 @@
     // ============================================
     // REPRODUCTOR DE TV: HLS (.m3u8) y MPEG-TS (.ts)
     // ============================================
-    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'videosCinema', 'videosReligioso', 'music247'];
+    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'videosCinema', 'videosReligioso'];
 
     function toggleTipoStream() {
         const cat = document.getElementById("categoria").value;
@@ -2429,7 +2400,7 @@
     function playVideoCatolico(url) { document.getElementById("videosCatolicosFrame").src = url; }
     function playVideo(url) { document.getElementById("videoFrame").src = url; }
     function playVideoCinema(url, item) { playStream("tvPlayerCinema", url, item); }
-    function playMusic247(url, item) { playStream("tvPlayerMusic247", url, item); }
+    function playMusic247(url) { document.getElementById("music247Frame").src = url; }
     function playPeliculas247(url) { document.getElementById("peliculas247Frame").src = url; }
     function playVideoReligioso(url, item) { playStream("tvPlayerVideosReligioso", url, item); }
     function playNoticia(url) { document.getElementById("noticiasFrame").src = url; }
@@ -2569,7 +2540,7 @@
 
     // Inicializar todos los click handlers después de que el DOM esté listo
     function initializeAllClickHandlers() {
-        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperVideosCinema', 'wrapperVideosReligioso', 'wrapperMusic247'];
+        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperVideosCinema', 'wrapperVideosReligioso'];
         wrapperIds.forEach(id => {
             const wrapper = document.getElementById(id);
             if (wrapper) {
