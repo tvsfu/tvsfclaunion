@@ -1324,15 +1324,24 @@
             { enableWorker: true, liveBufferLatencyChasing: true, liveBufferLatencyMaxLatency: 10, liveBufferLatencyMinRemain: 1 }
         );
         player.attachMediaElement(v);
-        player.on(mpegts.Events.ERROR, (type, detail) => {
-            console.warn('Error mpegts:', type, detail);
-            // Si falló directo (CORS, etc.), reintenta una vez por el proxy
+        player.on(mpegts.Events.ERROR, (type, detail, info) => {
+            const motivo = [type, detail, info && (info.msg || info.code)].filter(Boolean).join(' / ');
+            console.warn('Error mpegts:', motivo, info);
+            // 1) Si falló directo (CORS, etc.), reintenta una vez por el proxy
             if (!usingProxy) {
                 destroyPlayers(v);
                 playTS(v, wrapper, url, true);
-            } else {
-                showToast('No se pudo reproducir el canal .ts', 'error');
+                return;
             }
+            // 2) Si es una URL tipo Xtream (/usuario/clave/ID.ts), prueba la versión HLS (.m3u8)
+            const m = url.match(/^(https?:\/\/[^\/]+\/(?:live\/)?[^\/]+\/[^\/]+\/\d+)\.ts(\?.*)?$/i);
+            if (m) {
+                showToast('.ts falló, probando versión .m3u8...', 'error');
+                destroyPlayers(v);
+                playHLSStream(v, wrapper, m[1] + '.m3u8', false);
+                return;
+            }
+            showToast('Error al reproducir .ts: ' + motivo, 'error');
         });
         v._ts = player;
         player.load();
