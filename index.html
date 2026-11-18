@@ -15,21 +15,37 @@
         :root {
             --primary: #22c55e;
             --dark-bg: #020617;
-            --card-bg: rgba(2, 6, 23, 0.95);
+            --card-bg: rgba(var(--nav-rgb), 0.95);
             --text-light: #f8fafc;
             --text-gray: #94a3b8;
             --heart: #ef4444;
+            --primary-rgb: 34, 197, 94;
+            --surface-rgb: 30, 41, 59;
+            --nav-rgb: 2, 6, 23;
+            --on-primary: #020617;
+            --bg-color: #020617;
+            --bg-image: url("https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg");
+            --bg-dim: 0;
         }
+        body::before { content: ""; position: fixed; inset: 0; background: rgba(0,0,0,var(--bg-dim)); pointer-events: none; z-index: -1; }
+        .tema-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .tema-row label { flex: 1; font-size: 0.9rem; }
+        .tema-row input[type=color] { width: 70px; height: 40px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; padding: 2px; cursor: pointer; }
+        .tema-row input[type=range] { flex: 1; }
         body {
             margin: 0;
             font-family: 'Segoe UI', Arial, sans-serif;
-            background: url("https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg") no-repeat center center fixed;
+            background-color: var(--bg-color);
+            background-image: var(--bg-image);
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
             background-size: cover;
             color: var(--text-light);
             padding-bottom: 60px;
         }
 
-        .logo-float { display: block; margin: 20px auto; max-width: 150px; filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.5)); padding-top: 20px; }
+        .logo-float { display: block; margin: 20px auto; max-width: 150px; filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), 0.5)); padding-top: 20px; }
         section { padding: 15px; max-width: 1100px; margin: auto; }
         
         /* SECCIONES TRANSPARENTES CON TEXTO LEGIBLE */
@@ -41,13 +57,13 @@
             position: relative; 
             text-shadow: none; /* Sombreado eliminado */
         }
-        .card h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid rgba(34, 197, 94, 0.4); padding-bottom: 10px; display: inline-block; text-shadow: none; /* Sombreado eliminado */ }
+        .card h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid rgba(var(--primary-rgb), 0.4); padding-bottom: 10px; display: inline-block; text-shadow: none; /* Sombreado eliminado */ }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 15px; max-height: 300px; overflow-y: auto; padding-right: 5px; }
-        .item { background: rgba(30, 41, 59, 0.75); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-shadow: none; }
-        .item:hover { transform: translateY(-5px); background: rgba(30, 41, 59, 0.95); border-color: var(--primary); box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4); }
+        .item { background: rgba(var(--surface-rgb), 0.75); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-shadow: none; }
+        .item:hover { transform: translateY(-5px); background: rgba(var(--surface-rgb), 0.95); border-color: var(--primary); box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.4); }
         .item img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; margin-bottom: 8px; border: 2px solid #334155; }
-        .item p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: #e2e8f0; }
+        .item p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: var(--text-light); }
         
         #deportesGrid .item img {
             width: 100px;
@@ -122,7 +138,7 @@
             pointer-events: none !important;
         }
         audio { width: 100%; margin-top: 15px; filter: invert(0.9) hue-rotate(180deg); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .btn { background: var(--primary); color: var(--dark-bg); padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; margin: 5px; text-shadow: none; }
+        .btn { background: var(--primary); color: var(--on-primary); padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; margin: 5px; text-shadow: none; }
         .btn-danger { background: #ef4444; color: white; padding: 5px 10px; font-size: 0.8rem; }
         .btn-edit { background: #3b82f6; color: white; padding: 5px 10px; font-size: 0.8rem; margin-right: 5px; }
         .admin-input, .admin-select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
@@ -146,7 +162,7 @@
             flex-wrap: wrap;
         }
         .reaction-btn {
-            background: rgba(30, 41, 59, 0.85);
+            background: rgba(var(--surface-rgb), 0.85);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 20px;
             padding: 8px 14px;
@@ -162,11 +178,11 @@
         }
         .reaction-btn:hover {
             transform: scale(1.1);
-            background: rgba(30, 41, 59, 1);
+            background: rgba(var(--surface-rgb), 1);
             border-color: var(--primary);
         }
         .reaction-btn.active {
-            background: rgba(34, 197, 94, 0.3);
+            background: rgba(var(--primary-rgb), 0.3);
             border-color: var(--primary);
             color: var(--primary);
         }
@@ -185,7 +201,7 @@
             font-weight: 600;
         }
         .share-btn {
-            background: rgba(30, 41, 59, 0.85);
+            background: rgba(var(--surface-rgb), 0.85);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 20px;
             padding: 8px 16px;
@@ -201,14 +217,14 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
         .share-btn:hover {
-            background: rgba(30, 41, 59, 1);
+            background: rgba(var(--surface-rgb), 1);
             border-color: var(--primary);
             color: var(--primary);
             transform: scale(1.05);
         }
         
         .firebase-status {
-            background: rgba(34, 197, 94, 0.3);
+            background: rgba(var(--primary-rgb), 0.3);
             border: 1px solid var(--primary);
             color: #fff;
             padding: 8px 12px;
@@ -232,9 +248,9 @@
             gap: 8px;
             overflow-x: auto;
             padding: 12px 15px;
-            background: rgba(2, 6, 23, 0.97);
+            background: rgba(var(--nav-rgb), 0.97);
             backdrop-filter: blur(8px);
-            border-bottom: 2px solid rgba(34, 197, 94, 0.4);
+            border-bottom: 2px solid rgba(var(--primary-rgb), 0.4);
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
             scrollbar-color: var(--primary) transparent;
@@ -243,7 +259,7 @@
         .topbar-nav::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
         .topbar-link {
             flex-shrink: 0;
-            background: rgba(30, 41, 59, 0.75);
+            background: rgba(var(--surface-rgb), 0.75);
             border: 1px solid rgba(255,255,255,0.15);
             color: var(--text-light);
             padding: 8px 16px;
@@ -255,8 +271,8 @@
             transition: all 0.25s;
             text-shadow: none;
         }
-        .topbar-link:hover { border-color: var(--primary); background: rgba(30, 41, 59, 0.95); }
-        .topbar-link.active { background: var(--primary); color: var(--dark-bg); border-color: var(--primary); }
+        .topbar-link:hover { border-color: var(--primary); background: rgba(var(--surface-rgb), 0.95); }
+        .topbar-link.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
 
         /* --- SECCIONES SEPARADAS POR BLOQUE (solo se muestra la activa) --- */
         section { display: none; animation: fadeInSection 0.35s ease; }
@@ -265,19 +281,19 @@
 
         /* Cada bloque de sección se marca claramente como una tarjeta independiente */
         .card {
-            border: 1px solid rgba(34, 197, 94, 0.25);
+            border: 1px solid rgba(var(--primary-rgb), 0.25);
             box-shadow: 0 10px 35px rgba(0,0,0,0.4);
         }
 
         /* --- ANUNCIOS: vista previa, expandir y compartir uno solo --- */
         .anuncios-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); max-height: 460px; }
-        .anuncio-card { background: rgba(30, 41, 59, 0.8); border: 2px solid transparent; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.2s; }
-        .anuncio-card.selected { border-color: var(--primary); box-shadow: 0 0 12px rgba(34, 197, 94, 0.5); }
+        .anuncio-card { background: rgba(var(--surface-rgb), 0.8); border: 2px solid transparent; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.2s; }
+        .anuncio-card.selected { border-color: var(--primary); box-shadow: 0 0 12px rgba(var(--primary-rgb), 0.5); }
         .anuncio-thumb { position: relative; width: 100%; aspect-ratio: 16/10; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer; }
         .anuncio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .anuncio-thumb .play-mark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; background: rgba(0,0,0,0.35); }
-        .anuncio-card p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: #e2e8f0; text-align: center; word-break: break-word; }
-        .anuncio-share { background: var(--primary); color: var(--dark-bg); border: none; border-radius: 8px; padding: 8px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
+        .anuncio-card p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: var(--text-light); text-align: center; word-break: break-word; }
+        .anuncio-share { background: var(--primary); color: var(--on-primary); border: none; border-radius: 8px; padding: 8px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
         .anuncio-share:active { transform: scale(0.97); }
         .video-box.anuncio-box { position: relative; }
         .anuncio-box img.anuncio-main { width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; display: block; }
@@ -1172,6 +1188,7 @@
         <h2 style="color:var(--primary)">⚙️ Panel de Administración</h2>
         <div class="firebase-status" id="adminFirebaseStatus">✅ Conectado a Firebase</div>
         <button class="btn btn-danger" onclick="cerrarSesion()" style="margin-bottom:20px">Cerrar Sesión</button>
+        <button class="btn" onclick="ocultarPanel()" style="margin-bottom:20px; background:#3b82f6; color:white; padding:5px 10px; font-size:0.8rem;">👁️ Ver página</button>
         <hr style="border-color:#334155">
         
         <h3 id="formTitle">Agregar Contenido</h3>
@@ -1215,6 +1232,20 @@
         <button id="btnGuardar" class="btn" onclick="guardarContenido()" style="width:100%; margin-bottom:10px">💾 Guardar</button>
         <button id="btnCancelar" class="btn btn-gray" onclick="cancelarEdicion()" style="width:100%; margin-bottom:20px; background:#64748b; display:none;">🚫 Cancelar Edición</button>
         
+        <hr style="border-color:#334155">
+        <h3>🎨 Diseño de la página</h3>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Los cambios se ven al instante (toca "👁️ Ver página" arriba). Toca <b>Guardar diseño</b> para que lo vea todo el público.</p>
+        <input type="text" id="tmBgImage" class="admin-input" placeholder="URL de la imagen de fondo (vacía = solo color)" oninput="previsualizarTema()">
+        <button class="btn" onclick="quitarFondo()" style="background:#64748b; color:white; margin:0 0 12px 0;">🗑️ Quitar imagen de fondo</button>
+        <div class="tema-row"><label>Color de fondo</label><input type="color" id="tmBgColor" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Oscurecer fondo: <span id="tmDimLabel">0</span>%</label><input type="range" id="tmBgDim" min="0" max="85" step="5" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Color principal (títulos y botones)</label><input type="color" id="tmPrimary" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Color del texto</label><input type="color" id="tmText" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Color de tarjetas y botones</label><input type="color" id="tmSurface" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Color de la barra superior</label><input type="color" id="tmNav" oninput="previsualizarTema()"></div>
+        <button class="btn" onclick="guardarTema()" style="width:100%; margin-bottom:10px">💾 Guardar diseño</button>
+        <button class="btn" onclick="restablecerTema()" style="width:100%; margin-bottom:20px; background:#ef4444; color:white;">↩️ Restablecer diseño original</button>
+
         <hr style="border-color:#334155">
         <h3>📞 Configurar Contacto</h3>
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Deja un campo vacío para ocultar ese botón. Los iconos son enlaces a una imagen (cualquier formato).</p>
@@ -1353,6 +1384,7 @@
             const data = snapshot.val();
             if (data) {
                 storage = data;
+                aplicarTemaGuardado();
                 renderAllGrids();
                 if(isAdmin) mostrarTodosElementos();
                 showToast('✅ Contenido actualizado');
@@ -1840,6 +1872,135 @@
         }
     }
 
+    // ============================================
+    // DISEÑO DE LA PÁGINA (editable desde el panel de administración)
+    // ============================================
+    const TEMA_DEFAULT = {
+        bgImage: 'https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg',
+        bgColor: '#020617', bgDim: 0,
+        primary: '#22c55e', text: '#f8fafc', surface: '#1e293b', nav: '#020617'
+    };
+
+    function hexToRgb(hex) {
+        const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+        if (!m) return null;
+        const n = parseInt(m[1], 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function applyTema(t) {
+        const c = { ...TEMA_DEFAULT, ...(t || {}) };
+        const root = document.documentElement.style;
+        const rgb = (v, d) => hexToRgb(v) || hexToRgb(d);
+        const p = rgb(c.primary, TEMA_DEFAULT.primary);
+        const tx = rgb(c.text, TEMA_DEFAULT.text);
+        const sf = rgb(c.surface, TEMA_DEFAULT.surface);
+        const nv = rgb(c.nav, TEMA_DEFAULT.nav);
+        const bg = rgb(c.bgColor, TEMA_DEFAULT.bgColor);
+        const lum = (0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]) / 255;
+        root.setProperty('--primary', 'rgb(' + p.join(',') + ')');
+        root.setProperty('--primary-rgb', p.join(', '));
+        root.setProperty('--on-primary', lum > 0.6 ? '#020617' : '#ffffff');
+        root.setProperty('--text-light', 'rgb(' + tx.join(',') + ')');
+        root.setProperty('--surface-rgb', sf.join(', '));
+        root.setProperty('--nav-rgb', nv.join(', '));
+        root.setProperty('--bg-color', 'rgb(' + bg.join(',') + ')');
+        const img = String(c.bgImage || '').trim();
+        root.setProperty('--bg-image', img ? 'url("' + img.replace(/"/g, '%22') + '")' : 'none');
+        const dim = Math.min(85, Math.max(0, Number(c.bgDim) || 0));
+        root.setProperty('--bg-dim', String(dim / 100));
+    }
+
+    // Aplica el diseño guardado (Firebase o local) y lo recuerda para la próxima visita
+    function aplicarTemaGuardado() {
+        const t = (storage && storage.temaConfig) || {};
+        applyTema(t);
+        try { localStorage.setItem('tv_sfc_tema', JSON.stringify(t)); } catch (e) {}
+    }
+
+    function leerFormTema() {
+        const v = id => document.getElementById(id).value;
+        return {
+            bgImage: v('tmBgImage').trim(),
+            bgColor: v('tmBgColor'),
+            bgDim: Number(v('tmBgDim')) || 0,
+            primary: v('tmPrimary'),
+            text: v('tmText'),
+            surface: v('tmSurface'),
+            nav: v('tmNav')
+        };
+    }
+
+    function cargarFormTema() {
+        const c = { ...TEMA_DEFAULT, ...((storage && storage.temaConfig) || {}) };
+        const set = (id, val) => { document.getElementById(id).value = val; };
+        set('tmBgImage', c.bgImage || '');
+        set('tmBgColor', c.bgColor);
+        set('tmBgDim', c.bgDim || 0);
+        set('tmPrimary', c.primary);
+        set('tmText', c.text);
+        set('tmSurface', c.surface);
+        set('tmNav', c.nav);
+        document.getElementById('tmDimLabel').textContent = c.bgDim || 0;
+    }
+
+    function previsualizarTema() {
+        const t = leerFormTema();
+        document.getElementById('tmDimLabel').textContent = t.bgDim;
+        applyTema(t);
+    }
+
+    function quitarFondo() {
+        document.getElementById('tmBgImage').value = '';
+        previsualizarTema();
+        showToast('Imagen de fondo quitada (toca Guardar diseño)');
+    }
+
+    function ocultarPanel() {
+        document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    async function guardarTema() {
+        const cfg = leerFormTema();
+        if (firebaseInitialized) {
+            try {
+                await database.ref('contenido/temaConfig').set(cfg);
+                showToast('✅ Diseño guardado');
+            } catch (error) {
+                console.error('Error al guardar diseño:', error);
+                showToast('❌ Error al guardar: ' + (error.message || error.code || 'desconocido'), 'error');
+            }
+        } else {
+            storage.temaConfig = cfg;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+            aplicarTemaGuardado();
+            showToast('✅ Diseño guardado localmente');
+        }
+    }
+
+    async function restablecerTema() {
+        if (!confirm('¿Restablecer el diseño original de la página?')) return;
+        if (firebaseInitialized) {
+            try {
+                await database.ref('contenido/temaConfig').remove();
+                showToast('↩️ Diseño original restablecido');
+            } catch (error) {
+                console.error('Error al restablecer diseño:', error);
+                showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+                return;
+            }
+        } else {
+            delete storage.temaConfig;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+        }
+        if (storage) delete storage.temaConfig;
+        aplicarTemaGuardado();
+        cargarFormTema();
+    }
+
+    // Aplica de inmediato el último diseño conocido (evita parpadeos al cargar)
+    try { applyTema(JSON.parse(localStorage.getItem('tv_sfc_tema') || '{}')); } catch (e) {}
+
     function fixStreamUrl(url) {
         // Si la página está en HTTPS y la URL es HTTP, pasamos por proxy para evitar bloqueo Mixed Content
         if (location.protocol === 'https:' && url.startsWith('http://')) {
@@ -2028,7 +2189,7 @@
                 .then(() => {
                     isAdmin = true;
                     document.getElementById("loginModal").style.display = "none";
-                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto();
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema();
                     showToast("✅ Acceso Concedido");
                 })
                 .catch((error) => {
@@ -2041,7 +2202,7 @@
                 if (hash === PASS_HASH) {
                     isAdmin = true;
                     document.getElementById("loginModal").style.display = "none";
-                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto();
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema();
                     showToast("✅ Acceso Concedido (modo local)");
                 } else showToast("❌ Contraseña Incorrecta", "error");
             });
@@ -2049,7 +2210,7 @@
     }
     function openLogin() { 
         if (isAdmin) {
-            document.getElementById("adminPanel").style.display = "block"; cargarFormContacto();
+            document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema();
         } else {
             document.getElementById("loginModal").style.display = "flex";
         }
