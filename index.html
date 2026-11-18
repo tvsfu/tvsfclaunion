@@ -26,11 +26,20 @@
             --bg-color: #020617;
             --bg-image: url("https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg");
             --bg-dim: 0;
+            --primary-a: 1;
             --surface-a: 1;
             --nav-a: 1;
             --card-rgb: 2, 6, 23;
             --card-a: 0;
         }
+        html { background: #000; }
+        .tema-box { background: rgba(255,255,255,0.04); border: 1px solid #1e293b; border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+        .tema-box .tema-row { margin-bottom: 8px; }
+        .tema-box .tema-row:last-child { margin-bottom: 0; }
+        .swatch { flex: none; width: 34px; height: 34px; border-radius: 8px; border: 1px solid #475569; overflow: hidden; background: conic-gradient(#8a8a8a 25%, #d0d0d0 0 50%, #8a8a8a 0 75%, #d0d0d0 0) 0 0 / 12px 12px; }
+        .swatch i { display: block; width: 100%; height: 100%; }
+        .tema-val { flex: none; width: 46px; text-align: right; font-size: 0.85rem; color: #cbd5e1; }
+        .btn-transp { flex: none; background: #334155; color: white; border: 1px solid #475569; border-radius: 8px; padding: 8px 10px; font-size: 0.75rem; cursor: pointer; }
         body::before { content: ""; position: fixed; inset: 0; background: rgba(0,0,0,var(--bg-dim)); pointer-events: none; z-index: -1; }
         .tema-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
         .tema-row label { flex: 1; font-size: 0.9rem; }
@@ -49,7 +58,7 @@
             padding-bottom: 60px;
         }
 
-        .logo-float { display: block; margin: 20px auto; max-width: 150px; filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), 0.5)); padding-top: 20px; }
+        .logo-float { display: block; margin: 20px auto; max-width: 150px; filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), calc(0.5 * var(--primary-a)))); padding-top: 20px; }
         section { padding: 15px; max-width: 1100px; margin: auto; }
         
         /* SECCIONES TRANSPARENTES CON TEXTO LEGIBLE */
@@ -61,11 +70,11 @@
             position: relative; 
             text-shadow: none; /* Sombreado eliminado */
         }
-        .card h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid rgba(var(--primary-rgb), 0.4); padding-bottom: 10px; display: inline-block; text-shadow: none; /* Sombreado eliminado */ }
+        .card h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid rgba(var(--primary-rgb), calc(0.4 * var(--primary-a))); padding-bottom: 10px; display: inline-block; text-shadow: none; /* Sombreado eliminado */ }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 15px; max-height: 300px; overflow-y: auto; padding-right: 5px; }
         .item { background: rgba(var(--surface-rgb), calc(0.75 * var(--surface-a))); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-shadow: none; }
-        .item:hover { transform: translateY(-5px); background: rgba(var(--surface-rgb), calc(0.95 * var(--surface-a))); border-color: var(--primary); box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.4); }
+        .item:hover { transform: translateY(-5px); background: rgba(var(--surface-rgb), calc(0.95 * var(--surface-a))); border-color: var(--primary); box-shadow: 0 5px 15px rgba(var(--primary-rgb), calc(0.4 * var(--primary-a))); }
         .item img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; margin-bottom: 8px; border: 2px solid #334155; }
         .item p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: var(--text-light); }
         
@@ -186,7 +195,7 @@
             border-color: var(--primary);
         }
         .reaction-btn.active {
-            background: rgba(var(--primary-rgb), 0.3);
+            background: rgba(var(--primary-rgb), calc(0.3 * var(--primary-a)));
             border-color: var(--primary);
             color: var(--primary);
         }
@@ -228,7 +237,7 @@
         }
         
         .firebase-status {
-            background: rgba(var(--primary-rgb), 0.3);
+            background: rgba(var(--primary-rgb), calc(0.3 * var(--primary-a)));
             border: 1px solid var(--primary);
             color: #fff;
             padding: 8px 12px;
@@ -254,7 +263,7 @@
             padding: 12px 15px;
             background: rgba(var(--nav-rgb), calc(0.97 * var(--nav-a)));
             backdrop-filter: blur(8px);
-            border-bottom: 2px solid rgba(var(--primary-rgb), 0.4);
+            border-bottom: 2px solid rgba(var(--primary-rgb), calc(0.4 * var(--primary-a)));
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
             scrollbar-color: var(--primary) transparent;
@@ -285,14 +294,14 @@
 
         /* Cada bloque de sección se marca claramente como una tarjeta independiente */
         .card {
-            border: 1px solid rgba(var(--primary-rgb), 0.25);
+            border: 1px solid rgba(var(--primary-rgb), calc(0.25 * var(--primary-a)));
             box-shadow: 0 10px 35px rgba(0,0,0,0.4);
         }
 
         /* --- ANUNCIOS: vista previa, expandir y compartir uno solo --- */
         .anuncios-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); max-height: 460px; }
         .anuncio-card { background: rgba(var(--surface-rgb), calc(0.8 * var(--surface-a))); border: 2px solid transparent; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.2s; }
-        .anuncio-card.selected { border-color: var(--primary); box-shadow: 0 0 12px rgba(var(--primary-rgb), 0.5); }
+        .anuncio-card.selected { border-color: var(--primary); box-shadow: 0 0 12px rgba(var(--primary-rgb), calc(0.5 * var(--primary-a))); }
         .anuncio-thumb { position: relative; width: 100%; aspect-ratio: 16/10; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer; }
         .anuncio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .anuncio-thumb .play-mark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; background: rgba(0,0,0,0.35); }
@@ -1241,17 +1250,32 @@
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Los cambios se ven al instante (toca "👁️ Ver página" arriba). Toca <b>Guardar diseño</b> para que lo vea todo el público.</p>
         <input type="text" id="tmBgImage" class="admin-input" placeholder="URL de la imagen de fondo (vacía = solo color)" oninput="previsualizarTema()">
         <button class="btn" onclick="quitarFondo()" style="background:#64748b; color:white; margin:0 0 12px 0;">🗑️ Quitar imagen de fondo</button>
-        <div class="tema-row"><label>Color de fondo</label><input type="color" id="tmBgColor" oninput="previsualizarTema()"></div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color de fondo</label><input type="color" id="tmBgColor" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmBgColorSw"></i></span><input type="range" id="tmBgColorA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmBgColorALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmBgColorA')">Transparente</button></div>
+        </div>
         <div class="tema-row"><label>Oscurecer fondo: <span id="tmDimLabel">0</span>%</label><input type="range" id="tmBgDim" min="0" max="85" step="5" oninput="previsualizarTema()"></div>
-        <div class="tema-row"><label>Color principal (títulos y botones)</label><input type="color" id="tmPrimary" oninput="previsualizarTema()"></div>
-        <div class="tema-row"><label>Color del texto</label><input type="color" id="tmText" oninput="previsualizarTema()"></div>
-        <div class="tema-row"><label>Color de tarjetas y botones</label><input type="color" id="tmSurface" oninput="previsualizarTema()"></div>
-        <div class="tema-row"><label>Opacidad de tarjetas y botones: <span id="tmSurfaceALabel">100</span>%</label><input type="range" id="tmSurfaceA" min="0" max="100" step="5" oninput="previsualizarTema()"></div>
-        <div class="tema-row"><label>Color de la barra superior</label><input type="color" id="tmNav" oninput="previsualizarTema()"></div>
-        <div class="tema-row"><label>Opacidad de la barra superior: <span id="tmNavALabel">100</span>%</label><input type="range" id="tmNavA" min="0" max="100" step="5" oninput="previsualizarTema()"></div>
-        <div class="tema-row"><label>Color del fondo de cada sección</label><input type="color" id="tmCard" oninput="previsualizarTema()"></div>
-        <div class="tema-row"><label>Opacidad del fondo de sección: <span id="tmCardALabel">0</span>%</label><input type="range" id="tmCardA" min="0" max="100" step="5" oninput="previsualizarTema()"></div>
-        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Opacidad 100% = color normal · 0% = transparente.</p>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color principal (títulos y botones)</label><input type="color" id="tmPrimary" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmPrimarySw"></i></span><input type="range" id="tmPrimaryA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmPrimaryALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmPrimaryA')">Transparente</button></div>
+        </div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color del texto</label><input type="color" id="tmText" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmTextSw"></i></span><input type="range" id="tmTextA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmTextALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmTextA')">Transparente</button></div>
+        </div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color de tarjetas y botones</label><input type="color" id="tmSurface" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmSurfaceSw"></i></span><input type="range" id="tmSurfaceA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmSurfaceALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmSurfaceA')">Transparente</button></div>
+        </div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color de la barra superior</label><input type="color" id="tmNav" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmNavSw"></i></span><input type="range" id="tmNavA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmNavALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmNavA')">Transparente</button></div>
+        </div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color del fondo de cada sección</label><input type="color" id="tmCard" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmCardSw"></i></span><input type="range" id="tmCardA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmCardALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmCardA')">Transparente</button></div>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Opacidad 100% = color normal · 0% = transparente. El cuadro con cuadritos muestra cómo queda.</p>
         <button class="btn" onclick="guardarTema()" style="width:100%; margin-bottom:10px">💾 Guardar diseño</button>
         <button class="btn" onclick="restablecerTema()" style="width:100%; margin-bottom:20px; background:#ef4444; color:white;">↩️ Restablecer diseño original</button>
 
@@ -1888,7 +1912,8 @@
         bgImage: 'https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg',
         bgColor: '#020617', bgDim: 0,
         primary: '#22c55e', text: '#f8fafc', surface: '#1e293b', nav: '#020617',
-        surfaceA: 100, navA: 100, card: '#020617', cardA: 0
+        surfaceA: 100, navA: 100, card: '#020617', cardA: 0,
+        bgColorA: 100, primaryA: 100, textA: 100
     };
 
     function hexToRgb(hex) {
@@ -1908,10 +1933,12 @@
         const nv = rgb(c.nav, TEMA_DEFAULT.nav);
         const bg = rgb(c.bgColor, TEMA_DEFAULT.bgColor);
         const lum = (0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]) / 255;
-        root.setProperty('--primary', 'rgb(' + p.join(',') + ')');
+        const pctA = (v) => { const n = Number(v); return (isNaN(n) ? 100 : Math.min(100, Math.max(0, n))) / 100; };
+        root.setProperty('--primary', 'rgba(' + p.join(',') + ',' + pctA(c.primaryA) + ')');
+        root.setProperty('--primary-a', String(pctA(c.primaryA)));
         root.setProperty('--primary-rgb', p.join(', '));
         root.setProperty('--on-primary', lum > 0.6 ? '#020617' : '#ffffff');
-        root.setProperty('--text-light', 'rgb(' + tx.join(',') + ')');
+        root.setProperty('--text-light', 'rgba(' + tx.join(',') + ',' + pctA(c.textA) + ')');
         root.setProperty('--surface-rgb', sf.join(', '));
         root.setProperty('--nav-rgb', nv.join(', '));
         const cd = rgb(c.card, TEMA_DEFAULT.card);
@@ -1920,7 +1947,7 @@
         root.setProperty('--nav-a', String(pct(c.navA, 100)));
         root.setProperty('--card-rgb', cd.join(', '));
         root.setProperty('--card-a', String(pct(c.cardA, 0)));
-        root.setProperty('--bg-color', 'rgb(' + bg.join(',') + ')');
+        root.setProperty('--bg-color', 'rgba(' + bg.join(',') + ',' + pctA(c.bgColorA) + ')');
         const img = String(c.bgImage || '').trim();
         root.setProperty('--bg-image', img ? 'url("' + img.replace(/"/g, '%22') + '")' : 'none');
         const dim = Math.min(85, Math.max(0, Number(c.bgDim) || 0));
@@ -1947,7 +1974,10 @@
             surfaceA: Number(v('tmSurfaceA')),
             navA: Number(v('tmNavA')),
             card: v('tmCard'),
-            cardA: Number(v('tmCardA'))
+            cardA: Number(v('tmCardA')),
+            bgColorA: Number(v('tmBgColorA')),
+            primaryA: Number(v('tmPrimaryA')),
+            textA: Number(v('tmTextA'))
         };
     }
 
@@ -1965,15 +1995,27 @@
         set('tmNavA', c.navA);
         set('tmCard', c.card);
         set('tmCardA', c.cardA);
+        set('tmBgColorA', c.bgColorA);
+        set('tmPrimaryA', c.primaryA);
+        set('tmTextA', c.textA);
         actualizarEtiquetasTema();
     }
 
     function actualizarEtiquetasTema() {
         const t = leerFormTema();
         document.getElementById('tmDimLabel').textContent = t.bgDim;
-        document.getElementById('tmSurfaceALabel').textContent = t.surfaceA;
-        document.getElementById('tmNavALabel').textContent = t.navA;
-        document.getElementById('tmCardALabel').textContent = t.cardA;
+        [['tmBgColor', t.bgColor, t.bgColorA], ['tmPrimary', t.primary, t.primaryA], ['tmText', t.text, t.textA],
+         ['tmSurface', t.surface, t.surfaceA], ['tmNav', t.nav, t.navA], ['tmCard', t.card, t.cardA]].forEach(([id, color, alpha]) => {
+            document.getElementById(id + 'ALabel').textContent = alpha;
+            const sw = document.getElementById(id + 'Sw');
+            const c = hexToRgb(color) || [0, 0, 0];
+            if (sw) sw.style.background = 'rgba(' + c.join(',') + ',' + (alpha / 100) + ')';
+        });
+    }
+
+    function setTransparente(rangeId) {
+        document.getElementById(rangeId).value = 0;
+        previsualizarTema();
     }
 
     function previsualizarTema() {
