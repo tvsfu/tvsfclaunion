@@ -15,7 +15,7 @@
         :root {
             --primary: #22c55e;
             --dark-bg: #020617;
-            --card-bg: rgba(var(--nav-rgb), 0.95);
+            --card-bg: rgba(var(--nav-rgb), calc(0.95 * var(--nav-a)));
             --text-light: #f8fafc;
             --text-gray: #94a3b8;
             --heart: #ef4444;
@@ -26,6 +26,10 @@
             --bg-color: #020617;
             --bg-image: url("https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg");
             --bg-dim: 0;
+            --surface-a: 1;
+            --nav-a: 1;
+            --card-rgb: 2, 6, 23;
+            --card-a: 0;
         }
         body::before { content: ""; position: fixed; inset: 0; background: rgba(0,0,0,var(--bg-dim)); pointer-events: none; z-index: -1; }
         .tema-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
@@ -50,7 +54,7 @@
         
         /* SECCIONES TRANSPARENTES CON TEXTO LEGIBLE */
         .card { 
-            background: transparent; 
+            background: rgba(var(--card-rgb), var(--card-a)); 
             border-radius: 16px; 
             padding: 20px; 
             margin-bottom: 25px; 
@@ -60,8 +64,8 @@
         .card h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid rgba(var(--primary-rgb), 0.4); padding-bottom: 10px; display: inline-block; text-shadow: none; /* Sombreado eliminado */ }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 15px; max-height: 300px; overflow-y: auto; padding-right: 5px; }
-        .item { background: rgba(var(--surface-rgb), 0.75); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-shadow: none; }
-        .item:hover { transform: translateY(-5px); background: rgba(var(--surface-rgb), 0.95); border-color: var(--primary); box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.4); }
+        .item { background: rgba(var(--surface-rgb), calc(0.75 * var(--surface-a))); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-shadow: none; }
+        .item:hover { transform: translateY(-5px); background: rgba(var(--surface-rgb), calc(0.95 * var(--surface-a))); border-color: var(--primary); box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.4); }
         .item img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; margin-bottom: 8px; border: 2px solid #334155; }
         .item p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: var(--text-light); }
         
@@ -162,7 +166,7 @@
             flex-wrap: wrap;
         }
         .reaction-btn {
-            background: rgba(var(--surface-rgb), 0.85);
+            background: rgba(var(--surface-rgb), calc(0.85 * var(--surface-a)));
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 20px;
             padding: 8px 14px;
@@ -178,7 +182,7 @@
         }
         .reaction-btn:hover {
             transform: scale(1.1);
-            background: rgba(var(--surface-rgb), 1);
+            background: rgba(var(--surface-rgb), calc(1 * var(--surface-a)));
             border-color: var(--primary);
         }
         .reaction-btn.active {
@@ -201,7 +205,7 @@
             font-weight: 600;
         }
         .share-btn {
-            background: rgba(var(--surface-rgb), 0.85);
+            background: rgba(var(--surface-rgb), calc(0.85 * var(--surface-a)));
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 20px;
             padding: 8px 16px;
@@ -217,7 +221,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
         .share-btn:hover {
-            background: rgba(var(--surface-rgb), 1);
+            background: rgba(var(--surface-rgb), calc(1 * var(--surface-a)));
             border-color: var(--primary);
             color: var(--primary);
             transform: scale(1.05);
@@ -248,7 +252,7 @@
             gap: 8px;
             overflow-x: auto;
             padding: 12px 15px;
-            background: rgba(var(--nav-rgb), 0.97);
+            background: rgba(var(--nav-rgb), calc(0.97 * var(--nav-a)));
             backdrop-filter: blur(8px);
             border-bottom: 2px solid rgba(var(--primary-rgb), 0.4);
             -webkit-overflow-scrolling: touch;
@@ -259,7 +263,7 @@
         .topbar-nav::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
         .topbar-link {
             flex-shrink: 0;
-            background: rgba(var(--surface-rgb), 0.75);
+            background: rgba(var(--surface-rgb), calc(0.75 * var(--surface-a)));
             border: 1px solid rgba(255,255,255,0.15);
             color: var(--text-light);
             padding: 8px 16px;
@@ -271,7 +275,7 @@
             transition: all 0.25s;
             text-shadow: none;
         }
-        .topbar-link:hover { border-color: var(--primary); background: rgba(var(--surface-rgb), 0.95); }
+        .topbar-link:hover { border-color: var(--primary); background: rgba(var(--surface-rgb), calc(0.95 * var(--surface-a))); }
         .topbar-link.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
 
         /* --- SECCIONES SEPARADAS POR BLOQUE (solo se muestra la activa) --- */
@@ -287,7 +291,7 @@
 
         /* --- ANUNCIOS: vista previa, expandir y compartir uno solo --- */
         .anuncios-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); max-height: 460px; }
-        .anuncio-card { background: rgba(var(--surface-rgb), 0.8); border: 2px solid transparent; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.2s; }
+        .anuncio-card { background: rgba(var(--surface-rgb), calc(0.8 * var(--surface-a))); border: 2px solid transparent; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.2s; }
         .anuncio-card.selected { border-color: var(--primary); box-shadow: 0 0 12px rgba(var(--primary-rgb), 0.5); }
         .anuncio-thumb { position: relative; width: 100%; aspect-ratio: 16/10; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer; }
         .anuncio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1242,7 +1246,12 @@
         <div class="tema-row"><label>Color principal (títulos y botones)</label><input type="color" id="tmPrimary" oninput="previsualizarTema()"></div>
         <div class="tema-row"><label>Color del texto</label><input type="color" id="tmText" oninput="previsualizarTema()"></div>
         <div class="tema-row"><label>Color de tarjetas y botones</label><input type="color" id="tmSurface" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Opacidad de tarjetas y botones: <span id="tmSurfaceALabel">100</span>%</label><input type="range" id="tmSurfaceA" min="0" max="100" step="5" oninput="previsualizarTema()"></div>
         <div class="tema-row"><label>Color de la barra superior</label><input type="color" id="tmNav" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Opacidad de la barra superior: <span id="tmNavALabel">100</span>%</label><input type="range" id="tmNavA" min="0" max="100" step="5" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Color del fondo de cada sección</label><input type="color" id="tmCard" oninput="previsualizarTema()"></div>
+        <div class="tema-row"><label>Opacidad del fondo de sección: <span id="tmCardALabel">0</span>%</label><input type="range" id="tmCardA" min="0" max="100" step="5" oninput="previsualizarTema()"></div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Opacidad 100% = color normal · 0% = transparente.</p>
         <button class="btn" onclick="guardarTema()" style="width:100%; margin-bottom:10px">💾 Guardar diseño</button>
         <button class="btn" onclick="restablecerTema()" style="width:100%; margin-bottom:20px; background:#ef4444; color:white;">↩️ Restablecer diseño original</button>
 
@@ -1878,7 +1887,8 @@
     const TEMA_DEFAULT = {
         bgImage: 'https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg',
         bgColor: '#020617', bgDim: 0,
-        primary: '#22c55e', text: '#f8fafc', surface: '#1e293b', nav: '#020617'
+        primary: '#22c55e', text: '#f8fafc', surface: '#1e293b', nav: '#020617',
+        surfaceA: 100, navA: 100, card: '#020617', cardA: 0
     };
 
     function hexToRgb(hex) {
@@ -1904,6 +1914,12 @@
         root.setProperty('--text-light', 'rgb(' + tx.join(',') + ')');
         root.setProperty('--surface-rgb', sf.join(', '));
         root.setProperty('--nav-rgb', nv.join(', '));
+        const cd = rgb(c.card, TEMA_DEFAULT.card);
+        const pct = (v, d) => { const n = Number(v); return (isNaN(n) ? d : Math.min(100, Math.max(0, n))) / 100; };
+        root.setProperty('--surface-a', String(pct(c.surfaceA, 100)));
+        root.setProperty('--nav-a', String(pct(c.navA, 100)));
+        root.setProperty('--card-rgb', cd.join(', '));
+        root.setProperty('--card-a', String(pct(c.cardA, 0)));
         root.setProperty('--bg-color', 'rgb(' + bg.join(',') + ')');
         const img = String(c.bgImage || '').trim();
         root.setProperty('--bg-image', img ? 'url("' + img.replace(/"/g, '%22') + '")' : 'none');
@@ -1927,7 +1943,11 @@
             primary: v('tmPrimary'),
             text: v('tmText'),
             surface: v('tmSurface'),
-            nav: v('tmNav')
+            nav: v('tmNav'),
+            surfaceA: Number(v('tmSurfaceA')),
+            navA: Number(v('tmNavA')),
+            card: v('tmCard'),
+            cardA: Number(v('tmCardA'))
         };
     }
 
@@ -1941,13 +1961,24 @@
         set('tmText', c.text);
         set('tmSurface', c.surface);
         set('tmNav', c.nav);
-        document.getElementById('tmDimLabel').textContent = c.bgDim || 0;
+        set('tmSurfaceA', c.surfaceA);
+        set('tmNavA', c.navA);
+        set('tmCard', c.card);
+        set('tmCardA', c.cardA);
+        actualizarEtiquetasTema();
+    }
+
+    function actualizarEtiquetasTema() {
+        const t = leerFormTema();
+        document.getElementById('tmDimLabel').textContent = t.bgDim;
+        document.getElementById('tmSurfaceALabel').textContent = t.surfaceA;
+        document.getElementById('tmNavALabel').textContent = t.navA;
+        document.getElementById('tmCardALabel').textContent = t.cardA;
     }
 
     function previsualizarTema() {
-        const t = leerFormTema();
-        document.getElementById('tmDimLabel').textContent = t.bgDim;
-        applyTema(t);
+        actualizarEtiquetasTema();
+        applyTema(leerFormTema());
     }
 
     function quitarFondo() {
