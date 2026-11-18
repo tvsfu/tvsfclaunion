@@ -853,10 +853,31 @@
 
 <section id="videosCinema">
     <div class="card">
-        <h2>🎬 24/7 CINEMA</h2>
+       <h2>🎬 24/7 CINEMA</h2>
         <div class="grid" id="videosCinemaGrid"></div>
-        <div class="video-box">
-            <iframe id="videosCinemaFrame" allowfullscreen></iframe>
+        <div class="player-wrapper" id="wrapperVideosCinema" ondblclick="toggleUI('wrapperVideosCinema')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuCine')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuCine">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerCinema','contain','fitMenuCine',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerCinema','fill','fitMenuCine',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerCinema','cover','fitMenuCine',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerCinema','100%','auto','fitMenuCine',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerCinema','auto','100%','fitMenuCine',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuCineQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuCineQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerCinema', 'auto', 'fitMenuCineQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerCinema', 180, 'fitMenuCineQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerCinema', 360, 'fitMenuCineQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerCinema', 480, 'fitMenuCineQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerCinema', 720, 'fitMenuCineQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerCinema" controls autoplay></video>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('videosCinema', 'like')">
@@ -866,6 +887,14 @@
             <div class="reaction-btn" onclick="toggleReaction('videosCinema', 'love')">
                 <span class="reaction-emoji">❤️</span>
                 <span class="reaction-count" id="videosCinema-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosCinema', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="videosCinema-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosCinema', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="videosCinema-wow-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('videosCinema')">
                 <span>📤</span>
@@ -925,10 +954,31 @@
 
 <section id="videosReligioso">
     <div class="card">
-        <h2>🙏 24/7 Religioso</h2>
+       <h2>🙏 24/7 Religioso</h2>
         <div class="grid" id="videosReligiosoGrid"></div>
-        <div class="video-box">
-            <iframe id="videosReligiosoFrame" allowfullscreen></iframe>
+        <div class="player-wrapper" id="wrapperVideosReligioso" ondblclick="toggleUI('wrapperVideosReligioso')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuVRel')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuVRel">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerVideosReligioso','contain','fitMenuVRel',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerVideosReligioso','fill','fitMenuVRel',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerVideosReligioso','cover','fitMenuVRel',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerVideosReligioso','100%','auto','fitMenuVRel',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerVideosReligioso','auto','100%','fitMenuVRel',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuVRelQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuVRelQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 'auto', 'fitMenuVRelQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 180, 'fitMenuVRelQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 360, 'fitMenuVRelQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 480, 'fitMenuVRelQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 720, 'fitMenuVRelQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerVideosReligioso" controls autoplay></video>
         </div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('videosReligioso', 'like')">
@@ -938,6 +988,14 @@
             <div class="reaction-btn" onclick="toggleReaction('videosReligioso', 'love')">
                 <span class="reaction-emoji">❤️</span>
                 <span class="reaction-count" id="videosReligioso-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosReligioso', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="videosReligioso-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosReligioso', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="videosReligioso-wow-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('videosReligioso')">
                 <span>📤</span>
@@ -1508,7 +1566,7 @@
     // ============================================
     // REPRODUCTOR DE TV: HLS (.m3u8) y MPEG-TS (.ts)
     // ============================================
-    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt'];
+    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'videosCinema', 'videosReligioso'];
 
     function toggleTipoStream() {
         const cat = document.getElementById("categoria").value;
@@ -1653,8 +1711,8 @@
     function playRadioCatolicaNac(url) { const a = document.getElementById("radioCatolicaNacPlayer"); a.src = url; a.play(); }
     function playVideoCatolico(url) { document.getElementById("videosCatolicosFrame").src = url; }
     function playVideo(url) { document.getElementById("videoFrame").src = url; }
-    function playVideoCinema(url) { document.getElementById("videosCinemaFrame").src = url; }
-    function playVideoReligioso(url) { document.getElementById("videosReligiosoFrame").src = url; }
+    function playVideoCinema(url, item) { playStream("tvPlayerCinema", url, item); }
+    function playVideoReligioso(url, item) { playStream("tvPlayerVideosReligioso", url, item); }
     function playNoticia(url) { document.getElementById("noticiasFrame").src = url; }
     function playReligioso(url) { document.getElementById("religiosoFrame").src = url; }
     function playDeporte(url) { document.getElementById("deportesFrame").src = url; }
@@ -1807,7 +1865,7 @@
 
     // Inicializar todos los click handlers después de que el DOM esté listo
     function initializeAllClickHandlers() {
-        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt'];
+        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperVideosCinema', 'wrapperVideosReligioso'];
         wrapperIds.forEach(id => {
             const wrapper = document.getElementById(id);
             if (wrapper) {
