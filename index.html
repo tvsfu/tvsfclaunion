@@ -1297,6 +1297,12 @@
         return path.endsWith('.ts') ? 'ts' : 'hls';
     }
 
+    // Si la URL es tipo Xtream (/live/usuario/clave/ID.ts) devuelve la versión .m3u8
+    function xtreamM3u8(url) {
+        const m = (url || '').match(/^(https?:\/\/[^\/]+\/(?:live\/)?[^\/]+\/[^\/]+\/\d+)\.ts(\?.*)?$/i);
+        return m ? m[1] + '.m3u8' : null;
+    }
+
     function destroyPlayers(v) {
         if (v._hls) { try { v._hls.destroy(); } catch (e) {} v._hls = null; }
         if (v._ts) {
@@ -1312,7 +1318,7 @@
     }
 
     // Reproduce un stream MPEG-TS continuo (.ts) con mpegts.js
-    function playTS(v, wrapper, url, viaProxy) {
+    function playTS(v, wrapper, url, viaProxy, noAlt) {
         if (typeof mpegts === 'undefined' || !mpegts.getFeatureList().mseLivePlayback) {
             showToast('Tu navegador no soporta canales .ts directos', 'error');
             return;
@@ -1330,15 +1336,14 @@
             // 1) Si falló directo (CORS, etc.), reintenta una vez por el proxy
             if (!usingProxy) {
                 destroyPlayers(v);
-                playTS(v, wrapper, url, true);
+                playTS(v, wrapper, url, true, noAlt);
                 return;
             }
-            // 2) Si es una URL tipo Xtream (/usuario/clave/ID.ts), prueba la versión HLS (.m3u8)
-            const m = url.match(/^(https?:\/\/[^\/]+\/(?:live\/)?[^\/]+\/[^\/]+\/\d+)\.ts(\?.*)?$/i);
-            if (m) {
-                showToast('.ts falló, probando versión .m3u8...', 'error');
+            // 2) Si es una URL tipo Xtream, prueba la versión HLS (.m3u8)
+            const alt = noAlt ? null : xtreamM3u8(url);
+            if (alt) {
                 destroyPlayers(v);
-                playHLSStream(v, wrapper, m[1] + '.m3u8', false);
+                playHLSStream(v, wrapper, alt, false, null);
                 return;
             }
             showToast('Error al reproducir .ts: ' + motivo, 'error');
@@ -1350,7 +1355,7 @@
         markPlaying(wrapper);
     }
 
-    function playHLSStream(v, wrapper, url, allowTSFallback) {
+    function playHLSStream(v, wrapper, url, allowTSFallback, tsUrl) {
         const streamUrl = fixStreamUrl(url);
         if (Hls.isSupported()) {
             const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
@@ -1362,6 +1367,12 @@
             });
             hls.on(Hls.Events.ERROR, (event, data) => {
                 if (!data.fatal) return;
+                // Si el .m3u8 no funciona, vuelve al .ts original
+                if (tsUrl) {
+                    destroyPlayers(v);
+                    playTS(v, wrapper, tsUrl, false, true);
+                    return;
+                }
                 // Si no era una lista .m3u8 (URL sin extensión que en realidad es .ts), prueba como MPEG-TS
                 if (allowTSFallback && data.details === Hls.ErrorDetails.MANIFEST_PARSING_ERROR) {
                     destroyPlayers(v);
@@ -1390,7 +1401,9 @@
         const wrapper = v.closest(".player-wrapper");
         destroyPlayers(v);
         const type = getStreamType(url, item);
-        if (type === 'ts') playTS(v, wrapper, url, false);
+        const alt = (type === 'ts' && !(item && item.tipo === 'ts')) ? xtreamM3u8(url) : null;
+        if (alt) playHLSStream(v, wrapper, alt, false, url);   // Xtream: .m3u8 primero, .ts de respaldo
+        else if (type === 'ts') playTS(v, wrapper, url, false, false);
         else playHLSStream(v, wrapper, url, !(item && item.tipo === 'hls'));
     }
 
