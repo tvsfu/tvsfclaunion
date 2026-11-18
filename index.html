@@ -58,7 +58,7 @@
             padding-bottom: 60px;
         }
 
-        .logo-float { display: block; margin: 20px auto; max-width: 150px; filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), calc(0.5 * var(--primary-a)))); padding-top: 20px; }
+        .logo-float { display: block; margin: 20px auto; max-width: 100%; width: 150px; height: auto; filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), calc(0.5 * var(--primary-a)))); padding-top: 20px; }
         section { padding: 15px; max-width: 1100px; margin: auto; }
         
         /* SECCIONES TRANSPARENTES CON TEXTO LEGIBLE */
@@ -353,12 +353,14 @@
     <button class="topbar-link" data-target="radioCristianaNac">✝️ Radio Crist. Nac/Int</button>
     <button class="topbar-link" data-target="radioCatolicaSFC">⛪ Radio Cat. SFC</button>
     <button class="topbar-link" data-target="radioCatolicaNac">⛪ Radio Cat. Nac/Int</button>
-    <button class="topbar-link" data-target="videos">🎬 Videos 24/7</button>
+    <button class="topbar-link" data-target="videos">🎬 Entretenimiento 24/7</button>
     <button class="topbar-link" data-target="videosCinema">🎬 24/7 Cinema</button>
     <button class="topbar-link" data-target="noticias">📰 Noticias</button>
-    <button class="topbar-link" data-target="religiosos">🙏 Videos Cristianos</button>
+    <button class="topbar-link" data-target="religiosos">🎵 Música Cristiano</button>
     <button class="topbar-link" data-target="videosReligioso">🙏 24/7 Religioso</button>
-    <button class="topbar-link" data-target="videosCatolicos">📿 Videos Católicos</button>
+    <button class="topbar-link" data-target="videosCatolicos">📿 Música Católica 24/7</button>
+    <button class="topbar-link" data-target="music247">🎵 Music 24/7</button>
+    <button class="topbar-link" data-target="peliculas247">🍿 Películas 24/7</button>
     <button class="topbar-link" data-target="deportes">🏆 Deportes</button>
     <button class="topbar-link" data-target="anuncios">📢 Anuncios</button>
     <button class="topbar-link" data-target="anunciosCristianos">📢 Anun. Cristianos</button>
@@ -370,7 +372,7 @@
 <section id="inicio">
     <div class="card" style="text-align:center">
         <h2>📺 TV SFC LA UNION</h2>
-        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png" class="logo-float" style="padding-top:0; margin:10px auto 15px;" alt="Logo">
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png" class="logo-float" id="logoInicio" style="padding-top:0; margin:10px auto 15px;" alt="Logo">
         <p style="font-size:1.1rem;">El Canal De La Union</p>
         <div id="firebaseStatus" class="firebase-status">🔄 Conectando a Firebase...</div>
         <div class="reactions-bar" style="justify-content: center;">
@@ -883,7 +885,7 @@
 
 <section id="videos">
     <div class="card">
-        <h2>🎥 Videos 24/7</h2>
+        <h2>🎥 Entretenimiento 24/7</h2>
         <div class="grid" id="videosGrid"></div>
         <div class="video-box">
             <iframe id="videoFrame" allowfullscreen></iframe>
@@ -984,7 +986,7 @@
 
 <section id="religiosos">
     <div class="card">
-        <h2>🙏 Videos Cristiano 24/7</h2>
+        <h2>🎵 Música Cristiano</h2>
         <div class="grid" id="religiososGrid"></div>
         <div class="video-box">
             <iframe id="religiosoFrame" allowfullscreen></iframe>
@@ -1061,7 +1063,7 @@
 
 <section id="videosCatolicos">
     <div class="card">
-        <h2>🙏 Videos 24/7 Católicos</h2>
+        <h2>📿 Música Católica 24/7</h2>
         <div class="grid" id="videosCatolicosGrid"></div>
         <div class="video-box">
             <iframe id="videosCatolicosFrame" allowfullscreen></iframe>
@@ -1076,6 +1078,112 @@
                 <span class="reaction-count" id="videosCatolicos-love-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('videosCatolicos')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="music247">
+    <div class="card">
+       <h2>🎵 Music 24/7</h2>
+        <div class="grid" id="music247Grid"></div>
+        <div class="player-wrapper" id="wrapperMusic247" ondblclick="toggleUI('wrapperMusic247')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuMusic')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuMusic">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerMusic247','contain','fitMenuMusic',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerMusic247','fill','fitMenuMusic',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerMusic247','cover','fitMenuMusic',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerMusic247','100%','auto','fitMenuMusic',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerMusic247','auto','100%','fitMenuMusic',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuMusicQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuMusicQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerMusic247', 'auto', 'fitMenuMusicQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerMusic247', 180, 'fitMenuMusicQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerMusic247', 360, 'fitMenuMusicQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerMusic247', 480, 'fitMenuMusicQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerMusic247', 720, 'fitMenuMusicQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerMusic247" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('music247', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="music247-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('music247', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="music247-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('music247', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="music247-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('music247', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="music247-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('music247')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="peliculas247">
+    <div class="card">
+       <h2>🍿 Películas 24/7</h2>
+        <div class="grid" id="peliculas247Grid"></div>
+        <div class="player-wrapper" id="wrapperPeliculas247" ondblclick="toggleUI('wrapperPeliculas247')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuPeli')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuPeli">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerPeliculas247','contain','fitMenuPeli',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerPeliculas247','fill','fitMenuPeli',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerPeliculas247','cover','fitMenuPeli',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerPeliculas247','100%','auto','fitMenuPeli',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerPeliculas247','auto','100%','fitMenuPeli',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuPeliQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuPeliQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerPeliculas247', 'auto', 'fitMenuPeliQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerPeliculas247', 180, 'fitMenuPeliQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerPeliculas247', 360, 'fitMenuPeliQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerPeliculas247', 480, 'fitMenuPeliQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerPeliculas247', 720, 'fitMenuPeliQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerPeliculas247" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('peliculas247', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="peliculas247-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('peliculas247', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="peliculas247-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('peliculas247', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="peliculas247-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('peliculas247', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="peliculas247-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('peliculas247')">
                 <span>📤</span>
                 <span>Compartir</span>
             </div>
@@ -1219,12 +1327,14 @@
             <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
             <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
             <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
-            <option value="videos">Videos 24/7</option>
+            <option value="videos">Entretenimiento 24/7</option>
             <option value="videosCinema">24/7 CINEMA</option>
             <option value="noticias">Noticias 24/7</option>
-            <option value="religiosos">Videos Cristiano 24/7</option>
+            <option value="religiosos">Música Cristiano</option>
             <option value="videosReligioso">24/7 Religioso</option>
-            <option value="videosCatolicos">Videos Católicos 24/7</option>
+            <option value="videosCatolicos">Música Católica 24/7</option>
+            <option value="music247">Music 24/7</option>
+            <option value="peliculas247">Películas 24/7</option>
             <option value="deportes">Deportes</option>
             <option value="anuncios">Anuncios</option>
             <option value="anunciosCristianos">Anuncios Cristianos</option>
@@ -1280,6 +1390,19 @@
         <button class="btn" onclick="restablecerTema()" style="width:100%; margin-bottom:20px; background:#ef4444; color:white;">↩️ Restablecer diseño original</button>
 
         <hr style="border-color:#334155">
+        <h3>🖼️ Logo de la página</h3>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Se muestra en la sección de Inicio. Pega el enlace de una imagen (cualquier formato) para agregar o cambiar el logo.</p>
+        <input type="text" id="lgUrl" class="admin-input" placeholder="URL del logo (imagen)" oninput="previsualizarLogo()">
+        <div class="tema-row"><label>Tamaño: <span id="lgSizeLabel">150</span> px</label><input type="range" id="lgSize" min="60" max="300" step="10" oninput="previsualizarLogo()"></div>
+        <div class="tema-box" style="text-align:center; min-height:60px;">
+            <img id="lgPreview" alt="Vista previa del logo" style="max-width:100%; max-height:130px; object-fit:contain; display:none;">
+            <span id="lgPreviewEmpty" style="color:#94a3b8; font-size:0.85rem;">Sin logo</span>
+        </div>
+        <button class="btn" onclick="guardarLogo()" style="width:100%; margin-bottom:10px">💾 Guardar logo</button>
+        <button class="btn" onclick="eliminarLogo()" style="width:100%; margin-bottom:10px; background:#ef4444; color:white;">🗑️ Eliminar logo</button>
+        <button class="btn" onclick="restablecerLogo()" style="width:100%; margin-bottom:20px; background:#64748b; color:white;">↩️ Restaurar logo original</button>
+
+        <hr style="border-color:#334155">
         <h3>📞 Configurar Contacto</h3>
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Deja un campo vacío para ocultar ese botón. Los iconos son enlaces a una imagen (cualquier formato).</p>
         <input type="text" id="ctWhatsapp" class="admin-input" placeholder="Número de WhatsApp con código de país (ej. 50241680075)" inputmode="tel">
@@ -1306,12 +1429,14 @@
             <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
             <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
             <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
-            <option value="videos">Videos 24/7</option>
+            <option value="videos">Entretenimiento 24/7</option>
             <option value="videosCinema">24/7 CINEMA</option>
             <option value="noticias">Noticias 24/7</option>
-            <option value="religiosos">Videos Cristiano 24/7</option>
+            <option value="religiosos">Música Cristiano</option>
             <option value="videosReligioso">24/7 Religioso</option>
-            <option value="videosCatolicos">Videos Católicos 24/7</option>
+            <option value="videosCatolicos">Música Católica 24/7</option>
+            <option value="music247">Music 24/7</option>
+            <option value="peliculas247">Películas 24/7</option>
             <option value="deportes">Deportes</option>
             <option value="anuncios">Anuncios</option>
             <option value="anunciosCristianos">Anuncios Cristianos</option>
@@ -1384,12 +1509,12 @@
     let editModeId = null;
 
     const dataInicial = {
-        canales: {},
-        radio: {},
-        radioSFC: {},
-        videos: {},
+        canales: {1: {nombre: "Vision TV", logo: "https://static.wixstatic.com/media/7acae1_a1343f704ae0412ba28bab4239e78411~mv2.png/v1/fill/w_540,h_540,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/visiontv.png", url: "https://cdn.streamhispanatv.net:3531/live/tvsretrogtlive.m3u8"}},
+        radio: {1: {nombre: "EmisorasUnidas", logo: "https://cdn-profiles.tunein.com/s17610/images/logog.png", url: "https://stream-170.zeno.fm/tfcgfdag9ueuv"}},
+        radioSFC: {1: {nombre: "Radio SFU 94.1FM", logo: "https://municipalidadsanfranciscolaunion.gob.gt/wp-content/uploads/2025/12/radio-sfu-portada-pagina-web.png", url: "https://stream-166.zeno.fm/34ctc9etir7uv"}},
+        videos: {1: {nombre: "The Best EDM Mix 2025", logo: "https://www.pikpng.com/pngl/b/417-4170276_24-7-music-bot-graphic-design-clipart.png", url: "https://www.youtube.com/embed/GJ5WqZJVJqc"}},
         noticias: {},
-        religiosos: {},
+        religiosos: {1: {nombre: "Musica Cristiana 24/7", logo: "https://play-lh.googleusercontent.com/V7i7zLC9dlX62MQCDbvsYD0zpirJp-peQA8SBiOKvxafYB5VRRfj0t0k4pv3h5lyAK4", url: "https://www.youtube.com/embed/VEzQKnsCd3I"}},
         deportes: {},
         anuncios: {},
         eventos: {},
@@ -1397,6 +1522,8 @@
         canalesReligiosoNac: {},
         canalesReligiosoInt: {},
         videosCinema: {},
+        music247: {},
+        peliculas247: {},
         videosReligioso: {},
         radioCristianaSFC: {},
         radioCristianaNac: {},
@@ -1418,6 +1545,7 @@
             if (data) {
                 storage = data;
                 aplicarTemaGuardado();
+                aplicarLogoGuardado();
                 renderAllGrids();
                 if(isAdmin) mostrarTodosElementos();
                 showToast('✅ Contenido actualizado');
@@ -1597,7 +1725,7 @@
         const sections = [
             'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'radio', 'radioSFC', 
             'radioCristianaSFC', 'radioCristianaNac', 'radioCatolicaSFC', 'radioCatolicaNac',
-            'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'deportes', 
+            'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'music247', 'peliculas247', 'deportes', 
             'anuncios', 'anunciosCristianos', 'anunciosCatolicos', 'contacto'
         ];
         const types = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
@@ -1643,6 +1771,8 @@
         renderGrid('canalesReligiosoNac', 'canalesReligiosoNacGrid', 'playCanalReligiosoNac');
         renderGrid('canalesReligiosoInt', 'canalesReligiosoIntGrid', 'playCanalReligiosoInt');
         renderGrid('videosCinema', 'videosCinemaGrid', 'playVideoCinema');
+        renderGrid('music247', 'music247Grid', 'playMusic247');
+        renderGrid('peliculas247', 'peliculas247Grid', 'playPeliculas247');
         renderGrid('videosReligioso', 'videosReligiosoGrid', 'playVideoReligioso');
         renderGrid('radio', 'radioGrid', 'playRadio');
         renderGrid('radioSFC', 'radioSFCGrid', 'playRadioSFC');
@@ -2074,6 +2204,104 @@
     // Aplica de inmediato el último diseño conocido (evita parpadeos al cargar)
     try { applyTema(JSON.parse(localStorage.getItem('tv_sfc_tema') || '{}')); } catch (e) {}
 
+    // ============================================
+    // LOGO (agregar, cambiar o eliminar desde el panel de administración)
+    // ============================================
+    const LOGO_DEFAULT = { url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png', size: 150 };
+
+    function renderLogo(t) {
+        const c = { ...LOGO_DEFAULT, ...(t || {}) };
+        const img = document.getElementById('logoInicio');
+        if (!img) return;
+        if (c.url) {
+            if (img.getAttribute('src') !== c.url) img.src = c.url;
+            img.style.width = (Number(c.size) || 150) + 'px';
+            img.style.display = 'block';
+        } else {
+            img.style.display = 'none';
+        }
+    }
+
+    function aplicarLogoGuardado() {
+        const t = (storage && storage.logoConfig) || {};
+        renderLogo(t);
+        try { localStorage.setItem('tv_sfc_logo', JSON.stringify(t)); } catch (e) {}
+    }
+
+    function leerFormLogo() {
+        return {
+            url: document.getElementById('lgUrl').value.trim(),
+            size: Number(document.getElementById('lgSize').value) || 150
+        };
+    }
+
+    function actualizarVistaLogo(c) {
+        document.getElementById('lgSizeLabel').textContent = c.size;
+        const prev = document.getElementById('lgPreview');
+        const vacio = document.getElementById('lgPreviewEmpty');
+        if (c.url) {
+            prev.src = c.url;
+            prev.style.display = 'inline-block';
+            vacio.style.display = 'none';
+            prev.onerror = () => { prev.style.display = 'none'; vacio.style.display = 'inline'; vacio.textContent = 'No se pudo cargar la imagen'; };
+        } else {
+            prev.style.display = 'none';
+            vacio.style.display = 'inline';
+            vacio.textContent = 'Sin logo';
+        }
+    }
+
+    function cargarFormLogo() {
+        const c = { ...LOGO_DEFAULT, ...((storage && storage.logoConfig) || {}) };
+        document.getElementById('lgUrl').value = c.url || '';
+        document.getElementById('lgSize').value = c.size || 150;
+        actualizarVistaLogo(c);
+    }
+
+    function previsualizarLogo() {
+        const c = leerFormLogo();
+        actualizarVistaLogo(c);
+        renderLogo(c);
+    }
+
+    async function persistirLogo(cfg, mensaje) {
+        if (firebaseInitialized) {
+            try {
+                if (cfg === null) await database.ref('contenido/logoConfig').remove();
+                else await database.ref('contenido/logoConfig').set(cfg);
+                showToast(mensaje);
+            } catch (error) {
+                console.error('Error con el logo:', error);
+                showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+                return false;
+            }
+        } else {
+            if (cfg === null) delete storage.logoConfig; else storage.logoConfig = cfg;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+            showToast(mensaje);
+        }
+        if (cfg === null) { if (storage) delete storage.logoConfig; } else { storage.logoConfig = cfg; }
+        aplicarLogoGuardado();
+        cargarFormLogo();
+        return true;
+    }
+
+    function guardarLogo() {
+        const cfg = leerFormLogo();
+        if (!cfg.url) return showToast('⚠️ Pega el enlace de una imagen o usa "Eliminar logo"', 'error');
+        persistirLogo(cfg, '✅ Logo guardado');
+    }
+
+    function eliminarLogo() {
+        if (!confirm('¿Eliminar el logo de la página?')) return;
+        persistirLogo({ url: '', size: leerFormLogo().size }, '🗑️ Logo eliminado');
+    }
+
+    function restablecerLogo() {
+        if (!confirm('¿Restaurar el logo original?')) return;
+        persistirLogo(null, '↩️ Logo original restaurado');
+    }
+
     function fixStreamUrl(url) {
         // Si la página está en HTTPS y la URL es HTTP, pasamos por proxy para evitar bloqueo Mixed Content
         if (location.protocol === 'https:' && url.startsWith('http://')) {
@@ -2084,7 +2312,7 @@
     // ============================================
     // REPRODUCTOR DE TV: HLS (.m3u8) y MPEG-TS (.ts)
     // ============================================
-    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'videosCinema', 'videosReligioso'];
+    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'videosCinema', 'videosReligioso', 'music247', 'peliculas247'];
 
     function toggleTipoStream() {
         const cat = document.getElementById("categoria").value;
@@ -2230,6 +2458,8 @@
     function playVideoCatolico(url) { document.getElementById("videosCatolicosFrame").src = url; }
     function playVideo(url) { document.getElementById("videoFrame").src = url; }
     function playVideoCinema(url, item) { playStream("tvPlayerCinema", url, item); }
+    function playMusic247(url, item) { playStream("tvPlayerMusic247", url, item); }
+    function playPeliculas247(url, item) { playStream("tvPlayerPeliculas247", url, item); }
     function playVideoReligioso(url, item) { playStream("tvPlayerVideosReligioso", url, item); }
     function playNoticia(url) { document.getElementById("noticiasFrame").src = url; }
     function playReligioso(url) { document.getElementById("religiosoFrame").src = url; }
@@ -2262,7 +2492,7 @@
                 .then(() => {
                     isAdmin = true;
                     document.getElementById("loginModal").style.display = "none";
-                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema();
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo();
                     showToast("✅ Acceso Concedido");
                 })
                 .catch((error) => {
@@ -2275,7 +2505,7 @@
                 if (hash === PASS_HASH) {
                     isAdmin = true;
                     document.getElementById("loginModal").style.display = "none";
-                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema();
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo();
                     showToast("✅ Acceso Concedido (modo local)");
                 } else showToast("❌ Contraseña Incorrecta", "error");
             });
@@ -2283,7 +2513,7 @@
     }
     function openLogin() { 
         if (isAdmin) {
-            document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema();
+            document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo();
         } else {
             document.getElementById("loginModal").style.display = "flex";
         }
@@ -2368,7 +2598,7 @@
 
     // Inicializar todos los click handlers después de que el DOM esté listo
     function initializeAllClickHandlers() {
-        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperVideosCinema', 'wrapperVideosReligioso'];
+        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperVideosCinema', 'wrapperVideosReligioso', 'wrapperMusic247', 'wrapperPeliculas247'];
         wrapperIds.forEach(id => {
             const wrapper = document.getElementById(id);
             if (wrapper) {
@@ -2451,7 +2681,7 @@
     });
 
     // --- CONTROL DE BLOQUES/SECCIONES (navegación tipo pestañas) ---
-    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','radio','radioSFC','radioCristianaSFC','radioCristianaNac','radioCatolicaSFC','radioCatolicaNac','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
+    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','radio','radioSFC','radioCristianaSFC','radioCristianaNac','radioCatolicaSFC','radioCatolicaNac','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
 
     function showSection(id) {
         if (!sectionOrder.includes(id)) id = 'inicio';
@@ -2489,6 +2719,7 @@
         updateAllReactionCounts();
 
         // Muestra el bloque inicial: el de la URL (#hash) o "inicio" por defecto
+        try { renderLogo(JSON.parse(localStorage.getItem('tv_sfc_logo') || '{}')); } catch (e) { renderLogo({}); }
         const rawHash = window.location.hash ? window.location.hash.substring(1) : 'inicio';
         const [initialId, extraId] = rawHash.split('/');
         if (extraId && ANUNCIO_CATS[initialId]) {
