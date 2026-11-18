@@ -2,10 +2,15 @@
   "version": 2,
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
+    { "src": "manifest.json", "use": "@vercel/static" },
+    { "src": "sw.js", "use": "@vercel/static" },
+    { "src": "icons/*", "use": "@vercel/static" },
     { "src": "api/proxy.js", "use": "@vercel/node" }
   ],
   "routes": [
     { "src": "/api/proxy", "dest": "/api/proxy.js" },
+    { "src": "/sw.js", "headers": { "Cache-Control": "no-cache", "Service-Worker-Allowed": "/" }, "continue": true },
+    { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

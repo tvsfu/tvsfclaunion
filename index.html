@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV SFC LA UNION - Firebase</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#020617">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TV SFC">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -374,6 +382,8 @@
         <h2>📺 TV SFC LA UNION</h2>
         <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png" class="logo-float" id="logoInicio" style="padding-top:0; margin:10px auto 15px;" alt="Logo">
         <p style="font-size:1.1rem;">El Canal De La Union</p>
+        <button class="btn" id="btnInstalar" onclick="instalarApp()" style="display:none; margin-top:15px;">📲 Instalar app</button>
+        <p id="iosInstalar" style="display:none; margin-top:12px; font-size:0.9rem; color:var(--text-gray);">En iPhone: toca el botón Compartir <b>⬆️</b> y luego <b>"Agregar a pantalla de inicio"</b>.</p>
         <div id="firebaseStatus" class="firebase-status">🔄 Conectando a Firebase...</div>
         <div class="reactions-bar" style="justify-content: center;">
             <div class="reaction-btn" onclick="toggleReaction('inicio', 'like')">
@@ -1451,12 +1461,12 @@
     let editModeId = null;
 
     const dataInicial = {
-        canales: {},
-        radio: {},
-        radioSFC: {},
-        videos: {},
+        canales: {1: {nombre: "Vision TV", logo: "https://static.wixstatic.com/media/7acae1_a1343f704ae0412ba28bab4239e78411~mv2.png/v1/fill/w_540,h_540,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/visiontv.png", url: "https://cdn.streamhispanatv.net:3531/live/tvsretrogtlive.m3u8"}},
+        radio: {1: {nombre: "EmisorasUnidas", logo: "https://cdn-profiles.tunein.com/s17610/images/logog.png", url: "https://stream-170.zeno.fm/tfcgfdag9ueuv"}},
+        radioSFC: {1: {nombre: "Radio SFU 94.1FM", logo: "https://municipalidadsanfranciscolaunion.gob.gt/wp-content/uploads/2025/12/radio-sfu-portada-pagina-web.png", url: "https://stream-166.zeno.fm/34ctc9etir7uv"}},
+        videos: {1: {nombre: "The Best EDM Mix 2025", logo: "https://www.pikpng.com/pngl/b/417-4170276_24-7-music-bot-graphic-design-clipart.png", url: "https://www.youtube.com/embed/GJ5WqZJVJqc"}},
         noticias: {},
-        religiosos: {},
+        religiosos: {1: {nombre: "Musica Cristiana 24/7", logo: "https://play-lh.googleusercontent.com/V7i7zLC9dlX62MQCDbvsYD0zpirJp-peQA8SBiOKvxafYB5VRRfj0t0k4pv3h5lyAK4", url: "https://www.youtube.com/embed/VEzQKnsCd3I"}},
         deportes: {},
         anuncios: {},
         eventos: {},
@@ -2244,6 +2254,58 @@
         persistirLogo(null, '↩️ Logo original restaurado');
     }
 
+    // ============================================
+    // INSTALAR COMO APP (PWA)
+    // ============================================
+    let deferredInstall = null;
+
+    function esStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+    function esIOS() {
+        return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstall = e;
+        const b = document.getElementById('btnInstalar');
+        if (b && !esStandalone()) b.style.display = 'inline-block';
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredInstall = null;
+        const b = document.getElementById('btnInstalar');
+        if (b) b.style.display = 'none';
+        showToast('✅ App instalada');
+    });
+
+    async function instalarApp() {
+        if (deferredInstall) {
+            deferredInstall.prompt();
+            try { await deferredInstall.userChoice; } catch (e) {}
+            deferredInstall = null;
+            document.getElementById('btnInstalar').style.display = 'none';
+        } else {
+            showToast('Abre el menú del navegador y elige "Instalar app" o "Agregar a pantalla de inicio"');
+        }
+    }
+
+    function iniciarInstalacion() {
+        if (esStandalone()) return;
+        if (esIOS()) {
+            // iPhone/iPad no permiten el botón automático: se muestran las instrucciones
+            const t = document.getElementById('iosInstalar');
+            if (t) t.style.display = 'block';
+        }
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW no registrado:', err));
+        });
+    }
+
     function fixStreamUrl(url) {
         // Si la página está en HTTPS y la URL es HTTP, pasamos por proxy para evitar bloqueo Mixed Content
         if (location.protocol === 'https:' && url.startsWith('http://')) {
@@ -2662,6 +2724,7 @@
 
         // Muestra el bloque inicial: el de la URL (#hash) o "inicio" por defecto
         try { renderLogo(JSON.parse(localStorage.getItem('tv_sfc_logo') || '{}')); } catch (e) { renderLogo({}); }
+        iniciarInstalacion();
         const rawHash = window.location.hash ? window.location.hash.substring(1) : 'inicio';
         const [initialId, extraId] = rawHash.split('/');
         if (extraId && ANUNCIO_CATS[initialId]) {
