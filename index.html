@@ -330,6 +330,14 @@
         .btn-contacto { width: 90%; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 16px; border-radius: 12px; font-weight: bold; font-size: 1rem; text-decoration: none; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); box-sizing: border-box; }
         .btn-contacto img { width: 30px; height: 30px; object-fit: contain; border-radius: 6px; }
         .btn-contacto .emoji-icon { font-size: 1.5rem; line-height: 1; }
+
+        .admin-acc { border-top: 1px solid #334155; margin-top: 14px; padding-top: 4px; }
+        .admin-acc > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; -webkit-tap-highlight-color: transparent; }
+        .admin-acc > summary::-webkit-details-marker { display: none; }
+        .admin-acc > summary::after { content: "▾"; font-size: 1.3rem; color: var(--primary); transition: transform 0.2s; }
+        .admin-acc[open] > summary::after { transform: rotate(180deg); }
+        .admin-acc-body { padding-bottom: 10px; }
+
     </style>
 </head>
 <body>
@@ -1262,9 +1270,9 @@
         <div class="firebase-status" id="adminFirebaseStatus">✅ Conectado a Firebase</div>
         <button class="btn btn-danger" onclick="cerrarSesion()" style="margin-bottom:20px">Cerrar Sesión</button>
         <button class="btn" onclick="ocultarPanel()" style="margin-bottom:20px; background:#3b82f6; color:white; padding:5px 10px; font-size:0.8rem;">👁️ Ver página</button>
-        <hr style="border-color:#334155">
-        
-        <h3 id="formTitle">Agregar Contenido</h3>
+        <details class="admin-acc" id="accAgregar" open>
+        <summary><h3 style="margin:0;" id="formTitle">Agregar Contenido</h3></summary>
+        <div class="admin-acc-body">
         <select id="categoria" class="admin-select" onchange="toggleTipoStream()">
             <option value="">Seleccionar Categoría</option>
             <option value="canales">Canales Nacionales</option>
@@ -1306,9 +1314,45 @@
         
         <button id="btnGuardar" class="btn" onclick="guardarContenido()" style="width:100%; margin-bottom:10px">💾 Guardar</button>
         <button id="btnCancelar" class="btn btn-gray" onclick="cancelarEdicion()" style="width:100%; margin-bottom:20px; background:#64748b; display:none;">🚫 Cancelar Edición</button>
-        
-        <hr style="border-color:#334155">
-        <h3>🎨 Diseño de la página</h3>
+        </div>
+        </details>
+        <details class="admin-acc" id="accGestionar">
+        <summary><h3 style="margin:0;">Gestionar Contenido</h3></summary>
+        <div class="admin-acc-body">
+        <select id="verCategoria" class="admin-select" onchange="mostrarTodosElementos()">
+            <option value="">Seleccionar Categoría</option>
+           <option value="canales">Canales Nacionales</option>
+            <option value="canalesInt">Canales Internacionales</option>
+            <option value="canalesDeportes">Canales De Deportes Nacional</option>
+            <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
+            <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
+            <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
+            <option value="radio">Emisoras Nacionales E Internacionales</option>
+            <option value="radioSFC">Emisoras SFC</option>
+            <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
+            <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
+            <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
+            <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
+            <option value="videos">Entretenimiento 24/7</option>
+            <option value="videosCinema">24/7 CINEMA</option>
+            <option value="noticias">Noticias 24/7</option>
+            <option value="religiosos">Música Cristiano</option>
+            <option value="videosReligioso">24/7 Religioso</option>
+            <option value="videosCatolicos">Música Católica 24/7</option>
+            <option value="music247">Music 24/7</option>
+            <option value="peliculas247">Películas 24/7</option>
+            <option value="deportes">Deportes</option>
+            <option value="anuncios">Anuncios</option>
+            <option value="anunciosCristianos">Anuncios Cristianos</option>
+            <option value="anunciosCatolicos">Anuncios Católicos</option>
+            <option value="eventos">FB Live</option>
+        </select>
+        <div id="listaElementos"></div>
+        </div>
+        </details>
+        <details class="admin-acc" id="accDiseno">
+        <summary><h3 style="margin:0;">🎨 Diseño de la página</h3></summary>
+        <div class="admin-acc-body">
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Los cambios se ven al instante (toca "👁️ Ver página" arriba). Toca <b>Guardar diseño</b> para que lo vea todo el público.</p>
         <input type="text" id="tmBgImage" class="admin-input" placeholder="URL de la imagen de fondo (vacía = solo color)" oninput="previsualizarTema()">
         <button class="btn" onclick="quitarFondo()" style="background:#64748b; color:white; margin:0 0 12px 0;">🗑️ Quitar imagen de fondo</button>
@@ -1340,9 +1384,11 @@
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Opacidad 100% = color normal · 0% = transparente. El cuadro con cuadritos muestra cómo queda.</p>
         <button class="btn" onclick="guardarTema()" style="width:100%; margin-bottom:10px">💾 Guardar diseño</button>
         <button class="btn" onclick="restablecerTema()" style="width:100%; margin-bottom:20px; background:#ef4444; color:white;">↩️ Restablecer diseño original</button>
-
-        <hr style="border-color:#334155">
-        <h3>🖼️ Logo de la página</h3>
+        </div>
+        </details>
+        <details class="admin-acc" id="accLogo">
+        <summary><h3 style="margin:0;">🖼️ Logo de la página</h3></summary>
+        <div class="admin-acc-body">
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Se muestra en la sección de Inicio. Pega el enlace de una imagen (cualquier formato) para agregar o cambiar el logo.</p>
         <input type="text" id="lgUrl" class="admin-input" placeholder="URL del logo (imagen)" oninput="previsualizarLogo()">
         <div class="tema-row"><label>Tamaño: <span id="lgSizeLabel">150</span> px</label><input type="range" id="lgSize" min="60" max="300" step="10" oninput="previsualizarLogo()"></div>
@@ -1353,9 +1399,11 @@
         <button class="btn" onclick="guardarLogo()" style="width:100%; margin-bottom:10px">💾 Guardar logo</button>
         <button class="btn" onclick="eliminarLogo()" style="width:100%; margin-bottom:10px; background:#ef4444; color:white;">🗑️ Eliminar logo</button>
         <button class="btn" onclick="restablecerLogo()" style="width:100%; margin-bottom:20px; background:#64748b; color:white;">↩️ Restaurar logo original</button>
-
-        <hr style="border-color:#334155">
-        <h3>📞 Configurar Contacto</h3>
+        </div>
+        </details>
+        <details class="admin-acc" id="accContacto">
+        <summary><h3 style="margin:0;">📞 Configurar Contacto</h3></summary>
+        <div class="admin-acc-body">
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Deja un campo vacío para ocultar ese botón. Los iconos son enlaces a una imagen (cualquier formato).</p>
         <input type="text" id="ctWhatsapp" class="admin-input" placeholder="Número de WhatsApp con código de país (ej. 50241680075)" inputmode="tel">
         <input type="text" id="ctIconWhatsapp" class="admin-input" placeholder="URL del icono de WhatsApp (imagen)">
@@ -1364,39 +1412,9 @@
         <input type="text" id="ctGmail" class="admin-input" placeholder="Correo Gmail">
         <input type="text" id="ctIconGmail" class="admin-input" placeholder="URL del icono de Gmail (imagen)">
         <button class="btn" onclick="guardarContacto()" style="width:100%; margin-bottom:20px">💾 Guardar Contacto</button>
-
-        <hr style="border-color:#334155">
-        <h3>Gestionar Contenido</h3>
-        <select id="verCategoria" class="admin-select" onchange="mostrarTodosElementos()">
-            <option value="">Seleccionar Categoría</option>
-           <option value="canales">Canales Nacionales</option>
-            <option value="canalesInt">Canales Internacionales</option>
-            <option value="canalesDeportes">Canales De Deportes Nacional</option>
-            <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
-            <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
-            <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
-            <option value="radio">Emisoras Nacionales E Internacionales</option>
-            <option value="radioSFC">Emisoras SFC</option>
-            <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
-            <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
-            <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
-            <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
-            <option value="videos">Entretenimiento 24/7</option>
-            <option value="videosCinema">24/7 CINEMA</option>
-            <option value="noticias">Noticias 24/7</option>
-            <option value="religiosos">Música Cristiano</option>
-            <option value="videosReligioso">24/7 Religioso</option>
-            <option value="videosCatolicos">Música Católica 24/7</option>
-            <option value="music247">Music 24/7</option>
-            <option value="peliculas247">Películas 24/7</option>
-            <option value="deportes">Deportes</option>
-            <option value="anuncios">Anuncios</option>
-            <option value="anunciosCristianos">Anuncios Cristianos</option>
-            <option value="anunciosCatolicos">Anuncios Católicos</option>
-            <option value="eventos">FB Live</option>
-        </select>
-        <div id="listaElementos"></div>
-    </div>
+        </div>
+        </details>
+        </div>
 </div>
 
 
@@ -1532,6 +1550,7 @@
             
             editModeId = id;
             document.getElementById("formTitle").textContent = "✏️ Editando Contenido";
+            document.getElementById("accAgregar").open = true;
             document.getElementById("btnGuardar").textContent = "🔄 Actualizar Contenido";
             document.getElementById("btnCancelar").style.display = "block";
             document.querySelector('.admin-container').scrollTop = 0;
