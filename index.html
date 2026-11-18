@@ -1,0 +1,2760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV SFC LA UNION - Firebase</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#020617">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TV SFC">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
+    
+    <style>
+        :root {
+            --primary: #22c55e;
+            --dark-bg: #020617;
+            --card-bg: rgba(var(--nav-rgb), calc(0.95 * var(--nav-a)));
+            --text-light: #f8fafc;
+            --text-gray: #94a3b8;
+            --heart: #ef4444;
+            --primary-rgb: 34, 197, 94;
+            --surface-rgb: 30, 41, 59;
+            --nav-rgb: 2, 6, 23;
+            --on-primary: #020617;
+            --bg-color: #020617;
+            --bg-image: url("https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg");
+            --bg-dim: 0;
+            --primary-a: 1;
+            --surface-a: 1;
+            --nav-a: 1;
+            --card-rgb: 2, 6, 23;
+            --card-a: 0;
+        }
+        html { background: #000; }
+        .tema-box { background: rgba(255,255,255,0.04); border: 1px solid #1e293b; border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+        .tema-box .tema-row { margin-bottom: 8px; }
+        .tema-box .tema-row:last-child { margin-bottom: 0; }
+        .swatch { flex: none; width: 34px; height: 34px; border-radius: 8px; border: 1px solid #475569; overflow: hidden; background: conic-gradient(#8a8a8a 25%, #d0d0d0 0 50%, #8a8a8a 0 75%, #d0d0d0 0) 0 0 / 12px 12px; }
+        .swatch i { display: block; width: 100%; height: 100%; }
+        .tema-val { flex: none; width: 46px; text-align: right; font-size: 0.85rem; color: #cbd5e1; }
+        .btn-transp { flex: none; background: #334155; color: white; border: 1px solid #475569; border-radius: 8px; padding: 8px 10px; font-size: 0.75rem; cursor: pointer; }
+        body::before { content: ""; position: fixed; inset: 0; background: rgba(0,0,0,var(--bg-dim)); pointer-events: none; z-index: -1; }
+        .tema-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .tema-row label { flex: 1; font-size: 0.9rem; }
+        .tema-row input[type=color] { width: 70px; height: 40px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; padding: 2px; cursor: pointer; }
+        .tema-row input[type=range] { flex: 1; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            background-image: var(--bg-image);
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            background-size: cover;
+            color: var(--text-light);
+            padding-bottom: 60px;
+        }
+
+        .logo-float { display: block; margin: 20px auto; max-width: 100%; width: 150px; height: auto; filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), calc(0.5 * var(--primary-a)))); padding-top: 20px; }
+        section { padding: 15px; max-width: 1100px; margin: auto; }
+        
+        /* SECCIONES TRANSPARENTES CON TEXTO LEGIBLE */
+        .card { 
+            background: rgba(var(--card-rgb), var(--card-a)); 
+            border-radius: 16px; 
+            padding: 20px; 
+            margin-bottom: 25px; 
+            position: relative; 
+            text-shadow: none; /* Sombreado eliminado */
+        }
+        .card h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid rgba(var(--primary-rgb), calc(0.4 * var(--primary-a))); padding-bottom: 10px; display: inline-block; text-shadow: none; /* Sombreado eliminado */ }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 15px; max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        .item { background: rgba(var(--surface-rgb), calc(0.75 * var(--surface-a))); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-shadow: none; }
+        .item:hover { transform: translateY(-5px); background: rgba(var(--surface-rgb), calc(0.95 * var(--surface-a))); border-color: var(--primary); box-shadow: 0 5px 15px rgba(var(--primary-rgb), calc(0.4 * var(--primary-a))); }
+        .item img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; margin-bottom: 8px; border: 2px solid #334155; }
+        .item p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: var(--text-light); }
+        
+        #deportesGrid .item img {
+            width: 100px;
+            height: 65px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #000;
+            border: 1px solid var(--primary);
+        }
+
+        .like-container { position: absolute; top: 5px; right: 5px; z-index: 10; cursor: pointer; font-size: 1.2rem; transition: transform 0.2s; color: rgba(255,255,255,0.8); text-shadow: none;}
+        .like-container.active { color: var(--heart); transform: scale(1.2); }
+
+        .video-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-top: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.1); }
+        .video-box iframe, .video-box video { width: 100%; height: 100%; border: 0; }
+
+        /* Reproductor personalizado EN VIVO */
+        .player-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-top: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.1); }
+        .player-wrapper video { width: 100%; height: 100%; border: 0; display: block; }
+        .live-badge { position: absolute; top: 10px; left: 10px; background: #ef4444; color: white; font-size: 0.8rem; font-weight: bold; padding: 5px 12px; border-radius: 20px; display: none; align-items: center; gap: 6px; z-index: 10; letter-spacing: 1px; transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; }
+        .live-badge::before { content: ""; width: 8px; height: 8px; background: white; border-radius: 50%; display: inline-block; animation: blinkDot 1s infinite; }
+        @keyframes blinkDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .player-wrapper.playing .live-badge { display: flex; }
+        
+        /* Ocultar badge cuando hide-ui está activo */
+        .player-wrapper.hide-ui .live-badge {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        /* Botón y menú de ajuste de pantalla */
+        .fit-btn { position: absolute; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; z-index: 20; display: flex; gap: 5px; align-items: center; backdrop-filter: blur(4px); transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; }
+        .fit-btn.top { top: 10px; right: 10px; }
+        .fit-btn.bottom { bottom: 10px; left: 10px; }
+        .player-wrapper.playing .fit-btn { display: flex; }
+        
+        /* Ocultar botones cuando hide-ui está activo */
+        .player-wrapper.hide-ui .fit-btn {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        .fit-menu { position: absolute; left: 8px; right: 8px; background: rgba(20,20,20,0.95); border-radius: 12px; overflow: visible; z-index: 30; display: none; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.7); padding: 10px; box-sizing: border-box; transition: opacity 0.3s ease; }
+        .fit-menu.top-menu { top: 45px; }
+        .fit-menu.bottom-menu { bottom: 45px; left: 8px; right: 8px; }
+        .fit-menu.open { display: flex; }
+        
+        /* Ocultar menú cuando hide-ui está activo */
+        .player-wrapper.hide-ui .fit-menu {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            display: none !important;
+        }
+        .fit-menu button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 8px; text-align: center; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; border-radius: 8px; }
+        .fit-menu button:hover { background: rgba(255,255,255,0.1); }
+        .fit-menu button.active { color: var(--primary); font-weight: bold; }
+        .fit-menu .divider { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 6px 0; }
+        .fit-menu .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 4px; }
+        .fit-menu .btn-group-quality { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+        .fit-menu .section-title { color: #94a3b8; font-size: 0.75rem; padding: 6px 4px 4px; text-transform: uppercase; letter-spacing: 1px; grid-column: 1/-1; }
+        /* Ocultar controles nativos con hide-ui */
+        .player-wrapper.hide-ui video::-webkit-media-controls { display: none !important; }
+        .player-wrapper.hide-ui video { pointer-events: none; }
+        .player-wrapper.hide-ui .live-badge,
+        .player-wrapper.hide-ui .fit-btn,
+        .player-wrapper.hide-ui .fit-menu { 
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        audio { width: 100%; margin-top: 15px; filter: invert(0.9) hue-rotate(180deg); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .btn { background: var(--primary); color: var(--on-primary); padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; margin: 5px; text-shadow: none; }
+        .btn-danger { background: #ef4444; color: white; padding: 5px 10px; font-size: 0.8rem; }
+        .btn-edit { background: #3b82f6; color: white; padding: 5px 10px; font-size: 0.8rem; margin-right: 5px; }
+        .admin-input, .admin-select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        #adminPanel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #020617; z-index: 2500; overflow-y: auto; text-shadow: none; }
+        .admin-container { max-width: 800px; margin: 20px auto; padding: 20px; }
+        .admin-item-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+        .admin-actions { display: flex; gap: 5px; }
+        .custom-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(5px); }
+        .custom-modal { background: #1e293b; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; border: 1px solid #334155; text-shadow: none; }
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: rgba(15, 23, 42, 0.95); border-left: 4px solid var(--primary); color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; animation: fadeInOut 3s forwards; display: flex; align-items: center; gap: 10px; text-shadow: none;}
+        @keyframes fadeInOut { 0% { opacity:0; transform:translateY(20px); } 10% { opacity:1; transform:translateY(0); } 90% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-20px); } }
+
+        .reactions-bar {
+            display: flex;
+            gap: 8px;
+            padding: 15px 0 10px 0;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            margin-top: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .reaction-btn {
+            background: rgba(var(--surface-rgb), calc(0.85 * var(--surface-a)));
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            text-shadow: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .reaction-btn:hover {
+            transform: scale(1.1);
+            background: rgba(var(--surface-rgb), calc(1 * var(--surface-a)));
+            border-color: var(--primary);
+        }
+        .reaction-btn.active {
+            background: rgba(var(--primary-rgb), calc(0.3 * var(--primary-a)));
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .reaction-emoji {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            transition: transform 0.3s;
+            object-fit: contain;
+        }
+        .reaction-btn:hover .reaction-emoji {
+            transform: scale(1.2);
+        }
+        .reaction-count {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .share-btn {
+            background: rgba(var(--surface-rgb), calc(0.85 * var(--surface-a)));
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-left: auto;
+            text-shadow: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .share-btn:hover {
+            background: rgba(var(--surface-rgb), calc(1 * var(--surface-a)));
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+        
+        .firebase-status {
+            background: rgba(var(--primary-rgb), calc(0.3 * var(--primary-a)));
+            border: 1px solid var(--primary);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin: 10px 0;
+            display: inline-block;
+            text-shadow: none; /* Sombreado eliminado */
+        }
+        .firebase-status.error {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: #ef4444;
+        }
+
+        /* --- BARRA DE NAVEGACIÓN SUPERIOR --- */
+        .topbar-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1500;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 12px 15px;
+            background: rgba(var(--nav-rgb), calc(0.97 * var(--nav-a)));
+            backdrop-filter: blur(8px);
+            border-bottom: 2px solid rgba(var(--primary-rgb), calc(0.4 * var(--primary-a)));
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+        .topbar-nav::-webkit-scrollbar { height: 5px; }
+        .topbar-nav::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .topbar-link {
+            flex-shrink: 0;
+            background: rgba(var(--surface-rgb), calc(0.75 * var(--surface-a)));
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.25s;
+            text-shadow: none;
+        }
+        .topbar-link:hover { border-color: var(--primary); background: rgba(var(--surface-rgb), calc(0.95 * var(--surface-a))); }
+        .topbar-link.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+
+        /* --- SECCIONES SEPARADAS POR BLOQUE (solo se muestra la activa) --- */
+        section { display: none; animation: fadeInSection 0.35s ease; }
+        section.active-section { display: block; }
+        @keyframes fadeInSection { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cada bloque de sección se marca claramente como una tarjeta independiente */
+        .card {
+            border: 1px solid rgba(var(--primary-rgb), calc(0.25 * var(--primary-a)));
+            box-shadow: 0 10px 35px rgba(0,0,0,0.4);
+        }
+
+        /* --- ANUNCIOS: vista previa, expandir y compartir uno solo --- */
+        .anuncios-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); max-height: 460px; }
+        .anuncio-card { background: rgba(var(--surface-rgb), calc(0.8 * var(--surface-a))); border: 2px solid transparent; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.2s; }
+        .anuncio-card.selected { border-color: var(--primary); box-shadow: 0 0 12px rgba(var(--primary-rgb), calc(0.5 * var(--primary-a))); }
+        .anuncio-thumb { position: relative; width: 100%; aspect-ratio: 16/10; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer; }
+        .anuncio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .anuncio-thumb .play-mark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; background: rgba(0,0,0,0.35); }
+        .anuncio-card p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: var(--text-light); text-align: center; word-break: break-word; }
+        .anuncio-share { background: var(--primary); color: var(--on-primary); border: none; border-radius: 8px; padding: 8px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
+        .anuncio-share:active { transform: scale(0.97); }
+        .video-box.anuncio-box { position: relative; }
+        .anuncio-box img.anuncio-main { width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; display: block; }
+        .anuncio-placeholder { height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: var(--text-gray); font-size: 0.95rem; }
+        .anuncio-expand { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.35); color: white; font-size: 0.8rem; font-weight: bold; padding: 6px 12px; border-radius: 20px; cursor: pointer; backdrop-filter: blur(4px); }
+        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 3500; }
+        .lightbox.open { display: flex; }
+        .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; touch-action: pinch-zoom pan-x pan-y; }
+        .lightbox-close { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.6); color: white; font-size: 1.3rem; cursor: pointer; z-index: 2; }
+
+        /* --- CONTACTO --- */
+        .contacto-botones { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+        .btn-contacto { width: 90%; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 16px; border-radius: 12px; font-weight: bold; font-size: 1rem; text-decoration: none; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); box-sizing: border-box; }
+        .btn-contacto img { width: 30px; height: 30px; object-fit: contain; border-radius: 6px; }
+        .btn-contacto .emoji-icon { font-size: 1.5rem; line-height: 1; }
+
+        .admin-acc { border-top: 1px solid #334155; margin-top: 14px; padding-top: 4px; }
+        .admin-acc > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; -webkit-tap-highlight-color: transparent; }
+        .admin-acc > summary::-webkit-details-marker { display: none; }
+        .admin-acc > summary::after { content: "▾"; font-size: 1.3rem; color: var(--primary); transition: transform 0.2s; }
+        .admin-acc[open] > summary::after { transform: rotate(180deg); }
+        .admin-acc-body { padding-bottom: 10px; }
+
+    </style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<div id="loginModal" class="custom-modal-overlay">
+    <div class="custom-modal" style="text-align:center;">
+        <h3 style="color:var(--primary)">🔐 Acceso Administrador</h3>
+        <input type="email" id="adminEmailInput" class="admin-input" placeholder="Correo del administrador" autocomplete="username">
+        <input type="password" id="adminPassInput" class="admin-input" placeholder="Contraseña" autocomplete="current-password">
+        <button onclick="attemptLogin()" class="btn" style="width:100%">Entrar</button>
+        <button onclick="document.getElementById('loginModal').style.display='none'" class="btn btn-gray" style="width:100%; margin-top:10px; background:#64748b; color:white;">Cancelar</button>
+    </div>
+</div>
+
+
+<div class="topbar-nav" id="topbarNav">
+    <button class="topbar-link" data-target="inicio">🏠 Inicio</button>
+    <button class="topbar-link" data-target="facebooklive">📡 FB Live</button>
+    <button class="topbar-link" data-target="canales">📺 Nacionales</button>
+    <button class="topbar-link" data-target="canalesInt">🌐 Internacionales</button>
+    <button class="topbar-link" data-target="canalesDeportes">⚽ Deportes Nacional</button>
+    <button class="topbar-link" data-target="canalesDeportesInt">⚽ Deportes Internacional</button>
+    <button class="topbar-link" data-target="canalesReligiosoNac">🙏 Religioso Nacional</button>
+    <button class="topbar-link" data-target="canalesReligiosoInt">🙏 Religioso Internacional</button>
+    <button class="topbar-link" data-target="radio">📻 Radio Nac/Int</button>
+    <button class="topbar-link" data-target="radioSFC">📻 Radio SFC</button>
+    <button class="topbar-link" data-target="radioCristianaSFC">✝️ Radio Crist. SFC</button>
+    <button class="topbar-link" data-target="radioCristianaNac">✝️ Radio Crist. Nac/Int</button>
+    <button class="topbar-link" data-target="radioCatolicaSFC">⛪ Radio Cat. SFC</button>
+    <button class="topbar-link" data-target="radioCatolicaNac">⛪ Radio Cat. Nac/Int</button>
+    <button class="topbar-link" data-target="videos">🎬 Entretenimiento 24/7</button>
+    <button class="topbar-link" data-target="videosCinema">🎬 24/7 Cinema</button>
+    <button class="topbar-link" data-target="noticias">📰 Noticias</button>
+    <button class="topbar-link" data-target="religiosos">🎵 Música Cristiano</button>
+    <button class="topbar-link" data-target="videosReligioso">🙏 24/7 Religioso</button>
+    <button class="topbar-link" data-target="videosCatolicos">📿 Música Católica 24/7</button>
+    <button class="topbar-link" data-target="music247">🎵 Music 24/7</button>
+    <button class="topbar-link" data-target="peliculas247">🍿 Películas 24/7</button>
+    <button class="topbar-link" data-target="deportes">🏆 Deportes</button>
+    <button class="topbar-link" data-target="anuncios">📢 Anuncios</button>
+    <button class="topbar-link" data-target="anunciosCristianos">📢 Anun. Cristianos</button>
+    <button class="topbar-link" data-target="anunciosCatolicos">📢 Anun. Católicos</button>
+    <button class="topbar-link" data-target="contacto">🛒 Adquirir servicio</button>
+    <button class="topbar-link" onclick="openLogin()" style="background:#334155; border-color:#475569;">🛠️ Admin</button>
+</div>
+
+<section id="inicio">
+    <div class="card" style="text-align:center">
+        <h2>📺 TV SFC LA UNION</h2>
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png" class="logo-float" id="logoInicio" style="padding-top:0; margin:10px auto 15px;" alt="Logo">
+        <p style="font-size:1.1rem;">El Canal De La Union</p>
+        <button class="btn" id="btnInstalar" onclick="instalarApp()" style="display:none; margin-top:15px;">📲 Instalar app</button>
+        <p id="iosInstalar" style="display:none; margin-top:12px; font-size:0.9rem; color:var(--text-gray);">En iPhone: toca el botón Compartir <b>⬆️</b> y luego <b>"Agregar a pantalla de inicio"</b>.</p>
+        <div id="firebaseStatus" class="firebase-status">🔄 Conectando a Firebase...</div>
+        <div class="reactions-bar" style="justify-content: center;">
+            <div class="reaction-btn" onclick="toggleReaction('inicio', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="inicio-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('inicio', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="inicio-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('inicio', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="inicio-haha-count">0</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="facebooklive">
+    <div class="card">
+        <h2>📡 Facebook Live</h2>
+        <div class="grid" id="eventosGrid"></div>
+        <div class="video-box">
+            <iframe id="facebookliveFrame" src="" allowfullscreen></iframe>
+        </div>
+        <button class="btn" style="margin-top:10px; width:100%;" onclick="compartirApp()">📱 Compartir App</button>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('facebooklive', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="facebooklive-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('facebooklive', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="facebooklive-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('facebooklive', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="facebooklive-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('facebooklive', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="facebooklive-wow-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('facebooklive', 'sad')">
+                <span class="reaction-emoji">😢</span>
+                <span class="reaction-count" id="facebooklive-sad-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('facebooklive', 'angry')">
+                <span class="reaction-emoji">😠</span>
+                <span class="reaction-count" id="facebooklive-angry-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('facebooklive')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canales">
+    <div class="card">
+       <h2>📺 Canales Nacionales</h2>
+        <div class="grid" id="canalesGrid"></div>
+        <div class="player-wrapper" id="wrapperCanal">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuCanal')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuCanal">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayer','contain','fitMenuCanal',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayer','fill','fitMenuCanal',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayer','cover','fitMenuCanal',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayer','100%','auto','fitMenuCanal',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayer','auto','100%','fitMenuCanal',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuCanalQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuCanalQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayer', 'auto', 'fitMenuCanalQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayer', 180, 'fitMenuCanalQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayer', 360, 'fitMenuCanalQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayer', 480, 'fitMenuCanalQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayer', 720, 'fitMenuCanalQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayer" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canales', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canales-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canales', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canales-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canales', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canales-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canales', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canales-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canales')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canalesInt">
+    <div class="card">
+       <h2>🌐 Canales Internacionales</h2>
+        <div class="grid" id="canalesIntGrid"></div>
+        <div class="player-wrapper" id="wrapperCanalInt" ondblclick="toggleUI('wrapperCanalInt')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuInt')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuInt">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerInt','contain','fitMenuInt',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerInt','fill','fitMenuInt',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerInt','cover','fitMenuInt',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerInt','100%','auto','fitMenuInt',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerInt','auto','100%','fitMenuInt',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuIntQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuIntQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerInt', 'auto', 'fitMenuIntQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerInt', 180, 'fitMenuIntQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerInt', 360, 'fitMenuIntQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerInt', 480, 'fitMenuIntQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerInt', 720, 'fitMenuIntQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerInt" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canalesInt', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canalesInt-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesInt', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canalesInt-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesInt', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canalesInt-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesInt', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canalesInt-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canalesInt')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canalesDeportes">
+    <div class="card">
+       <h2>⚽ Canales De Deportes Nacional</h2>
+        <div class="grid" id="canalesDeportesGrid"></div>
+        <div class="player-wrapper" id="wrapperCanalDeportes" ondblclick="toggleUI('wrapperCanalDeportes')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuDep')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuDep">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerDeportes','contain','fitMenuDep',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerDeportes','fill','fitMenuDep',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerDeportes','cover','fitMenuDep',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerDeportes','100%','auto','fitMenuDep',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerDeportes','auto','100%','fitMenuDep',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuDepQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuDepQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerDeportes', 'auto', 'fitMenuDepQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 180, 'fitMenuDepQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 360, 'fitMenuDepQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 480, 'fitMenuDepQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerDeportes', 720, 'fitMenuDepQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerDeportes" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canalesDeportes', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canalesDeportes-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesDeportes', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canalesDeportes-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesDeportes', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canalesDeportes-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesDeportes', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canalesDeportes-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canalesDeportes')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canalesDeportesInt">
+    <div class="card">
+       <h2>⚽ Canales De Deportes Internacional</h2>
+        <div class="grid" id="canalesDeportesIntGrid"></div>
+        <div class="player-wrapper" id="wrapperCanalDeportesInt" ondblclick="toggleUI('wrapperCanalDeportesInt')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuDepInt')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuDepInt">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerDeportesInt','contain','fitMenuDepInt',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerDeportesInt','fill','fitMenuDepInt',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerDeportesInt','cover','fitMenuDepInt',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerDeportesInt','100%','auto','fitMenuDepInt',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerDeportesInt','auto','100%','fitMenuDepInt',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuDepIntQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuDepIntQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerDeportesInt', 'auto', 'fitMenuDepIntQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerDeportesInt', 180, 'fitMenuDepIntQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerDeportesInt', 360, 'fitMenuDepIntQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerDeportesInt', 480, 'fitMenuDepIntQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerDeportesInt', 720, 'fitMenuDepIntQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerDeportesInt" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canalesDeportesInt', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canalesDeportesInt-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesDeportesInt', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canalesDeportesInt-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesDeportesInt', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canalesDeportesInt-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesDeportesInt', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canalesDeportesInt-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canalesDeportesInt')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canalesReligiosoNac">
+    <div class="card">
+       <h2>🙏 Canales Religioso Nacional</h2>
+        <div class="grid" id="canalesReligiosoNacGrid"></div>
+        <div class="player-wrapper" id="wrapperCanalReligiosoNac" ondblclick="toggleUI('wrapperCanalReligiosoNac')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuRelNac')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuRelNac">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerReligiosoNac','contain','fitMenuRelNac',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerReligiosoNac','fill','fitMenuRelNac',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerReligiosoNac','cover','fitMenuRelNac',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerReligiosoNac','100%','auto','fitMenuRelNac',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerReligiosoNac','auto','100%','fitMenuRelNac',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuRelNacQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuRelNacQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerReligiosoNac', 'auto', 'fitMenuRelNacQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerReligiosoNac', 180, 'fitMenuRelNacQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerReligiosoNac', 360, 'fitMenuRelNacQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerReligiosoNac', 480, 'fitMenuRelNacQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerReligiosoNac', 720, 'fitMenuRelNacQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerReligiosoNac" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canalesReligiosoNac', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canalesReligiosoNac-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesReligiosoNac', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canalesReligiosoNac-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesReligiosoNac', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canalesReligiosoNac-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesReligiosoNac', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canalesReligiosoNac-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canalesReligiosoNac')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canalesReligiosoInt">
+    <div class="card">
+       <h2>🙏 Canales Religioso Internacional</h2>
+        <div class="grid" id="canalesReligiosoIntGrid"></div>
+        <div class="player-wrapper" id="wrapperCanalReligiosoInt" ondblclick="toggleUI('wrapperCanalReligiosoInt')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuRelInt')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuRelInt">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerReligiosoInt','contain','fitMenuRelInt',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerReligiosoInt','fill','fitMenuRelInt',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerReligiosoInt','cover','fitMenuRelInt',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerReligiosoInt','100%','auto','fitMenuRelInt',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerReligiosoInt','auto','100%','fitMenuRelInt',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuRelIntQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuRelIntQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerReligiosoInt', 'auto', 'fitMenuRelIntQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerReligiosoInt', 180, 'fitMenuRelIntQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerReligiosoInt', 360, 'fitMenuRelIntQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerReligiosoInt', 480, 'fitMenuRelIntQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerReligiosoInt', 720, 'fitMenuRelIntQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerReligiosoInt" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canalesReligiosoInt', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canalesReligiosoInt-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesReligiosoInt', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canalesReligiosoInt-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesReligiosoInt', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canalesReligiosoInt-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesReligiosoInt', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canalesReligiosoInt-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canalesReligiosoInt')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radio">
+    <div class="card">
+        <h2>📻 Emisoras Nacionales E Internacionales</h2>
+        <div class="grid" id="radioGrid"></div>
+        <audio id="radioPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radio', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radio-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radio', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radio-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radio')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radioSFC">
+    <div class="card">
+        <h2>📻 Emisoras SFC</h2>
+        <div class="grid" id="radioSFCGrid"></div>
+        <audio id="radioSFCPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radioSFC', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radioSFC-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radioSFC', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radioSFC-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radioSFC')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radioCristianaSFC">
+    <div class="card">
+        <h2>📻 Emisoras Cristianas SFC</h2>
+        <div class="grid" id="radioCristianaSFCGrid"></div>
+        <audio id="radioCristianaSFCPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radioCristianaSFC', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radioCristianaSFC-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radioCristianaSFC', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radioCristianaSFC-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radioCristianaSFC')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radioCristianaNac">
+    <div class="card">
+        <h2>📻 Emisoras Cristianas Nacionales E Internacionales</h2>
+        <div class="grid" id="radioCristianaNacGrid"></div>
+        <audio id="radioCristianaNacPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radioCristianaNac', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radioCristianaNac-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radioCristianaNac', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radioCristianaNac-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radioCristianaNac')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radioCatolicaSFC">
+    <div class="card">
+        <h2>📻 Emisoras Católicos SFC</h2>
+        <div class="grid" id="radioCatolicaSFCGrid"></div>
+        <audio id="radioCatolicaSFCPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radioCatolicaSFC', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radioCatolicaSFC-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radioCatolicaSFC', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radioCatolicaSFC-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radioCatolicaSFC')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radioCatolicaNac">
+    <div class="card">
+        <h2>📻 Emisoras Católicos Nacionales E Internacionales</h2>
+        <div class="grid" id="radioCatolicaNacGrid"></div>
+        <audio id="radioCatolicaNacPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radioCatolicaNac', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radioCatolicaNac-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radioCatolicaNac', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radioCatolicaNac-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radioCatolicaNac')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="videos">
+    <div class="card">
+        <h2>🎥 Entretenimiento 24/7</h2>
+        <div class="grid" id="videosGrid"></div>
+        <div class="video-box">
+            <iframe id="videoFrame" allowfullscreen></iframe>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('videos', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="videos-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videos', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="videos-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('videos')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="videosCinema">
+    <div class="card">
+       <h2>🎬 24/7 CINEMA</h2>
+        <div class="grid" id="videosCinemaGrid"></div>
+        <div class="player-wrapper" id="wrapperVideosCinema" ondblclick="toggleUI('wrapperVideosCinema')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuCine')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuCine">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerCinema','contain','fitMenuCine',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerCinema','fill','fitMenuCine',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerCinema','cover','fitMenuCine',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerCinema','100%','auto','fitMenuCine',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerCinema','auto','100%','fitMenuCine',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuCineQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuCineQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerCinema', 'auto', 'fitMenuCineQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerCinema', 180, 'fitMenuCineQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerCinema', 360, 'fitMenuCineQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerCinema', 480, 'fitMenuCineQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerCinema', 720, 'fitMenuCineQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerCinema" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('videosCinema', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="videosCinema-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosCinema', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="videosCinema-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosCinema', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="videosCinema-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosCinema', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="videosCinema-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('videosCinema')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="noticias">
+    <div class="card">
+        <h2>📰 Noticias 24/7</h2>
+        <div class="grid" id="noticiasGrid"></div>
+        <div class="video-box">
+            <iframe id="noticiasFrame" allowfullscreen></iframe>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('noticias', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="noticias-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('noticias', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="noticias-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('noticias')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="religiosos">
+    <div class="card">
+        <h2>🎵 Música Cristiano</h2>
+        <div class="grid" id="religiososGrid"></div>
+        <div class="video-box">
+            <iframe id="religiosoFrame" allowfullscreen></iframe>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('religiosos', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="religiosos-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('religiosos', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="religiosos-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('religiosos')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="videosReligioso">
+    <div class="card">
+       <h2>🙏 24/7 Religioso</h2>
+        <div class="grid" id="videosReligiosoGrid"></div>
+        <div class="player-wrapper" id="wrapperVideosReligioso" ondblclick="toggleUI('wrapperVideosReligioso')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuVRel')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuVRel">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerVideosReligioso','contain','fitMenuVRel',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerVideosReligioso','fill','fitMenuVRel',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerVideosReligioso','cover','fitMenuVRel',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerVideosReligioso','100%','auto','fitMenuVRel',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerVideosReligioso','auto','100%','fitMenuVRel',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuVRelQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuVRelQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 'auto', 'fitMenuVRelQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 180, 'fitMenuVRelQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 360, 'fitMenuVRelQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 480, 'fitMenuVRelQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerVideosReligioso', 720, 'fitMenuVRelQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerVideosReligioso" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('videosReligioso', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="videosReligioso-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosReligioso', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="videosReligioso-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosReligioso', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="videosReligioso-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosReligioso', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="videosReligioso-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('videosReligioso')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="videosCatolicos">
+    <div class="card">
+        <h2>📿 Música Católica 24/7</h2>
+        <div class="grid" id="videosCatolicosGrid"></div>
+        <div class="video-box">
+            <iframe id="videosCatolicosFrame" allowfullscreen></iframe>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('videosCatolicos', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="videosCatolicos-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('videosCatolicos', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="videosCatolicos-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('videosCatolicos')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="music247">
+    <div class="card">
+        <h2>🎵 Music 24/7</h2>
+        <div class="grid" id="music247Grid"></div>
+        <div class="video-box">
+            <iframe id="music247Frame" allowfullscreen></iframe>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('music247', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="music247-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('music247', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="music247-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('music247')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="peliculas247">
+    <div class="card">
+        <h2>🍿 Películas 24/7</h2>
+        <div class="grid" id="peliculas247Grid"></div>
+        <div class="video-box">
+            <iframe id="peliculas247Frame" allowfullscreen></iframe>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('peliculas247', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="peliculas247-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('peliculas247', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="peliculas247-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('peliculas247')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="deportes">
+    <div class="card">
+        <h2>⚽ Deportes</h2>
+        <div class="grid" id="deportesGrid"></div>
+        <div class="video-box">
+            <iframe id="deportesFrame" allowfullscreen></iframe>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('deportes', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="deportes-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('deportes', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="deportes-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('deportes')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="anuncios">
+    <div class="card">
+        <h2>📢 Anuncios</h2>
+        <div class="grid anuncios-grid" id="anunciosGrid"></div>
+        <div class="video-box anuncio-box" id="anuncioContent"></div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('anuncios', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="anuncios-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('anuncios', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="anuncios-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('anuncios')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="anunciosCristianos">
+    <div class="card">
+        <h2>📢 Anuncios Cristianos</h2>
+        <div class="grid anuncios-grid" id="anunciosCristianosGrid"></div>
+        <div class="video-box anuncio-box" id="anuncioCristianoContent"></div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('anunciosCristianos', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="anunciosCristianos-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('anunciosCristianos', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="anunciosCristianos-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('anunciosCristianos')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="anunciosCatolicos">
+    <div class="card">
+        <h2>📢 Anuncios Católicos</h2>
+        <div class="grid anuncios-grid" id="anunciosCatolicosGrid"></div>
+        <div class="video-box anuncio-box" id="anuncioCatolicoContent"></div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('anunciosCatolicos', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="anunciosCatolicos-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('anunciosCatolicos', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="anunciosCatolicos-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('anunciosCatolicos')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="contacto">
+    <div class="card" style="text-align:center">
+        <h2>🛒 Adquirir servicio</h2>
+        <p style="font-size:1.1rem; margin-bottom:20px;">Adquirir de servicios TV en línea</p>
+        <div class="contacto-botones" id="contactoBotones"></div>
+        <div class="reactions-bar" style="justify-content: center;">
+            <div class="reaction-btn" onclick="toggleReaction('contacto', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="contacto-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('contacto', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="contacto-love-count">0</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="lightbox" class="lightbox" onclick="cerrarImagen()">
+    <button class="lightbox-close" onclick="cerrarImagen()">✕</button>
+    <img id="lightboxImg" src="" alt="Anuncio" onclick="event.stopPropagation()">
+</div>
+
+<div id="adminPanel">
+    <div class="admin-container">
+        <h2 style="color:var(--primary)">⚙️ Panel de Administración</h2>
+        <div class="firebase-status" id="adminFirebaseStatus">✅ Conectado a Firebase</div>
+        <button class="btn btn-danger" onclick="cerrarSesion()" style="margin-bottom:20px">Cerrar Sesión</button>
+        <button class="btn" onclick="ocultarPanel()" style="margin-bottom:20px; background:#3b82f6; color:white; padding:5px 10px; font-size:0.8rem;">👁️ Ver página</button>
+        <details class="admin-acc" id="accAgregar" open>
+        <summary><h3 style="margin:0;" id="formTitle">Agregar Contenido</h3></summary>
+        <div class="admin-acc-body">
+        <select id="categoria" class="admin-select" onchange="toggleTipoStream()">
+            <option value="">Seleccionar Categoría</option>
+            <option value="canales">Canales Nacionales</option>
+            <option value="canalesInt">Canales Internacionales</option>
+            <option value="canalesDeportes">Canales De Deportes Nacional</option>
+            <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
+            <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
+            <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
+            <option value="radio">Emisoras Nacionales E Internacionales</option>
+            <option value="radioSFC">Emisoras SFC</option>
+            <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
+            <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
+            <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
+            <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
+            <option value="videos">Entretenimiento 24/7</option>
+            <option value="videosCinema">24/7 CINEMA</option>
+            <option value="noticias">Noticias 24/7</option>
+            <option value="religiosos">Música Cristiano</option>
+            <option value="videosReligioso">24/7 Religioso</option>
+            <option value="videosCatolicos">Música Católica 24/7</option>
+            <option value="music247">Music 24/7</option>
+            <option value="peliculas247">Películas 24/7</option>
+            <option value="deportes">Deportes</option>
+            <option value="anuncios">Anuncios</option>
+            <option value="anunciosCristianos">Anuncios Cristianos</option>
+            <option value="anunciosCatolicos">Anuncios Católicos</option>
+            <option value="eventos">FB Live</option>
+        </select>
+        <input type="text" id="nombre" class="admin-input" placeholder="Nombre del contenido">
+        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8 o .ts)">
+        <div id="tipoStreamBox" style="display:none;">
+            <select id="tipoStream" class="admin-select">
+                <option value="auto">Formato: Automático (detecta .m3u8 / .ts)</option>
+                <option value="hls">Formato: HLS (.m3u8)</option>
+                <option value="ts">Formato: MPEG-TS directo (.ts)</option>
+            </select>
+        </div>
+        <input type="text" id="logo" class="admin-input" placeholder="URL del logo (opcional)">
+        
+        <button id="btnGuardar" class="btn" onclick="guardarContenido()" style="width:100%; margin-bottom:10px">💾 Guardar</button>
+        <button id="btnCancelar" class="btn btn-gray" onclick="cancelarEdicion()" style="width:100%; margin-bottom:20px; background:#64748b; display:none;">🚫 Cancelar Edición</button>
+        </div>
+        </details>
+        <details class="admin-acc" id="accGestionar">
+        <summary><h3 style="margin:0;">Gestionar Contenido</h3></summary>
+        <div class="admin-acc-body">
+        <select id="verCategoria" class="admin-select" onchange="mostrarTodosElementos()">
+            <option value="">Seleccionar Categoría</option>
+           <option value="canales">Canales Nacionales</option>
+            <option value="canalesInt">Canales Internacionales</option>
+            <option value="canalesDeportes">Canales De Deportes Nacional</option>
+            <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
+            <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
+            <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
+            <option value="radio">Emisoras Nacionales E Internacionales</option>
+            <option value="radioSFC">Emisoras SFC</option>
+            <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
+            <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
+            <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
+            <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
+            <option value="videos">Entretenimiento 24/7</option>
+            <option value="videosCinema">24/7 CINEMA</option>
+            <option value="noticias">Noticias 24/7</option>
+            <option value="religiosos">Música Cristiano</option>
+            <option value="videosReligioso">24/7 Religioso</option>
+            <option value="videosCatolicos">Música Católica 24/7</option>
+            <option value="music247">Music 24/7</option>
+            <option value="peliculas247">Películas 24/7</option>
+            <option value="deportes">Deportes</option>
+            <option value="anuncios">Anuncios</option>
+            <option value="anunciosCristianos">Anuncios Cristianos</option>
+            <option value="anunciosCatolicos">Anuncios Católicos</option>
+            <option value="eventos">FB Live</option>
+        </select>
+        <div id="listaElementos"></div>
+        </div>
+        </details>
+        <details class="admin-acc" id="accDiseno">
+        <summary><h3 style="margin:0;">🎨 Diseño de la página</h3></summary>
+        <div class="admin-acc-body">
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Los cambios se ven al instante (toca "👁️ Ver página" arriba). Toca <b>Guardar diseño</b> para que lo vea todo el público.</p>
+        <input type="text" id="tmBgImage" class="admin-input" placeholder="URL de la imagen de fondo (vacía = solo color)" oninput="previsualizarTema()">
+        <button class="btn" onclick="quitarFondo()" style="background:#64748b; color:white; margin:0 0 12px 0;">🗑️ Quitar imagen de fondo</button>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color de fondo</label><input type="color" id="tmBgColor" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmBgColorSw"></i></span><input type="range" id="tmBgColorA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmBgColorALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmBgColorA')">Transparente</button></div>
+        </div>
+        <div class="tema-row"><label>Oscurecer fondo: <span id="tmDimLabel">0</span>%</label><input type="range" id="tmBgDim" min="0" max="85" step="5" oninput="previsualizarTema()"></div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color principal (títulos y botones)</label><input type="color" id="tmPrimary" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmPrimarySw"></i></span><input type="range" id="tmPrimaryA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmPrimaryALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmPrimaryA')">Transparente</button></div>
+        </div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color del texto</label><input type="color" id="tmText" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmTextSw"></i></span><input type="range" id="tmTextA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmTextALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmTextA')">Transparente</button></div>
+        </div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color de tarjetas y botones</label><input type="color" id="tmSurface" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmSurfaceSw"></i></span><input type="range" id="tmSurfaceA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmSurfaceALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmSurfaceA')">Transparente</button></div>
+        </div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color de la barra superior</label><input type="color" id="tmNav" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmNavSw"></i></span><input type="range" id="tmNavA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmNavALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmNavA')">Transparente</button></div>
+        </div>
+        <div class="tema-box">
+            <div class="tema-row"><label>Color del fondo de cada sección</label><input type="color" id="tmCard" oninput="previsualizarTema()"></div>
+            <div class="tema-row"><span class="swatch"><i id="tmCardSw"></i></span><input type="range" id="tmCardA" min="0" max="100" step="5" oninput="previsualizarTema()"><span class="tema-val"><span id="tmCardALabel">100</span>%</span><button class="btn-transp" onclick="setTransparente('tmCardA')">Transparente</button></div>
+        </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Opacidad 100% = color normal · 0% = transparente. El cuadro con cuadritos muestra cómo queda.</p>
+        <button class="btn" onclick="guardarTema()" style="width:100%; margin-bottom:10px">💾 Guardar diseño</button>
+        <button class="btn" onclick="restablecerTema()" style="width:100%; margin-bottom:20px; background:#ef4444; color:white;">↩️ Restablecer diseño original</button>
+        </div>
+        </details>
+        <details class="admin-acc" id="accLogo">
+        <summary><h3 style="margin:0;">🖼️ Logo de la página</h3></summary>
+        <div class="admin-acc-body">
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Se muestra en la sección de Inicio. Pega el enlace de una imagen (cualquier formato) para agregar o cambiar el logo.</p>
+        <input type="text" id="lgUrl" class="admin-input" placeholder="URL del logo (imagen)" oninput="previsualizarLogo()">
+        <div class="tema-row"><label>Tamaño: <span id="lgSizeLabel">150</span> px</label><input type="range" id="lgSize" min="60" max="300" step="10" oninput="previsualizarLogo()"></div>
+        <div class="tema-box" style="text-align:center; min-height:60px;">
+            <img id="lgPreview" alt="Vista previa del logo" style="max-width:100%; max-height:130px; object-fit:contain; display:none;">
+            <span id="lgPreviewEmpty" style="color:#94a3b8; font-size:0.85rem;">Sin logo</span>
+        </div>
+        <button class="btn" onclick="guardarLogo()" style="width:100%; margin-bottom:10px">💾 Guardar logo</button>
+        <button class="btn" onclick="eliminarLogo()" style="width:100%; margin-bottom:10px; background:#ef4444; color:white;">🗑️ Eliminar logo</button>
+        <button class="btn" onclick="restablecerLogo()" style="width:100%; margin-bottom:20px; background:#64748b; color:white;">↩️ Restaurar logo original</button>
+        </div>
+        </details>
+        <details class="admin-acc" id="accContacto">
+        <summary><h3 style="margin:0;">📞 Configurar Contacto</h3></summary>
+        <div class="admin-acc-body">
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Deja un campo vacío para ocultar ese botón. Los iconos son enlaces a una imagen (cualquier formato).</p>
+        <input type="text" id="ctWhatsapp" class="admin-input" placeholder="Número de WhatsApp con código de país (ej. 50241680075)" inputmode="tel">
+        <input type="text" id="ctIconWhatsapp" class="admin-input" placeholder="URL del icono de WhatsApp (imagen)">
+        <input type="text" id="ctFacebook" class="admin-input" placeholder="Enlace de Facebook">
+        <input type="text" id="ctIconFacebook" class="admin-input" placeholder="URL del icono de Facebook (imagen)">
+        <input type="text" id="ctGmail" class="admin-input" placeholder="Correo Gmail">
+        <input type="text" id="ctIconGmail" class="admin-input" placeholder="URL del icono de Gmail (imagen)">
+        <button class="btn" onclick="guardarContacto()" style="width:100%; margin-bottom:20px">💾 Guardar Contacto</button>
+        </div>
+        </details>
+        </div>
+</div>
+
+
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // ============================================
+    // CONFIGURACIÓN DE FIREBASE Y LÓGICA ANTERIOR
+    // ============================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyA03YXY-E06aESLwyP-8X7zD1xkcyA9Ves",
+      authDomain: "tvsfclaunion-78912.firebaseapp.com",
+      databaseURL: "https://tvsfclaunion-78912-default-rtdb.firebaseio.com",
+      projectId: "tvsfclaunion-78912",
+      storageBucket: "tvsfclaunion-78912.firebasestorage.app",
+      messagingSenderId: "184661452535",
+      appId: "1:184661452535:web:9f15944bacc16f78b095f2"
+    };
+
+    let database;
+    let firebaseInitialized = false;
+    
+    // Definir updateFirebaseStatus primero
+    function updateFirebaseStatus(message, isError) {
+        const status = document.getElementById('firebaseStatus');
+        const adminStatus = document.getElementById('adminFirebaseStatus');
+        if (status) { status.textContent = message; status.className = isError ? 'firebase-status error' : 'firebase-status'; }
+        if (adminStatus) { adminStatus.textContent = message; adminStatus.className = isError ? 'firebase-status error' : 'firebase-status'; }
+    }
+    
+    function initializeFirebase() {
+        // Verificar si Firebase está disponible
+        if (typeof firebase === 'undefined') {
+            console.warn('Firebase no está disponible, usando modo local');
+            updateFirebaseStatus('⚠️ Firebase no disponible - Usando modo local', true);
+            firebaseInitialized = false;
+            return;
+        }
+        
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            firebaseInitialized = true;
+            updateFirebaseStatus('✅ Conectado a Firebase', false);
+            listenToFirebaseChanges();
+        } catch (error) {
+            console.error('Error inicializando Firebase:', error);
+            updateFirebaseStatus('⚠️ Firebase no configurado - Usando modo local', true);
+            firebaseInitialized = false;
+        }
+    }
+
+    // Esperar a que los scripts de Firebase se carguen
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeFirebase);
+    } else {
+        // Si el script ya está en el DOM, inicializar directamente
+        setTimeout(initializeFirebase, 100);
+    }
+
+    const PASS_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; // admin123
+    let isAdmin = false;
+    let editModeId = null;
+
+    const dataInicial = {
+        canales: {1: {nombre: "Vision TV", logo: "https://static.wixstatic.com/media/7acae1_a1343f704ae0412ba28bab4239e78411~mv2.png/v1/fill/w_540,h_540,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/visiontv.png", url: "https://cdn.streamhispanatv.net:3531/live/tvsretrogtlive.m3u8"}},
+        radio: {1: {nombre: "EmisorasUnidas", logo: "https://cdn-profiles.tunein.com/s17610/images/logog.png", url: "https://stream-170.zeno.fm/tfcgfdag9ueuv"}},
+        radioSFC: {1: {nombre: "Radio SFU 94.1FM", logo: "https://municipalidadsanfranciscolaunion.gob.gt/wp-content/uploads/2025/12/radio-sfu-portada-pagina-web.png", url: "https://stream-166.zeno.fm/34ctc9etir7uv"}},
+        videos: {1: {nombre: "The Best EDM Mix 2025", logo: "https://www.pikpng.com/pngl/b/417-4170276_24-7-music-bot-graphic-design-clipart.png", url: "https://www.youtube.com/embed/GJ5WqZJVJqc"}},
+        noticias: {},
+        religiosos: {1: {nombre: "Musica Cristiana 24/7", logo: "https://play-lh.googleusercontent.com/V7i7zLC9dlX62MQCDbvsYD0zpirJp-peQA8SBiOKvxafYB5VRRfj0t0k4pv3h5lyAK4", url: "https://www.youtube.com/embed/VEzQKnsCd3I"}},
+        deportes: {},
+        anuncios: {},
+        eventos: {},
+        canalesDeportesInt: {},
+        canalesReligiosoNac: {},
+        canalesReligiosoInt: {},
+        videosCinema: {},
+        music247: {},
+        peliculas247: {},
+        videosReligioso: {},
+        radioCristianaSFC: {},
+        radioCristianaNac: {},
+        radioCatolicaSFC: {},
+        radioCatolicaNac: {},
+        videosCatolicos: {},
+        anunciosCristianos: {},
+        anunciosCatolicos: {}
+    };
+
+    let storage = {};
+    let likes = JSON.parse(localStorage.getItem("tv_sfc_likes")) || {};
+    let reactions = {};
+
+    function listenToFirebaseChanges() {
+        if (!firebaseInitialized) return;
+        database.ref('contenido').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                storage = data;
+                aplicarTemaGuardado();
+                aplicarLogoGuardado();
+                renderAllGrids();
+                if(isAdmin) mostrarTodosElementos();
+                showToast('✅ Contenido actualizado');
+            }
+        }, (error) => {
+            console.error('Error de lectura en "contenido":', error);
+            updateFirebaseStatus('⚠️ Sin permiso para leer "contenido" (revisa las reglas de la Realtime Database)', true);
+        });
+        database.ref('reactions').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                reactions = data;
+                updateAllReactionCounts();
+            }
+        }, (error) => {
+            console.error('Error de lectura en "reactions":', error);
+        });
+    }
+
+    function editarElemento(cat, id) {
+        let item = null;
+        if (storage[cat] && storage[cat][id]) item = storage[cat][id];
+        else if (dataInicial[cat] && dataInicial[cat][id]) item = dataInicial[cat][id];
+
+        if (item) {
+            document.getElementById("categoria").value = cat;
+            document.getElementById("nombre").value = item.nombre;
+            document.getElementById("stream1").value = item.url;
+            document.getElementById("logo").value = item.logo;
+            document.getElementById("tipoStream").value = item.tipo || "auto";
+            toggleTipoStream();
+            
+            editModeId = id;
+            document.getElementById("formTitle").textContent = "✏️ Editando Contenido";
+            document.getElementById("accAgregar").open = true;
+            document.getElementById("btnGuardar").textContent = "🔄 Actualizar Contenido";
+            document.getElementById("btnCancelar").style.display = "block";
+            document.querySelector('.admin-container').scrollTop = 0;
+        }
+    }
+
+    function cancelarEdicion() {
+        editModeId = null;
+        document.getElementById("nombre").value = "";
+        document.getElementById("stream1").value = "";
+        document.getElementById("logo").value = "";
+        document.getElementById("tipoStream").value = "auto";
+        document.getElementById("formTitle").textContent = "Agregar Contenido";
+        document.getElementById("btnGuardar").textContent = "💾 Guardar en Firebase";
+        document.getElementById("btnCancelar").style.display = "none";
+    }
+
+    async function guardarContenido() {
+        const cat = document.getElementById("categoria").value;
+        const nombre = document.getElementById("nombre").value;
+        const url = document.getElementById("stream1").value;
+        const logo = document.getElementById("logo").value || "https://via.placeholder.com/80";
+        const tipo = TV_CATEGORIAS.includes(cat) ? (document.getElementById("tipoStream").value || "auto") : "auto";
+        
+        if(!cat || !nombre || !url) return showToast("⚠️ Faltan datos", "error");
+        
+        const id = editModeId ? editModeId : Date.now().toString();
+        
+        if (firebaseInitialized) {
+            try {
+                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, tipo: tipo, timestamp: Date.now() });
+                showToast(editModeId ? "✅ Contenido Actualizado" : "✅ Guardado en Firebase");
+                cancelarEdicion();
+                mostrarTodosElementos();
+            } catch (error) {
+                console.error('Error al guardar en Firebase:', error);
+                showToast("❌ Error al guardar: " + (error.message || error.code || "desconocido"), "error");
+            }
+        } else {
+            if (!storage[cat]) storage[cat] = {};
+            storage[cat][id] = { nombre, url, logo, tipo };
+            localStorage.setItem("tv_sfc_data", JSON.stringify(storage));
+            showToast("✅ Guardado localmente");
+            cancelarEdicion();
+            renderAllGrids();
+            mostrarTodosElementos();
+        }
+    }
+
+    async function eliminarElemento(cat, id) {
+        if (!confirm('¿Seguro que deseas eliminar este contenido?')) return;
+        if (firebaseInitialized) {
+            try {
+                await database.ref(`contenido/${cat}/${id}`).remove();
+                showToast("🗑️ Eliminado");
+                mostrarTodosElementos();
+            } catch (error) {
+                console.error('Error al eliminar en Firebase:', error);
+                showToast("❌ Error al eliminar: " + (error.message || error.code || "desconocido"), "error");
+            }
+        } else {
+            delete storage[cat][id];
+            localStorage.setItem("tv_sfc_data", JSON.stringify(storage));
+            showToast("🗑️ Eliminado localmente");
+            renderAllGrids();
+            mostrarTodosElementos();
+        }
+    }
+
+    function mostrarTodosElementos() {
+        const cat = document.getElementById("verCategoria").value;
+        const lista = document.getElementById("listaElementos");
+        lista.innerHTML = "";
+        if(!cat) return;
+
+        Object.keys(dataInicial[cat] || {}).forEach(id => {
+            if (!storage[cat] || !storage[cat][id]) {
+                lista.innerHTML += `
+                    <div class="admin-item-row">
+                        <span>${dataInicial[cat][id].nombre} (Sistema)</span>
+                        <div class="admin-actions">
+                            <button class="btn btn-edit" onclick="editarElemento('${cat}', '${id}')">✏️</button>
+                            <span style="font-size:0.7rem; color:#64748b; align-self:center;">Fijo</span>
+                        </div>
+                    </div>`;
+            }
+        });
+
+        Object.keys(storage[cat] || {}).forEach(id => {
+            lista.innerHTML += `
+                <div class="admin-item-row">
+                    <span>${storage[cat][id].nombre}</span>
+                    <div class="admin-actions">
+                        <button class="btn btn-edit" onclick="editarElemento('${cat}', '${id}')">✏️</button>
+                        <button class="btn btn-danger" onclick="eliminarElemento('${cat}', '${id}')">🗑️</button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    async function toggleReaction(section, type) {
+        const userId = getUserId();
+        if (!reactions[section]) reactions[section] = {};
+        if (!reactions[section][type]) reactions[section][type] = { count: 0, users: {} };
+        const hasReacted = reactions[section][type].users && reactions[section][type].users[userId];
+        
+        if (firebaseInitialized) {
+            try {
+                if (hasReacted) {
+                    await database.ref(`reactions/${section}/${type}/users/${userId}`).remove();
+                    await database.ref(`reactions/${section}/${type}/count`).transaction(c => (c || 1) - 1);
+                } else {
+                    await database.ref(`reactions/${section}/${type}/users/${userId}`).set(true);
+                    await database.ref(`reactions/${section}/${type}/count`).transaction(c => (c || 0) + 1);
+                }
+            } catch (error) {
+                console.error('Error al reaccionar en Firebase:', error);
+                showToast("❌ Error al reaccionar: " + (error.message || error.code || "desconocido"), "error");
+            }
+        } else {
+            if (hasReacted) {
+                delete reactions[section][type].users[userId];
+                reactions[section][type].count = Math.max(0, (reactions[section][type].count || 0) - 1);
+            } else {
+                reactions[section][type].users[userId] = true;
+                reactions[section][type].count = (reactions[section][type].count || 0) + 1;
+            }
+            localStorage.setItem("tv_sfc_reactions", JSON.stringify(reactions));
+            updateAllReactionCounts();
+        }
+    }
+
+    function getUserId() {
+        let userId = localStorage.getItem('user_id');
+        if (!userId) {
+            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('user_id', userId);
+        }
+        return userId;
+    }
+
+    function updateAllReactionCounts() {
+        const sections = [
+            'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'radio', 'radioSFC', 
+            'radioCristianaSFC', 'radioCristianaNac', 'radioCatolicaSFC', 'radioCatolicaNac',
+            'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'music247', 'peliculas247', 'deportes', 
+            'anuncios', 'anunciosCristianos', 'anunciosCatolicos', 'contacto'
+        ];
+        const types = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
+        const userId = getUserId();
+        sections.forEach(section => {
+            types.forEach(type => {
+                const countEl = document.getElementById(`${section}-${type}-count`);
+                if (countEl && reactions[section] && reactions[section][type]) {
+                    countEl.textContent = reactions[section][type].count || 0;
+                    const btn = countEl.closest('.reaction-btn');
+                    if (btn) {
+                        if (reactions[section][type].users && reactions[section][type].users[userId]) btn.classList.add('active');
+                        else btn.classList.remove('active');
+                    }
+                }
+            });
+        });
+    }
+
+    function renderGrid(cat, gridId, clickFn) {
+        const grid = document.getElementById(gridId);
+        if(!grid) return;
+        grid.innerHTML = "";
+        const fusion = {...dataInicial[cat], ...(storage[cat] || {})};
+        Object.keys(fusion).forEach(id => {
+            const item = fusion[id];
+            const likeId = cat + "_" + id;
+            const isLiked = likes[likeId] ? 'active' : '';
+            const div = document.createElement("div");
+            div.className = "item";
+            div.onclick = () => window[clickFn](item.url, item);
+            div.innerHTML = `<div class="like-container ${isLiked}" onclick="toggleLike(event, '${likeId}')">👍</div><img src="${item.logo}" onerror="this.src='https://via.placeholder.com/80'"><p>${item.nombre}</p>`;
+            grid.appendChild(div);
+        });
+    }
+
+    function renderAllGrids() {
+        renderContacto();
+        renderGrid('canales', 'canalesGrid', 'playCanal');
+        renderGrid('canalesInt', 'canalesIntGrid', 'playCanalInt');
+        renderGrid('canalesDeportes', 'canalesDeportesGrid', 'playCanalDeportes');
+        renderGrid('canalesDeportesInt', 'canalesDeportesIntGrid', 'playCanalDeportesInt');
+        renderGrid('canalesReligiosoNac', 'canalesReligiosoNacGrid', 'playCanalReligiosoNac');
+        renderGrid('canalesReligiosoInt', 'canalesReligiosoIntGrid', 'playCanalReligiosoInt');
+        renderGrid('videosCinema', 'videosCinemaGrid', 'playVideoCinema');
+        renderGrid('music247', 'music247Grid', 'playMusic247');
+        renderGrid('peliculas247', 'peliculas247Grid', 'playPeliculas247');
+        renderGrid('videosReligioso', 'videosReligiosoGrid', 'playVideoReligioso');
+        renderGrid('radio', 'radioGrid', 'playRadio');
+        renderGrid('radioSFC', 'radioSFCGrid', 'playRadioSFC');
+        renderGrid('radioCristianaSFC', 'radioCristianaSFCGrid', 'playRadioCristianaSFC');
+        renderGrid('radioCristianaNac', 'radioCristianaNacGrid', 'playRadioCristianaNac');
+        renderGrid('radioCatolicaSFC', 'radioCatolicaSFCGrid', 'playRadioCatolicaSFC');
+        renderGrid('radioCatolicaNac', 'radioCatolicaNacGrid', 'playRadioCatolicaNac');
+        renderGrid('videosCatolicos', 'videosCatolicosGrid', 'playVideoCatolico');
+        renderAnuncios('anunciosCristianos');
+        renderAnuncios('anunciosCatolicos');
+        renderGrid('videos', 'videosGrid', 'playVideo');
+        renderGrid('noticias', 'noticiasGrid', 'playNoticia');
+        renderGrid('religiosos', 'religiososGrid', 'playReligioso');
+        renderGrid('deportes', 'deportesGrid', 'playDeporte');
+        renderAnuncios('anuncios');
+        renderGrid('eventos', 'eventosGrid', 'playFB');
+    }
+
+    // ============================================
+    // ANUNCIOS: vista previa, expandir imagen y compartir uno solo
+    // ============================================
+    const ANUNCIO_CATS = {
+        anuncios:           { grid: 'anunciosGrid',           box: 'anuncioContent' },
+        anunciosCristianos: { grid: 'anunciosCristianosGrid', box: 'anuncioCristianoContent' },
+        anunciosCatolicos:  { grid: 'anunciosCatolicosGrid',  box: 'anuncioCatolicoContent' }
+    };
+    const anuncioSel = {};
+    let pendingAnuncio = null;
+
+    function esYouTube(url) { return /youtube\.com|youtu\.be/i.test(url || ''); }
+    function getAnuncios(cat) { return { ...(dataInicial[cat] || {}), ...(storage[cat] || {}) }; }
+
+    function abrirImagen(url) {
+        document.getElementById('lightboxImg').src = url;
+        document.getElementById('lightbox').classList.add('open');
+    }
+    function cerrarImagen() {
+        document.getElementById('lightbox').classList.remove('open');
+        document.getElementById('lightboxImg').src = '';
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarImagen(); });
+
+    function mostrarAnuncio(cat, id) {
+        const item = getAnuncios(cat)[id];
+        const cfg = ANUNCIO_CATS[cat];
+        if (!item || !cfg) return;
+        anuncioSel[cat] = id;
+        const box = document.getElementById(cfg.box);
+        box.innerHTML = '';
+        if (esYouTube(item.url)) {
+            const f = document.createElement('iframe');
+            f.src = item.url;
+            f.allowFullscreen = true;
+            box.appendChild(f);
+        } else {
+            const img = document.createElement('img');
+            img.className = 'anuncio-main';
+            img.src = item.url;
+            img.alt = item.nombre || 'Anuncio';
+            img.onclick = () => abrirImagen(item.url);
+            box.appendChild(img);
+            const btn = document.createElement('button');
+            btn.className = 'anuncio-expand';
+            btn.textContent = '⛶ Expandir';
+            btn.onclick = () => abrirImagen(item.url);
+            box.appendChild(btn);
+        }
+        document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => {
+            c.classList.toggle('selected', c.dataset.id === String(id));
+        });
+    }
+
+    function renderAnuncios(cat) {
+        const cfg = ANUNCIO_CATS[cat];
+        const grid = document.getElementById(cfg.grid);
+        const box = document.getElementById(cfg.box);
+        if (!grid || !box) return;
+        grid.innerHTML = '';
+        const fusion = getAnuncios(cat);
+        Object.keys(fusion).forEach(id => {
+            const item = fusion[id];
+            const yt = esYouTube(item.url);
+            const card = document.createElement('div');
+            card.className = 'anuncio-card';
+            card.dataset.id = id;
+
+            const thumb = document.createElement('div');
+            thumb.className = 'anuncio-thumb';
+            const img = document.createElement('img');
+            img.src = yt ? item.logo : item.url;
+            img.alt = item.nombre || '';
+            img.onerror = () => { img.onerror = null; img.src = item.logo || 'https://via.placeholder.com/160x100'; };
+            thumb.appendChild(img);
+            if (yt) {
+                const mark = document.createElement('div');
+                mark.className = 'play-mark';
+                mark.textContent = '▶';
+                thumb.appendChild(mark);
+            }
+            thumb.onclick = () => mostrarAnuncio(cat, id);
+
+            const name = document.createElement('p');
+            name.textContent = item.nombre || '';
+
+            const share = document.createElement('button');
+            share.className = 'anuncio-share';
+            share.textContent = '📤 Compartir';
+            share.onclick = (e) => { e.stopPropagation(); compartirAnuncio(cat, id); };
+
+            card.append(thumb, name, share);
+            grid.appendChild(card);
+        });
+
+        // Conserva el anuncio seleccionado (sin recargarlo) o muestra una indicación
+        const sel = anuncioSel[cat];
+        if (sel && fusion[sel]) {
+            grid.querySelectorAll('.anuncio-card').forEach(c => c.classList.toggle('selected', c.dataset.id === String(sel)));
+        } else if (!box.firstChild || box.querySelector('.anuncio-placeholder')) {
+            box.innerHTML = '<div class="anuncio-placeholder">👆 Toca un anuncio para verlo</div>';
+        }
+
+        // Abre el anuncio de un enlace compartido
+        if (pendingAnuncio && pendingAnuncio.cat === cat && fusion[pendingAnuncio.id]) {
+            const pid = pendingAnuncio.id;
+            pendingAnuncio = null;
+            mostrarAnuncio(cat, pid);
+            setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+        }
+    }
+
+    async function compartirAnuncio(cat, id) {
+        const item = getAnuncios(cat)[id];
+        if (!item) return;
+        const link = `${window.location.origin}${window.location.pathname}#${cat}/${encodeURIComponent(id)}`;
+        const titulo = item.nombre || 'Anuncio';
+        const texto = `📢 ${titulo} - TV SFC LA UNION\n${link}`;
+
+        if (navigator.share) {
+            // 1) Intenta compartir la imagen del anuncio junto con el enlace
+            if (!esYouTube(item.url)) {
+                try {
+                    const resp = await fetch(item.url);
+                    const blob = await resp.blob();
+                    const ext = ((blob.type || 'image/jpeg').split('/')[1] || 'jpg').split('+')[0];
+                    const file = new File([blob], titulo.replace(/[^\w-]+/g, '_') + '.' + ext, { type: blob.type || 'image/jpeg' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: titulo, text: texto });
+                        return;
+                    }
+                } catch (err) {
+                    if (err && err.name === 'AbortError') return;
+                }
+            }
+            // 2) Si no se puede enviar la imagen, comparte el enlace de ese anuncio
+            try {
+                await navigator.share({ title: titulo, text: `📢 ${titulo} - TV SFC LA UNION`, url: link });
+                return;
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+            }
+        }
+        // 3) Sin menú de compartir: copia el enlace
+        try {
+            await navigator.clipboard.writeText(link);
+            showToast('✅ Enlace del anuncio copiado');
+        } catch (err) {
+            showToast('❌ No se pudo compartir', 'error');
+        }
+    }
+
+    // ============================================
+    // CONTACTO (configurable desde el panel de administración)
+    // ============================================
+    const CONTACTO_DEFAULT = {
+        whatsapp: '50241680075',
+        facebook: 'https://www.facebook.com/100077985564115',
+        gmail: 'info@tvsfc.com',
+        iconWhatsapp: '', iconFacebook: '', iconGmail: ''
+    };
+
+    function getContactoCfg() {
+        return { ...CONTACTO_DEFAULT, ...((storage && storage.contactoConfig) || {}) };
+    }
+
+    function renderContacto() {
+        const box = document.getElementById('contactoBotones');
+        if (!box) return;
+        const c = getContactoCfg();
+        const wa = String(c.whatsapp || '').replace(/\D/g, '');
+        let fb = String(c.facebook || '').trim();
+        if (fb && !/^https?:\/\//i.test(fb)) fb = 'https://' + fb;
+        const mail = String(c.gmail || '').trim();
+
+        const botones = [];
+        if (wa) botones.push({
+            href: 'https://wa.me/' + wa + '?text=' + encodeURIComponent('Hola, quiero adquirir el servicio de TV en línea'),
+            texto: 'Escribirnos al WhatsApp', color: '#25d366', emoji: '💬', icon: c.iconWhatsapp
+        });
+        if (fb) botones.push({ href: fb, texto: 'Facebook', color: '#1877f2', emoji: '📘', icon: c.iconFacebook });
+        if (mail) botones.push({ href: 'mailto:' + mail, texto: 'Gmail', color: '#ea4335', emoji: '✉️', icon: c.iconGmail });
+
+        box.innerHTML = '';
+        botones.forEach(b => {
+            const a = document.createElement('a');
+            a.className = 'btn-contacto';
+            a.href = b.href;
+            a.style.background = b.color;
+            if (!b.href.startsWith('mailto:')) { a.target = '_blank'; a.rel = 'noopener'; }
+            const ico = document.createElement(b.icon ? 'img' : 'span');
+            if (b.icon) {
+                ico.src = b.icon;
+                ico.alt = b.texto;
+                ico.onerror = () => { const e = document.createElement('span'); e.className = 'emoji-icon'; e.textContent = b.emoji; ico.replaceWith(e); };
+            } else {
+                ico.className = 'emoji-icon';
+                ico.textContent = b.emoji;
+            }
+            const t = document.createElement('span');
+            t.textContent = b.texto;
+            a.append(ico, t);
+            box.appendChild(a);
+        });
+        if (!botones.length) box.textContent = 'Próximamente';
+    }
+
+    function cargarFormContacto() {
+        const c = getContactoCfg();
+        document.getElementById('ctWhatsapp').value = c.whatsapp || '';
+        document.getElementById('ctIconWhatsapp').value = c.iconWhatsapp || '';
+        document.getElementById('ctFacebook').value = c.facebook || '';
+        document.getElementById('ctIconFacebook').value = c.iconFacebook || '';
+        document.getElementById('ctGmail').value = c.gmail || '';
+        document.getElementById('ctIconGmail').value = c.iconGmail || '';
+    }
+
+    async function guardarContacto() {
+        const v = id => document.getElementById(id).value.trim();
+        const cfg = {
+            whatsapp: v('ctWhatsapp').replace(/\D/g, ''),
+            facebook: v('ctFacebook'),
+            gmail: v('ctGmail'),
+            iconWhatsapp: v('ctIconWhatsapp'),
+            iconFacebook: v('ctIconFacebook'),
+            iconGmail: v('ctIconGmail')
+        };
+        if (cfg.gmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cfg.gmail)) return showToast('⚠️ Correo no válido', 'error');
+        if (firebaseInitialized) {
+            try {
+                await database.ref('contenido/contactoConfig').set(cfg);
+                showToast('✅ Contacto guardado');
+            } catch (error) {
+                console.error('Error al guardar contacto:', error);
+                showToast('❌ Error al guardar: ' + (error.message || error.code || 'desconocido'), 'error');
+            }
+        } else {
+            storage.contactoConfig = cfg;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+            renderContacto();
+            showToast('✅ Contacto guardado localmente');
+        }
+    }
+
+    // ============================================
+    // DISEÑO DE LA PÁGINA (editable desde el panel de administración)
+    // ============================================
+    const TEMA_DEFAULT = {
+        bgImage: 'https://st5.depositphotos.com/2978065/81335/v/600/depositphotos_813355072-stock-video-vertical-video-animation-abstract-summer.jpg',
+        bgColor: '#020617', bgDim: 0,
+        primary: '#22c55e', text: '#f8fafc', surface: '#1e293b', nav: '#020617',
+        surfaceA: 100, navA: 100, card: '#020617', cardA: 0,
+        bgColorA: 100, primaryA: 100, textA: 100
+    };
+
+    function hexToRgb(hex) {
+        const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+        if (!m) return null;
+        const n = parseInt(m[1], 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function applyTema(t) {
+        const c = { ...TEMA_DEFAULT, ...(t || {}) };
+        const root = document.documentElement.style;
+        const rgb = (v, d) => hexToRgb(v) || hexToRgb(d);
+        const p = rgb(c.primary, TEMA_DEFAULT.primary);
+        const tx = rgb(c.text, TEMA_DEFAULT.text);
+        const sf = rgb(c.surface, TEMA_DEFAULT.surface);
+        const nv = rgb(c.nav, TEMA_DEFAULT.nav);
+        const bg = rgb(c.bgColor, TEMA_DEFAULT.bgColor);
+        const lum = (0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]) / 255;
+        const pctA = (v) => { const n = Number(v); return (isNaN(n) ? 100 : Math.min(100, Math.max(0, n))) / 100; };
+        root.setProperty('--primary', 'rgba(' + p.join(',') + ',' + pctA(c.primaryA) + ')');
+        root.setProperty('--primary-a', String(pctA(c.primaryA)));
+        root.setProperty('--primary-rgb', p.join(', '));
+        root.setProperty('--on-primary', lum > 0.6 ? '#020617' : '#ffffff');
+        root.setProperty('--text-light', 'rgba(' + tx.join(',') + ',' + pctA(c.textA) + ')');
+        root.setProperty('--surface-rgb', sf.join(', '));
+        root.setProperty('--nav-rgb', nv.join(', '));
+        const cd = rgb(c.card, TEMA_DEFAULT.card);
+        const pct = (v, d) => { const n = Number(v); return (isNaN(n) ? d : Math.min(100, Math.max(0, n))) / 100; };
+        root.setProperty('--surface-a', String(pct(c.surfaceA, 100)));
+        root.setProperty('--nav-a', String(pct(c.navA, 100)));
+        root.setProperty('--card-rgb', cd.join(', '));
+        root.setProperty('--card-a', String(pct(c.cardA, 0)));
+        root.setProperty('--bg-color', 'rgba(' + bg.join(',') + ',' + pctA(c.bgColorA) + ')');
+        const img = String(c.bgImage || '').trim();
+        root.setProperty('--bg-image', img ? 'url("' + img.replace(/"/g, '%22') + '")' : 'none');
+        const dim = Math.min(85, Math.max(0, Number(c.bgDim) || 0));
+        root.setProperty('--bg-dim', String(dim / 100));
+    }
+
+    // Aplica el diseño guardado (Firebase o local) y lo recuerda para la próxima visita
+    function aplicarTemaGuardado() {
+        const t = (storage && storage.temaConfig) || {};
+        applyTema(t);
+        try { localStorage.setItem('tv_sfc_tema', JSON.stringify(t)); } catch (e) {}
+    }
+
+    function leerFormTema() {
+        const v = id => document.getElementById(id).value;
+        return {
+            bgImage: v('tmBgImage').trim(),
+            bgColor: v('tmBgColor'),
+            bgDim: Number(v('tmBgDim')) || 0,
+            primary: v('tmPrimary'),
+            text: v('tmText'),
+            surface: v('tmSurface'),
+            nav: v('tmNav'),
+            surfaceA: Number(v('tmSurfaceA')),
+            navA: Number(v('tmNavA')),
+            card: v('tmCard'),
+            cardA: Number(v('tmCardA')),
+            bgColorA: Number(v('tmBgColorA')),
+            primaryA: Number(v('tmPrimaryA')),
+            textA: Number(v('tmTextA'))
+        };
+    }
+
+    function cargarFormTema() {
+        const c = { ...TEMA_DEFAULT, ...((storage && storage.temaConfig) || {}) };
+        const set = (id, val) => { document.getElementById(id).value = val; };
+        set('tmBgImage', c.bgImage || '');
+        set('tmBgColor', c.bgColor);
+        set('tmBgDim', c.bgDim || 0);
+        set('tmPrimary', c.primary);
+        set('tmText', c.text);
+        set('tmSurface', c.surface);
+        set('tmNav', c.nav);
+        set('tmSurfaceA', c.surfaceA);
+        set('tmNavA', c.navA);
+        set('tmCard', c.card);
+        set('tmCardA', c.cardA);
+        set('tmBgColorA', c.bgColorA);
+        set('tmPrimaryA', c.primaryA);
+        set('tmTextA', c.textA);
+        actualizarEtiquetasTema();
+    }
+
+    function actualizarEtiquetasTema() {
+        const t = leerFormTema();
+        document.getElementById('tmDimLabel').textContent = t.bgDim;
+        [['tmBgColor', t.bgColor, t.bgColorA], ['tmPrimary', t.primary, t.primaryA], ['tmText', t.text, t.textA],
+         ['tmSurface', t.surface, t.surfaceA], ['tmNav', t.nav, t.navA], ['tmCard', t.card, t.cardA]].forEach(([id, color, alpha]) => {
+            document.getElementById(id + 'ALabel').textContent = alpha;
+            const sw = document.getElementById(id + 'Sw');
+            const c = hexToRgb(color) || [0, 0, 0];
+            if (sw) sw.style.background = 'rgba(' + c.join(',') + ',' + (alpha / 100) + ')';
+        });
+    }
+
+    function setTransparente(rangeId) {
+        document.getElementById(rangeId).value = 0;
+        previsualizarTema();
+    }
+
+    function previsualizarTema() {
+        actualizarEtiquetasTema();
+        applyTema(leerFormTema());
+    }
+
+    function quitarFondo() {
+        document.getElementById('tmBgImage').value = '';
+        previsualizarTema();
+        showToast('Imagen de fondo quitada (toca Guardar diseño)');
+    }
+
+    function ocultarPanel() {
+        document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    async function guardarTema() {
+        const cfg = leerFormTema();
+        if (firebaseInitialized) {
+            try {
+                await database.ref('contenido/temaConfig').set(cfg);
+                showToast('✅ Diseño guardado');
+            } catch (error) {
+                console.error('Error al guardar diseño:', error);
+                showToast('❌ Error al guardar: ' + (error.message || error.code || 'desconocido'), 'error');
+            }
+        } else {
+            storage.temaConfig = cfg;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+            aplicarTemaGuardado();
+            showToast('✅ Diseño guardado localmente');
+        }
+    }
+
+    async function restablecerTema() {
+        if (!confirm('¿Restablecer el diseño original de la página?')) return;
+        if (firebaseInitialized) {
+            try {
+                await database.ref('contenido/temaConfig').remove();
+                showToast('↩️ Diseño original restablecido');
+            } catch (error) {
+                console.error('Error al restablecer diseño:', error);
+                showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+                return;
+            }
+        } else {
+            delete storage.temaConfig;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+        }
+        if (storage) delete storage.temaConfig;
+        aplicarTemaGuardado();
+        cargarFormTema();
+    }
+
+    // Aplica de inmediato el último diseño conocido (evita parpadeos al cargar)
+    try { applyTema(JSON.parse(localStorage.getItem('tv_sfc_tema') || '{}')); } catch (e) {}
+
+    // ============================================
+    // LOGO (agregar, cambiar o eliminar desde el panel de administración)
+    // ============================================
+    const LOGO_DEFAULT = { url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png', size: 150 };
+
+    function renderLogo(t) {
+        const c = { ...LOGO_DEFAULT, ...(t || {}) };
+        const img = document.getElementById('logoInicio');
+        if (!img) return;
+        if (c.url) {
+            if (img.getAttribute('src') !== c.url) img.src = c.url;
+            img.style.width = (Number(c.size) || 150) + 'px';
+            img.style.display = 'block';
+        } else {
+            img.style.display = 'none';
+        }
+    }
+
+    function aplicarLogoGuardado() {
+        const t = (storage && storage.logoConfig) || {};
+        renderLogo(t);
+        try { localStorage.setItem('tv_sfc_logo', JSON.stringify(t)); } catch (e) {}
+    }
+
+    function leerFormLogo() {
+        return {
+            url: document.getElementById('lgUrl').value.trim(),
+            size: Number(document.getElementById('lgSize').value) || 150
+        };
+    }
+
+    function actualizarVistaLogo(c) {
+        document.getElementById('lgSizeLabel').textContent = c.size;
+        const prev = document.getElementById('lgPreview');
+        const vacio = document.getElementById('lgPreviewEmpty');
+        if (c.url) {
+            prev.src = c.url;
+            prev.style.display = 'inline-block';
+            vacio.style.display = 'none';
+            prev.onerror = () => { prev.style.display = 'none'; vacio.style.display = 'inline'; vacio.textContent = 'No se pudo cargar la imagen'; };
+        } else {
+            prev.style.display = 'none';
+            vacio.style.display = 'inline';
+            vacio.textContent = 'Sin logo';
+        }
+    }
+
+    function cargarFormLogo() {
+        const c = { ...LOGO_DEFAULT, ...((storage && storage.logoConfig) || {}) };
+        document.getElementById('lgUrl').value = c.url || '';
+        document.getElementById('lgSize').value = c.size || 150;
+        actualizarVistaLogo(c);
+    }
+
+    function previsualizarLogo() {
+        const c = leerFormLogo();
+        actualizarVistaLogo(c);
+        renderLogo(c);
+    }
+
+    async function persistirLogo(cfg, mensaje) {
+        if (firebaseInitialized) {
+            try {
+                if (cfg === null) await database.ref('contenido/logoConfig').remove();
+                else await database.ref('contenido/logoConfig').set(cfg);
+                showToast(mensaje);
+            } catch (error) {
+                console.error('Error con el logo:', error);
+                showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+                return false;
+            }
+        } else {
+            if (cfg === null) delete storage.logoConfig; else storage.logoConfig = cfg;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+            showToast(mensaje);
+        }
+        if (cfg === null) { if (storage) delete storage.logoConfig; } else { storage.logoConfig = cfg; }
+        aplicarLogoGuardado();
+        cargarFormLogo();
+        return true;
+    }
+
+    function guardarLogo() {
+        const cfg = leerFormLogo();
+        if (!cfg.url) return showToast('⚠️ Pega el enlace de una imagen o usa "Eliminar logo"', 'error');
+        persistirLogo(cfg, '✅ Logo guardado');
+    }
+
+    function eliminarLogo() {
+        if (!confirm('¿Eliminar el logo de la página?')) return;
+        persistirLogo({ url: '', size: leerFormLogo().size }, '🗑️ Logo eliminado');
+    }
+
+    function restablecerLogo() {
+        if (!confirm('¿Restaurar el logo original?')) return;
+        persistirLogo(null, '↩️ Logo original restaurado');
+    }
+
+    // ============================================
+    // INSTALAR COMO APP (PWA)
+    // ============================================
+    let deferredInstall = null;
+
+    function esStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+    function esIOS() {
+        return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstall = e;
+        const b = document.getElementById('btnInstalar');
+        if (b && !esStandalone()) b.style.display = 'inline-block';
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredInstall = null;
+        const b = document.getElementById('btnInstalar');
+        if (b) b.style.display = 'none';
+        showToast('✅ App instalada');
+    });
+
+    async function instalarApp() {
+        if (deferredInstall) {
+            deferredInstall.prompt();
+            try { await deferredInstall.userChoice; } catch (e) {}
+            deferredInstall = null;
+            document.getElementById('btnInstalar').style.display = 'none';
+        } else {
+            showToast('Abre el menú del navegador y elige "Instalar app" o "Agregar a pantalla de inicio"');
+        }
+    }
+
+    function iniciarInstalacion() {
+        if (esStandalone()) return;
+        if (esIOS()) {
+            // iPhone/iPad no permiten el botón automático: se muestran las instrucciones
+            const t = document.getElementById('iosInstalar');
+            if (t) t.style.display = 'block';
+        }
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW no registrado:', err));
+        });
+    }
+
+    function fixStreamUrl(url) {
+        // Si la página está en HTTPS y la URL es HTTP, pasamos por proxy para evitar bloqueo Mixed Content
+        if (location.protocol === 'https:' && url.startsWith('http://')) {
+            return '/api/proxy?url=' + encodeURIComponent(url);
+        }
+        return url;
+    }
+    // ============================================
+    // REPRODUCTOR DE TV: HLS (.m3u8) y MPEG-TS (.ts)
+    // ============================================
+    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'videosCinema', 'videosReligioso'];
+
+    function toggleTipoStream() {
+        const cat = document.getElementById("categoria").value;
+        document.getElementById("tipoStreamBox").style.display = TV_CATEGORIAS.includes(cat) ? "block" : "none";
+    }
+
+    function proxyUrl(url) {
+        return '/api/proxy?url=' + encodeURIComponent(url);
+    }
+
+    // Decide si el canal es HLS o MPEG-TS (por la opción elegida o por la extensión)
+    function getStreamType(url, item) {
+        if (item && (item.tipo === 'ts' || item.tipo === 'hls')) return item.tipo;
+        const path = (url || '').split('#')[0].split('?')[0].toLowerCase();
+        return path.endsWith('.ts') ? 'ts' : 'hls';
+    }
+
+    // Si la URL es tipo Xtream (/live/usuario/clave/ID.ts) devuelve la versión .m3u8
+    function xtreamM3u8(url) {
+        const m = (url || '').match(/^(https?:\/\/[^\/]+\/(?:live\/)?[^\/]+\/[^\/]+\/\d+)\.ts(\?.*)?$/i);
+        return m ? m[1] + '.m3u8' : null;
+    }
+
+    function destroyPlayers(v) {
+        if (v._hls) { try { v._hls.destroy(); } catch (e) {} v._hls = null; }
+        if (v._ts) {
+            try { v._ts.pause(); v._ts.unload(); v._ts.detachMediaElement(); v._ts.destroy(); } catch (e) {}
+            v._ts = null;
+        }
+    }
+
+    function markPlaying(wrapper) {
+        if (!wrapper) return;
+        wrapper.classList.add("playing");
+        setTimeout(() => setupPlayerClickHandler(wrapper.id), 100);
+    }
+
+    // Reproduce un stream MPEG-TS continuo (.ts) con mpegts.js
+    function playTS(v, wrapper, url, viaProxy, noAlt) {
+        if (typeof mpegts === 'undefined' || !mpegts.getFeatureList().mseLivePlayback) {
+            showToast('Tu navegador no soporta canales .ts directos', 'error');
+            return;
+        }
+        const srcRel = viaProxy ? proxyUrl(url) : fixStreamUrl(url);
+        const usingProxy = srcRel.startsWith('/api/proxy');
+        // El Worker de mpegts.js no entiende rutas relativas: se usa la URL completa
+        const src = new URL(srcRel, location.href).href;
+        const player = mpegts.createPlayer(
+            { type: 'mpegts', isLive: true, url: src },
+            { enableWorker: true, liveBufferLatencyChasing: true, liveBufferLatencyMaxLatency: 10, liveBufferLatencyMinRemain: 1 }
+        );
+        player.attachMediaElement(v);
+        player.on(mpegts.Events.ERROR, (type, detail, info) => {
+            const motivo = [type, detail, info && (info.msg || info.code)].filter(Boolean).join(' / ');
+            console.warn('Error mpegts:', motivo, info);
+            // 1) Si falló directo (CORS, etc.), reintenta una vez por el proxy
+            if (!usingProxy) {
+                destroyPlayers(v);
+                playTS(v, wrapper, url, true, noAlt);
+                return;
+            }
+            // 2) Si es una URL tipo Xtream, prueba la versión HLS (.m3u8)
+            const alt = noAlt ? null : xtreamM3u8(url);
+            if (alt) {
+                destroyPlayers(v);
+                playHLSStream(v, wrapper, alt, false, null);
+                return;
+            }
+            showToast('Error al reproducir .ts: ' + motivo, 'error');
+        });
+        v._ts = player;
+        player.load();
+        const p = player.play();
+        if (p && p.catch) p.catch(() => {});
+        markPlaying(wrapper);
+    }
+
+    function playHLSStream(v, wrapper, url, allowTSFallback, tsUrl) {
+        const streamUrl = fixStreamUrl(url);
+        if (Hls.isSupported()) {
+            const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+            hls.loadSource(streamUrl);
+            hls.attachMedia(v);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                v.play().catch(() => {});
+                markPlaying(wrapper);
+            });
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (!data.fatal) return;
+                // Si el .m3u8 no funciona, vuelve al .ts original
+                if (tsUrl) {
+                    destroyPlayers(v);
+                    playTS(v, wrapper, tsUrl, false, true);
+                    return;
+                }
+                // Si no era una lista .m3u8 (URL sin extensión que en realidad es .ts), prueba como MPEG-TS
+                if (allowTSFallback && data.details === Hls.ErrorDetails.MANIFEST_PARSING_ERROR) {
+                    destroyPlayers(v);
+                    playTS(v, wrapper, url, false);
+                    return;
+                }
+                hls.destroy();
+                v._hls = null;
+                v.src = streamUrl;
+                v.play().catch(() => {});
+                markPlaying(wrapper);
+            });
+            v._hls = hls;
+        } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+            v.src = streamUrl;
+            v.play().catch(() => {});
+            markPlaying(wrapper);
+        } else {
+            alert('Tu navegador no soporta HLS. Usa Chrome, Firefox o Safari.');
+        }
+    }
+
+    function playStream(videoId, url, item) {
+        const v = document.getElementById(videoId);
+        if (!v) return;
+        const wrapper = v.closest(".player-wrapper");
+        destroyPlayers(v);
+        const type = getStreamType(url, item);
+        const alt = (type === 'ts' && !(item && item.tipo === 'ts')) ? xtreamM3u8(url) : null;
+        if (alt) playHLSStream(v, wrapper, alt, false, url);   // Xtream: .m3u8 primero, .ts de respaldo
+        else if (type === 'ts') playTS(v, wrapper, url, false, false);
+        else playHLSStream(v, wrapper, url, !(item && item.tipo === 'hls'));
+    }
+
+    function playHLS(videoId, url, item) { playStream(videoId, url, item); }
+    function playCanal(url, item) { playStream("tvPlayer", url, item); }
+    function playCanalInt(url, item) { playStream("tvPlayerInt", url, item); }
+    function playCanalDeportes(url, item) { playStream("tvPlayerDeportes", url, item); }
+    function playCanalDeportesInt(url, item) { playStream("tvPlayerDeportesInt", url, item); }
+    function playCanalReligiosoNac(url, item) { playStream("tvPlayerReligiosoNac", url, item); }
+    function playCanalReligiosoInt(url, item) { playStream("tvPlayerReligiosoInt", url, item); }
+    function playRadio(url) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); }
+    function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCristianaSFC(url) { const a = document.getElementById("radioCristianaSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCristianaNac(url) { const a = document.getElementById("radioCristianaNacPlayer"); a.src = url; a.play(); }
+    function playRadioCatolicaSFC(url) { const a = document.getElementById("radioCatolicaSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCatolicaNac(url) { const a = document.getElementById("radioCatolicaNacPlayer"); a.src = url; a.play(); }
+    function playVideoCatolico(url) { document.getElementById("videosCatolicosFrame").src = url; }
+    function playVideo(url) { document.getElementById("videoFrame").src = url; }
+    function playVideoCinema(url, item) { playStream("tvPlayerCinema", url, item); }
+    function playMusic247(url) { document.getElementById("music247Frame").src = url; }
+    function playPeliculas247(url) { document.getElementById("peliculas247Frame").src = url; }
+    function playVideoReligioso(url, item) { playStream("tvPlayerVideosReligioso", url, item); }
+    function playNoticia(url) { document.getElementById("noticiasFrame").src = url; }
+    function playReligioso(url) { document.getElementById("religiosoFrame").src = url; }
+    function playDeporte(url) { document.getElementById("deportesFrame").src = url; }
+
+    function playFB(url) { document.getElementById("facebookliveFrame").src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`; }
+
+    function toggleLike(e, id) { e.stopPropagation(); likes[id] = !likes[id]; localStorage.setItem("tv_sfc_likes", JSON.stringify(likes)); renderAllGrids(); }
+    function showToast(msg, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<span>${type === 'error' ? '❌' : '✅'}</span> ${msg}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+    async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    function attemptLogin() {
+        const email = document.getElementById("adminEmailInput").value.trim();
+        const pass = document.getElementById("adminPassInput").value;
+
+        if (firebaseInitialized) {
+            // Login real contra Firebase Authentication.
+            // El usuario admin debe existir en Firebase Console > Authentication > Users.
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(() => {
+                    isAdmin = true;
+                    document.getElementById("loginModal").style.display = "none";
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo();
+                    showToast("✅ Acceso Concedido");
+                })
+                .catch((error) => {
+                    console.error('Error de autenticación:', error);
+                    showToast("❌ Correo o contraseña incorrectos", "error");
+                });
+        } else {
+            // Sin conexión a Firebase: se permite el modo local con la contraseña de respaldo.
+            sha256(pass).then(hash => {
+                if (hash === PASS_HASH) {
+                    isAdmin = true;
+                    document.getElementById("loginModal").style.display = "none";
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo();
+                    showToast("✅ Acceso Concedido (modo local)");
+                } else showToast("❌ Contraseña Incorrecta", "error");
+            });
+        }
+    }
+    function openLogin() { 
+        if (isAdmin) {
+            document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo();
+        } else {
+            document.getElementById("loginModal").style.display = "flex";
+        }
+    }
+    function cerrarSesion() {
+        isAdmin = false;
+        document.getElementById("adminPanel").style.display = "none";
+        if (firebaseInitialized) firebase.auth().signOut();
+    }
+    function compartirApp() {
+        if (navigator.share) navigator.share({ title: 'TV SFC LA UNION', text: 'Mira TV SFC LA UNION', url: window.location.href });
+        else navigator.clipboard.writeText(window.location.href).then(() => showToast('✅ Copiado'));
+    }
+    function compartirSeccion(section) {
+        const url = `${window.location.origin}${window.location.pathname}#${section}`;
+        if (navigator.share) navigator.share({ title: 'TV SFC', url: url });
+        else navigator.clipboard.writeText(url).then(() => showToast('✅ Copiado'));
+    }
+
+    function toggleUI(wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        wrapper.classList.toggle('hide-ui');
+    }
+
+    // Sistema mejorado de detección de clics simple y doble en el reproductor
+    function setupPlayerClickHandler(wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        if (!wrapper) {
+            console.warn('Wrapper no encontrado:', wrapperId);
+            return;
+        }
+        
+        // Evitar agregar múltiples listeners al mismo wrapper
+        if (wrapper._clickHandlerAdded) return;
+        wrapper._clickHandlerAdded = true;
+        
+        let lastClickTime = 0;
+        let clickTimeout = null;
+
+        function handleTap(e) {
+            // Ignorar si es en botones o menús
+            if (e.target.closest('.fit-btn') || e.target.closest('.fit-menu')) {
+                return;
+            }
+
+            const currentTime = new Date().getTime();
+            const timeSinceLastClick = currentTime - lastClickTime;
+
+            console.log('📱 Toque detectado. Tiempo desde último toque:', timeSinceLastClick + 'ms');
+
+            if (timeSinceLastClick < 350) {
+                // DOBLE TOQUE - Mostrar controles
+                clearTimeout(clickTimeout);
+                console.log('✓✓ DOS TOQUES detectados - Mostrando controles');
+                wrapper.classList.remove('hide-ui');
+                wrapper.style.cursor = 'pointer';
+                lastClickTime = 0;
+            } else {
+                // PRIMER TOQUE - Ocultar controles después de 300ms
+                lastClickTime = currentTime;
+                clearTimeout(clickTimeout);
+                
+                clickTimeout = setTimeout(() => {
+                    console.log('✓ UN TOQUE detectado - Ocultando controles');
+                    wrapper.classList.add('hide-ui');
+                    wrapper.style.cursor = 'pointer';
+                }, 300);
+            }
+        }
+
+        // Agregar listeners con captura en la burbuja
+        wrapper.addEventListener('click', handleTap, { capture: false, passive: true });
+        wrapper.addEventListener('touchend', handleTap, { capture: false, passive: true });
+        
+        // Asegurar que el wrapper sea clickeable
+        wrapper.style.cursor = 'pointer';
+        wrapper.style.userSelect = 'none';
+        wrapper.style.WebkitUserSelect = 'none';
+        
+        console.log('✓ Click handler configurado para:', wrapperId);
+    }
+
+    // Inicializar todos los click handlers después de que el DOM esté listo
+    function initializeAllClickHandlers() {
+        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperVideosCinema', 'wrapperVideosReligioso'];
+        wrapperIds.forEach(id => {
+            const wrapper = document.getElementById(id);
+            if (wrapper) {
+                console.log('Inicializando click handler para:', id);
+                setupPlayerClickHandler(id);
+            } else {
+                console.warn('Wrapper no encontrado:', id);
+            }
+        });
+        console.log('✓ Click handlers inicializados');
+    }
+    
+    // Intentar inicializar handlers cuando estén listos
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initializeAllClickHandlers, 500);
+        });
+    } else {
+        setTimeout(initializeAllClickHandlers, 500);
+    }
+
+    function setQuality(videoId, level, menuId, btn) {
+        const v = document.getElementById(videoId);
+        if (!v._hls) { 
+            document.getElementById(menuId).classList.remove('open');
+            return; 
+        }
+        // Marcar activo solo en botones de calidad (los últimos 5)
+        const allBtns = document.querySelectorAll('#' + menuId + ' button');
+        const qualityBtns = Array.from(allBtns).slice(-5);
+        qualityBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (level === 'auto') {
+            v._hls.currentLevel = -1;
+        } else {
+            // Buscar el nivel más cercano al solicitado
+            const levels = v._hls.levels;
+            let best = 0;
+            let bestDiff = Infinity;
+            levels.forEach((l, i) => {
+                const h = l.height || 0;
+                const diff = Math.abs(h - level);
+                if (diff < bestDiff) { bestDiff = diff; best = i; }
+            });
+            v._hls.currentLevel = best;
+        }
+        document.getElementById(menuId).classList.remove('open');
+    }
+
+    function toggleFitMenu(menuId) {
+        document.querySelectorAll('.fit-menu').forEach(m => {
+            if (m.id !== menuId) m.classList.remove('open');
+        });
+        document.getElementById(menuId).classList.toggle('open');
+    }
+    function setFit(videoId, fit, menuId, btn) {
+        const v = document.getElementById(videoId);
+        v.style.objectFit = fit;
+        v.style.width = '100%';
+        v.style.height = '100%';
+        document.querySelectorAll('#' + menuId + ' button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(menuId).classList.remove('open');
+    }
+    function setFitCustom(videoId, h, w, menuId, btn) {
+        const v = document.getElementById(videoId);
+        v.style.objectFit = 'none';
+        v.style.height = h;
+        v.style.width = w;
+        document.querySelectorAll('#' + menuId + ' button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(menuId).classList.remove('open');
+    }
+    // Cerrar menú al tocar fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.fit-btn') && !e.target.closest('.fit-menu')) {
+            document.querySelectorAll('.fit-menu').forEach(m => m.classList.remove('open'));
+        }
+    });
+
+    // --- CONTROL DE BLOQUES/SECCIONES (navegación tipo pestañas) ---
+    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','radio','radioSFC','radioCristianaSFC','radioCristianaNac','radioCatolicaSFC','radioCatolicaNac','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
+
+    function showSection(id) {
+        if (!sectionOrder.includes(id)) id = 'inicio';
+        document.querySelectorAll('section').forEach(sec => {
+            sec.classList.toggle('active-section', sec.id === id);
+        });
+        document.querySelectorAll('.topbar-link').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.target === id);
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        try { history.replaceState(null, '', '#' + id); } catch (e) { /* Algunos entornos de vista previa no permiten cambiar la URL */ }
+        // Centra el botón activo dentro de la barra superior
+        const activeBtn = document.querySelector('.topbar-link.active');
+        if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
+    document.querySelectorAll('.topbar-link').forEach(btn => {
+        btn.addEventListener('click', () => showSection(btn.dataset.target));
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (!firebaseInitialized) {
+            storage = JSON.parse(localStorage.getItem("tv_sfc_data")) || { 
+                canales: {}, canalesInt: {}, canalesDeportes: {}, radio: {}, radioSFC: {}, 
+                radioCristianaSFC: {}, radioCristianaNac: {},
+                radioCatolicaSFC: {}, radioCatolicaNac: {},
+                videos: {}, religiosos: {}, videosCatolicos: {},
+                noticias: {},
+                deportes: {}, anuncios: {}, anunciosCristianos: {}, anunciosCatolicos: {},
+                eventos: {} 
+            };
+            reactions = JSON.parse(localStorage.getItem("tv_sfc_reactions")) || {};
+        }
+        renderAllGrids();
+        updateAllReactionCounts();
+
+        // Muestra el bloque inicial: el de la URL (#hash) o "inicio" por defecto
+        try { renderLogo(JSON.parse(localStorage.getItem('tv_sfc_logo') || '{}')); } catch (e) { renderLogo({}); }
+        iniciarInstalacion();
+        const rawHash = window.location.hash ? window.location.hash.substring(1) : 'inicio';
+        const [initialId, extraId] = rawHash.split('/');
+        if (extraId && ANUNCIO_CATS[initialId]) {
+            pendingAnuncio = { cat: initialId, id: decodeURIComponent(extraId) };
+            renderAnuncios(initialId);
+        }
+        showSection(initialId);
+        
+        // Inicializar click handlers para todos los reproductores
+        initializeAllClickHandlers();
+    });
+</script>
+</body>
+</html>
