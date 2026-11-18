@@ -2458,7 +2458,6 @@
         if (!v) return;
         const wrapper = v.closest(".player-wrapper");
         destroyPlayers(v);
-        setMediaSession(v, item);
         const type = getStreamType(url, item);
         const alt = (type === 'ts' && !(item && item.tipo === 'ts')) ? xtreamM3u8(url) : null;
         if (alt) playHLSStream(v, wrapper, alt, false, url);   // Xtream: .m3u8 primero, .ts de respaldo
@@ -2473,12 +2472,12 @@
     function playCanalDeportesInt(url, item) { playStream("tvPlayerDeportesInt", url, item); }
     function playCanalReligiosoNac(url, item) { playStream("tvPlayerReligiosoNac", url, item); }
     function playCanalReligiosoInt(url, item) { playStream("tvPlayerReligiosoInt", url, item); }
-    function playRadio(url, item) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); setMediaSession(a, item); }
-    function playRadioSFC(url, item) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); setMediaSession(a, item); }
-    function playRadioCristianaSFC(url, item) { const a = document.getElementById("radioCristianaSFCPlayer"); a.src = url; a.play(); setMediaSession(a, item); }
-    function playRadioCristianaNac(url, item) { const a = document.getElementById("radioCristianaNacPlayer"); a.src = url; a.play(); setMediaSession(a, item); }
-    function playRadioCatolicaSFC(url, item) { const a = document.getElementById("radioCatolicaSFCPlayer"); a.src = url; a.play(); setMediaSession(a, item); }
-    function playRadioCatolicaNac(url, item) { const a = document.getElementById("radioCatolicaNacPlayer"); a.src = url; a.play(); setMediaSession(a, item); }
+    function playRadio(url) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); }
+    function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCristianaSFC(url) { const a = document.getElementById("radioCristianaSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCristianaNac(url) { const a = document.getElementById("radioCristianaNacPlayer"); a.src = url; a.play(); }
+    function playRadioCatolicaSFC(url) { const a = document.getElementById("radioCatolicaSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCatolicaNac(url) { const a = document.getElementById("radioCatolicaNacPlayer"); a.src = url; a.play(); }
     function playVideoCatolico(url) { document.getElementById("videosCatolicosFrame").src = url; }
     function playVideo(url) { document.getElementById("videoFrame").src = url; }
     function playVideoCinema(url, item) { playStream("tvPlayerCinema", url, item); }
