@@ -268,6 +268,25 @@
             border: 1px solid rgba(34, 197, 94, 0.25);
             box-shadow: 0 10px 35px rgba(0,0,0,0.4);
         }
+
+        /* --- ANUNCIOS: vista previa, expandir y compartir uno solo --- */
+        .anuncios-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); max-height: 460px; }
+        .anuncio-card { background: rgba(30, 41, 59, 0.8); border: 2px solid transparent; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: border-color 0.2s; }
+        .anuncio-card.selected { border-color: var(--primary); box-shadow: 0 0 12px rgba(34, 197, 94, 0.5); }
+        .anuncio-thumb { position: relative; width: 100%; aspect-ratio: 16/10; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer; }
+        .anuncio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .anuncio-thumb .play-mark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; background: rgba(0,0,0,0.35); }
+        .anuncio-card p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: #e2e8f0; text-align: center; word-break: break-word; }
+        .anuncio-share { background: var(--primary); color: var(--dark-bg); border: none; border-radius: 8px; padding: 8px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
+        .anuncio-share:active { transform: scale(0.97); }
+        .video-box.anuncio-box { position: relative; }
+        .anuncio-box img.anuncio-main { width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; display: block; }
+        .anuncio-placeholder { height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: var(--text-gray); font-size: 0.95rem; }
+        .anuncio-expand { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.35); color: white; font-size: 0.8rem; font-weight: bold; padding: 6px 12px; border-radius: 20px; cursor: pointer; backdrop-filter: blur(4px); }
+        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 3500; }
+        .lightbox.open { display: flex; }
+        .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; touch-action: pinch-zoom pan-x pan-y; }
+        .lightbox-close { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.6); color: white; font-size: 1.3rem; cursor: pointer; z-index: 2; }
     </style>
 </head>
 <body>
@@ -283,7 +302,6 @@
     </div>
 </div>
 
-<img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png" class="logo-float" alt="Logo">
 
 <div class="topbar-nav" id="topbarNav">
     <button class="topbar-link" data-target="inicio">🏠 Inicio</button>
@@ -317,6 +335,7 @@
 <section id="inicio">
     <div class="card" style="text-align:center">
         <h2>📺 TV SFC LA UNION</h2>
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhpYIRoEls-G3Ja064ud9afk9S9EBYYiyQeI0uFQ0dhg_wK2cbBD_TDxKYRYNA45XjehPtiwRw8niZbwOj3HP1OkK-_I-XsyfU53YqgqTMMcmLQWcZyQF0VMmZVwe7UoCleYbCRKHWaPG4lp0dqLERbs9aCUHzXuJhkQOGQhKV8_1zSW00/s1600/20260129_171630.png" class="logo-float" style="padding-top:0; margin:10px auto 15px;" alt="Logo">
         <p style="font-size:1.1rem;">El Canal De La Union</p>
         <div id="firebaseStatus" class="firebase-status">🔄 Conectando a Firebase...</div>
         <div class="reactions-bar" style="justify-content: center;">
@@ -1056,8 +1075,8 @@
 <section id="anuncios">
     <div class="card">
         <h2>📢 Anuncios</h2>
-        <div class="grid" id="anunciosGrid"></div>
-        <div class="video-box" id="anuncioContent"></div>
+        <div class="grid anuncios-grid" id="anunciosGrid"></div>
+        <div class="video-box anuncio-box" id="anuncioContent"></div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('anuncios', 'like')">
                 <span class="reaction-emoji">👍</span>
@@ -1078,8 +1097,8 @@
 <section id="anunciosCristianos">
     <div class="card">
         <h2>📢 Anuncios Cristianos</h2>
-        <div class="grid" id="anunciosCristianosGrid"></div>
-        <div class="video-box" id="anuncioCristianoContent"></div>
+        <div class="grid anuncios-grid" id="anunciosCristianosGrid"></div>
+        <div class="video-box anuncio-box" id="anuncioCristianoContent"></div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('anunciosCristianos', 'like')">
                 <span class="reaction-emoji">👍</span>
@@ -1100,8 +1119,8 @@
 <section id="anunciosCatolicos">
     <div class="card">
         <h2>📢 Anuncios Católicos</h2>
-        <div class="grid" id="anunciosCatolicosGrid"></div>
-        <div class="video-box" id="anuncioCatolicoContent"></div>
+        <div class="grid anuncios-grid" id="anunciosCatolicosGrid"></div>
+        <div class="video-box anuncio-box" id="anuncioCatolicoContent"></div>
         <div class="reactions-bar">
             <div class="reaction-btn" onclick="toggleReaction('anunciosCatolicos', 'like')">
                 <span class="reaction-emoji">👍</span>
@@ -1138,6 +1157,11 @@
         </div>
     </div>
 </section>
+
+<div id="lightbox" class="lightbox" onclick="cerrarImagen()">
+    <button class="lightbox-close" onclick="cerrarImagen()">✕</button>
+    <img id="lightboxImg" src="" alt="Anuncio" onclick="event.stopPropagation()">
+</div>
 
 <div id="adminPanel">
     <div class="admin-container">
@@ -1546,14 +1570,166 @@
         renderGrid('radioCatolicaSFC', 'radioCatolicaSFCGrid', 'playRadioCatolicaSFC');
         renderGrid('radioCatolicaNac', 'radioCatolicaNacGrid', 'playRadioCatolicaNac');
         renderGrid('videosCatolicos', 'videosCatolicosGrid', 'playVideoCatolico');
-        renderGrid('anunciosCristianos', 'anunciosCristianosGrid', 'playAnuncioCristiano');
-        renderGrid('anunciosCatolicos', 'anunciosCatolicosGrid', 'playAnuncioCatolico');
+        renderAnuncios('anunciosCristianos');
+        renderAnuncios('anunciosCatolicos');
         renderGrid('videos', 'videosGrid', 'playVideo');
         renderGrid('noticias', 'noticiasGrid', 'playNoticia');
         renderGrid('religiosos', 'religiososGrid', 'playReligioso');
         renderGrid('deportes', 'deportesGrid', 'playDeporte');
-        renderGrid('anuncios', 'anunciosGrid', 'playAnuncio');
+        renderAnuncios('anuncios');
         renderGrid('eventos', 'eventosGrid', 'playFB');
+    }
+
+    // ============================================
+    // ANUNCIOS: vista previa, expandir imagen y compartir uno solo
+    // ============================================
+    const ANUNCIO_CATS = {
+        anuncios:           { grid: 'anunciosGrid',           box: 'anuncioContent' },
+        anunciosCristianos: { grid: 'anunciosCristianosGrid', box: 'anuncioCristianoContent' },
+        anunciosCatolicos:  { grid: 'anunciosCatolicosGrid',  box: 'anuncioCatolicoContent' }
+    };
+    const anuncioSel = {};
+    let pendingAnuncio = null;
+
+    function esYouTube(url) { return /youtube\.com|youtu\.be/i.test(url || ''); }
+    function getAnuncios(cat) { return { ...(dataInicial[cat] || {}), ...(storage[cat] || {}) }; }
+
+    function abrirImagen(url) {
+        document.getElementById('lightboxImg').src = url;
+        document.getElementById('lightbox').classList.add('open');
+    }
+    function cerrarImagen() {
+        document.getElementById('lightbox').classList.remove('open');
+        document.getElementById('lightboxImg').src = '';
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarImagen(); });
+
+    function mostrarAnuncio(cat, id) {
+        const item = getAnuncios(cat)[id];
+        const cfg = ANUNCIO_CATS[cat];
+        if (!item || !cfg) return;
+        anuncioSel[cat] = id;
+        const box = document.getElementById(cfg.box);
+        box.innerHTML = '';
+        if (esYouTube(item.url)) {
+            const f = document.createElement('iframe');
+            f.src = item.url;
+            f.allowFullscreen = true;
+            box.appendChild(f);
+        } else {
+            const img = document.createElement('img');
+            img.className = 'anuncio-main';
+            img.src = item.url;
+            img.alt = item.nombre || 'Anuncio';
+            img.onclick = () => abrirImagen(item.url);
+            box.appendChild(img);
+            const btn = document.createElement('button');
+            btn.className = 'anuncio-expand';
+            btn.textContent = '⛶ Expandir';
+            btn.onclick = () => abrirImagen(item.url);
+            box.appendChild(btn);
+        }
+        document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => {
+            c.classList.toggle('selected', c.dataset.id === String(id));
+        });
+    }
+
+    function renderAnuncios(cat) {
+        const cfg = ANUNCIO_CATS[cat];
+        const grid = document.getElementById(cfg.grid);
+        const box = document.getElementById(cfg.box);
+        if (!grid || !box) return;
+        grid.innerHTML = '';
+        const fusion = getAnuncios(cat);
+        Object.keys(fusion).forEach(id => {
+            const item = fusion[id];
+            const yt = esYouTube(item.url);
+            const card = document.createElement('div');
+            card.className = 'anuncio-card';
+            card.dataset.id = id;
+
+            const thumb = document.createElement('div');
+            thumb.className = 'anuncio-thumb';
+            const img = document.createElement('img');
+            img.src = yt ? item.logo : item.url;
+            img.alt = item.nombre || '';
+            img.onerror = () => { img.onerror = null; img.src = item.logo || 'https://via.placeholder.com/160x100'; };
+            thumb.appendChild(img);
+            if (yt) {
+                const mark = document.createElement('div');
+                mark.className = 'play-mark';
+                mark.textContent = '▶';
+                thumb.appendChild(mark);
+            }
+            thumb.onclick = () => mostrarAnuncio(cat, id);
+
+            const name = document.createElement('p');
+            name.textContent = item.nombre || '';
+
+            const share = document.createElement('button');
+            share.className = 'anuncio-share';
+            share.textContent = '📤 Compartir';
+            share.onclick = (e) => { e.stopPropagation(); compartirAnuncio(cat, id); };
+
+            card.append(thumb, name, share);
+            grid.appendChild(card);
+        });
+
+        // Conserva el anuncio seleccionado (sin recargarlo) o muestra una indicación
+        const sel = anuncioSel[cat];
+        if (sel && fusion[sel]) {
+            grid.querySelectorAll('.anuncio-card').forEach(c => c.classList.toggle('selected', c.dataset.id === String(sel)));
+        } else if (!box.firstChild || box.querySelector('.anuncio-placeholder')) {
+            box.innerHTML = '<div class="anuncio-placeholder">👆 Toca un anuncio para verlo</div>';
+        }
+
+        // Abre el anuncio de un enlace compartido
+        if (pendingAnuncio && pendingAnuncio.cat === cat && fusion[pendingAnuncio.id]) {
+            const pid = pendingAnuncio.id;
+            pendingAnuncio = null;
+            mostrarAnuncio(cat, pid);
+            setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+        }
+    }
+
+    async function compartirAnuncio(cat, id) {
+        const item = getAnuncios(cat)[id];
+        if (!item) return;
+        const link = `${window.location.origin}${window.location.pathname}#${cat}/${encodeURIComponent(id)}`;
+        const titulo = item.nombre || 'Anuncio';
+        const texto = `📢 ${titulo} - TV SFC LA UNION\n${link}`;
+
+        if (navigator.share) {
+            // 1) Intenta compartir la imagen del anuncio junto con el enlace
+            if (!esYouTube(item.url)) {
+                try {
+                    const resp = await fetch(item.url);
+                    const blob = await resp.blob();
+                    const ext = ((blob.type || 'image/jpeg').split('/')[1] || 'jpg').split('+')[0];
+                    const file = new File([blob], titulo.replace(/[^\w-]+/g, '_') + '.' + ext, { type: blob.type || 'image/jpeg' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: titulo, text: texto });
+                        return;
+                    }
+                } catch (err) {
+                    if (err && err.name === 'AbortError') return;
+                }
+            }
+            // 2) Si no se puede enviar la imagen, comparte el enlace de ese anuncio
+            try {
+                await navigator.share({ title: titulo, text: `📢 ${titulo} - TV SFC LA UNION`, url: link });
+                return;
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+            }
+        }
+        // 3) Sin menú de compartir: copia el enlace
+        try {
+            await navigator.clipboard.writeText(link);
+            showToast('✅ Enlace del anuncio copiado');
+        } catch (err) {
+            showToast('❌ No se pudo compartir', 'error');
+        }
     }
 
     function fixStreamUrl(url) {
@@ -1716,21 +1892,6 @@
     function playNoticia(url) { document.getElementById("noticiasFrame").src = url; }
     function playReligioso(url) { document.getElementById("religiosoFrame").src = url; }
     function playDeporte(url) { document.getElementById("deportesFrame").src = url; }
-    function playAnuncio(url) {
-        const container = document.getElementById("anuncioContent");
-        if(url.includes("youtube.com") || url.includes("youtu.be")) container.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
-        else container.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:contain;">`;
-    }
-    function playAnuncioCristiano(url) {
-        const container = document.getElementById("anuncioCristianoContent");
-        if(url.includes("youtube.com") || url.includes("youtu.be")) container.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
-        else container.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:contain;">`;
-    }
-    function playAnuncioCatolico(url) {
-        const container = document.getElementById("anuncioCatolicoContent");
-        if(url.includes("youtube.com") || url.includes("youtu.be")) container.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
-        else container.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:contain;">`;
-    }
 
     function playFB(url) { document.getElementById("facebookliveFrame").src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`; }
 
@@ -1986,7 +2147,12 @@
         updateAllReactionCounts();
 
         // Muestra el bloque inicial: el de la URL (#hash) o "inicio" por defecto
-        const initialId = window.location.hash ? window.location.hash.substring(1) : 'inicio';
+        const rawHash = window.location.hash ? window.location.hash.substring(1) : 'inicio';
+        const [initialId, extraId] = rawHash.split('/');
+        if (extraId && ANUNCIO_CATS[initialId]) {
+            pendingAnuncio = { cat: initialId, id: decodeURIComponent(extraId) };
+            renderAnuncios(initialId);
+        }
         showSection(initialId);
         
         // Inicializar click handlers para todos los reproductores
