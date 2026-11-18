@@ -1323,8 +1323,10 @@
             showToast('Tu navegador no soporta canales .ts directos', 'error');
             return;
         }
-        const src = viaProxy ? proxyUrl(url) : fixStreamUrl(url);
-        const usingProxy = src.startsWith('/api/proxy');
+        const srcRel = viaProxy ? proxyUrl(url) : fixStreamUrl(url);
+        const usingProxy = srcRel.startsWith('/api/proxy');
+        // El Worker de mpegts.js no entiende rutas relativas: se usa la URL completa
+        const src = new URL(srcRel, location.href).href;
         const player = mpegts.createPlayer(
             { type: 'mpegts', isLive: true, url: src },
             { enableWorker: true, liveBufferLatencyChasing: true, liveBufferLatencyMaxLatency: 10, liveBufferLatencyMinRemain: 1 }
