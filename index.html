@@ -167,6 +167,13 @@
         .admin-container { max-width: 800px; margin: 20px auto; padding: 20px; }
         .admin-item-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; }
         .admin-actions { display: flex; gap: 5px; }
+        .admin-sec { border: 1px solid #1e293b; border-radius: 10px; margin-bottom: 12px; background: rgba(255,255,255,0.02); }
+        .admin-sec-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .admin-sec-head h3 { margin: 0; }
+        .admin-sec-arrow { color: #94a3b8; font-size: 1.2rem; transition: transform .25s; transform: rotate(-90deg); }
+        .admin-sec.open .admin-sec-arrow { transform: rotate(0deg); }
+        .admin-sec-body { display: none; padding: 0 14px 14px; }
+        .admin-sec.open .admin-sec-body { display: block; }
         .custom-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(5px); }
         .custom-modal { background: #1e293b; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; border: 1px solid #334155; text-shadow: none; }
         #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; gap: 10px; }
@@ -1264,7 +1271,9 @@
         <button class="btn" onclick="ocultarPanel()" style="margin-bottom:20px; background:#3b82f6; color:white; padding:5px 10px; font-size:0.8rem;">👁️ Ver página</button>
         <hr style="border-color:#334155">
         
-        <h3 id="formTitle">Agregar Contenido</h3>
+        <div class="admin-sec open">
+            <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3 id="formTitle">Agregar Contenido</h3><span class="admin-sec-arrow">▾</span></div>
+            <div class="admin-sec-body">
         <select id="categoria" class="admin-select" onchange="toggleTipoStream()">
             <option value="">Seleccionar Categoría</option>
             <option value="canales">Canales Nacionales</option>
@@ -1306,9 +1315,12 @@
         
         <button id="btnGuardar" class="btn" onclick="guardarContenido()" style="width:100%; margin-bottom:10px">💾 Guardar</button>
         <button id="btnCancelar" class="btn btn-gray" onclick="cancelarEdicion()" style="width:100%; margin-bottom:20px; background:#64748b; display:none;">🚫 Cancelar Edición</button>
-        
-        <hr style="border-color:#334155">
-        <h3>🎨 Diseño de la página</h3>
+            </div>
+        </div>
+
+        <div class="admin-sec">
+            <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>🎨 Diseño de la página</h3><span class="admin-sec-arrow">▾</span></div>
+            <div class="admin-sec-body">
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Los cambios se ven al instante (toca "👁️ Ver página" arriba). Toca <b>Guardar diseño</b> para que lo vea todo el público.</p>
         <input type="text" id="tmBgImage" class="admin-input" placeholder="URL de la imagen de fondo (vacía = solo color)" oninput="previsualizarTema()">
         <button class="btn" onclick="quitarFondo()" style="background:#64748b; color:white; margin:0 0 12px 0;">🗑️ Quitar imagen de fondo</button>
@@ -1340,9 +1352,12 @@
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Opacidad 100% = color normal · 0% = transparente. El cuadro con cuadritos muestra cómo queda.</p>
         <button class="btn" onclick="guardarTema()" style="width:100%; margin-bottom:10px">💾 Guardar diseño</button>
         <button class="btn" onclick="restablecerTema()" style="width:100%; margin-bottom:20px; background:#ef4444; color:white;">↩️ Restablecer diseño original</button>
+            </div>
+        </div>
 
-        <hr style="border-color:#334155">
-        <h3>🖼️ Logo de la página</h3>
+        <div class="admin-sec">
+            <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>🖼️ Logo de la página</h3><span class="admin-sec-arrow">▾</span></div>
+            <div class="admin-sec-body">
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Se muestra en la sección de Inicio. Pega el enlace de una imagen (cualquier formato) para agregar o cambiar el logo.</p>
         <input type="text" id="lgUrl" class="admin-input" placeholder="URL del logo (imagen)" oninput="previsualizarLogo()">
         <div class="tema-row"><label>Tamaño: <span id="lgSizeLabel">150</span> px</label><input type="range" id="lgSize" min="60" max="300" step="10" oninput="previsualizarLogo()"></div>
@@ -1353,9 +1368,12 @@
         <button class="btn" onclick="guardarLogo()" style="width:100%; margin-bottom:10px">💾 Guardar logo</button>
         <button class="btn" onclick="eliminarLogo()" style="width:100%; margin-bottom:10px; background:#ef4444; color:white;">🗑️ Eliminar logo</button>
         <button class="btn" onclick="restablecerLogo()" style="width:100%; margin-bottom:20px; background:#64748b; color:white;">↩️ Restaurar logo original</button>
+            </div>
+        </div>
 
-        <hr style="border-color:#334155">
-        <h3>📞 Configurar Contacto</h3>
+        <div class="admin-sec">
+            <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>📞 Configurar Contacto</h3><span class="admin-sec-arrow">▾</span></div>
+            <div class="admin-sec-body">
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Deja un campo vacío para ocultar ese botón. Los iconos son enlaces a una imagen (cualquier formato).</p>
         <input type="text" id="ctWhatsapp" class="admin-input" placeholder="Número de WhatsApp con código de país (ej. 50241680075)" inputmode="tel">
         <input type="text" id="ctIconWhatsapp" class="admin-input" placeholder="URL del icono de WhatsApp (imagen)">
@@ -1364,9 +1382,12 @@
         <input type="text" id="ctGmail" class="admin-input" placeholder="Correo Gmail">
         <input type="text" id="ctIconGmail" class="admin-input" placeholder="URL del icono de Gmail (imagen)">
         <button class="btn" onclick="guardarContacto()" style="width:100%; margin-bottom:20px">💾 Guardar Contacto</button>
+            </div>
+        </div>
 
-        <hr style="border-color:#334155">
-        <h3>Gestionar Contenido</h3>
+        <div class="admin-sec">
+            <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>Gestionar Contenido</h3><span class="admin-sec-arrow">▾</span></div>
+            <div class="admin-sec-body">
         <select id="verCategoria" class="admin-select" onchange="mostrarTodosElementos()">
             <option value="">Seleccionar Categoría</option>
            <option value="canales">Canales Nacionales</option>
@@ -1396,6 +1417,9 @@
             <option value="eventos">FB Live</option>
         </select>
         <div id="listaElementos"></div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -1534,10 +1558,17 @@
             document.getElementById("formTitle").textContent = "✏️ Editando Contenido";
             document.getElementById("btnGuardar").textContent = "🔄 Actualizar Contenido";
             document.getElementById("btnCancelar").style.display = "block";
+            abrirSeccionAgregar();
             document.querySelector('.admin-container').scrollTop = 0;
         }
     }
 
+    function toggleAdminSec(head) { head.parentElement.classList.toggle('open'); }
+    function abrirSeccionAgregar() {
+        const t = document.getElementById('formTitle');
+        const sec = t && t.closest('.admin-sec');
+        if (sec) sec.classList.add('open');
+    }
     function cancelarEdicion() {
         editModeId = null;
         document.getElementById("nombre").value = "";
