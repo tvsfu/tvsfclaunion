@@ -120,7 +120,11 @@
         .fit-btn { position: absolute; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; z-index: 20; display: flex; gap: 5px; align-items: center; backdrop-filter: blur(4px); transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; }
         .fit-btn.top { top: 10px; right: 10px; }
         .fit-btn.bottom { bottom: 10px; left: 10px; }
-        .fit-btn.pip { bottom: 10px; right: 10px; }
+        .fit-actions { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; z-index: 20; }
+        .fit-actions .fit-btn { position: static; }
+        /* Pantalla completa propia (del contenedor): no obliga a girar el celular */
+        .player-wrapper:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; margin: 0; border: 0; border-radius: 0; }
+        .player-wrapper:-webkit-full-screen { width: 100vw; height: 100vh; aspect-ratio: auto; margin: 0; border: 0; border-radius: 0; }
         .orient-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.15); }
         .orient-title { color: #94a3b8; font-size: 0.75rem; padding: 2px 4px 6px; text-transform: uppercase; letter-spacing: 1px; }
         .orient-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -2830,15 +2834,26 @@
             // Safari: entra solo en modo flotante al salir de la app
             if (el.tagName === 'VIDEO') { try { el.autoPictureInPicture = true; } catch (e) {} }
 
-            // Botón "Flotante" dentro de cada reproductor de TV
-            if (el.tagName === 'VIDEO' && soportaPiP(el)) {
+            // Botones "Flotante" y "Completa" dentro de cada reproductor de TV
+            if (el.tagName === 'VIDEO') {
+                el.setAttribute('controlsList', 'nofullscreen');   // la pantalla completa se hace con el botón propio
                 const wrapper = el.closest('.player-wrapper');
-                if (wrapper && !wrapper.querySelector('.fit-btn.pip')) {
-                    const btn = document.createElement('div');
-                    btn.className = 'fit-btn pip';
-                    btn.textContent = '⧉ Flotante';
-                    btn.addEventListener('click', (e) => { e.stopPropagation(); togglePiP(el.id); });
-                    wrapper.appendChild(btn);
+                if (wrapper && !wrapper.querySelector('.fit-actions')) {
+                    const box = document.createElement('div');
+                    box.className = 'fit-actions';
+                    if (soportaPiP(el)) {
+                        const pip = document.createElement('div');
+                        pip.className = 'fit-btn pip';
+                        pip.textContent = '⧉ Flotante';
+                        pip.addEventListener('click', (e) => { e.stopPropagation(); togglePiP(el.id); });
+                        box.appendChild(pip);
+                    }
+                    const fsb = document.createElement('div');
+                    fsb.className = 'fit-btn fs';
+                    fsb.textContent = '⛶ Completa';
+                    fsb.addEventListener('click', (e) => { e.stopPropagation(); togglePantallaCompleta(el.id); });
+                    box.appendChild(fsb);
+                    wrapper.appendChild(box);
                 }
             }
 
@@ -2896,24 +2911,40 @@
         setOrient(getOrient());
     });
 
+    // Pantalla completa del reproductor (contenedor completo, con sus botones)
+    function togglePantallaCompleta(videoId) {
+        const v = document.getElementById(videoId);
+        const w = v && v.closest('.player-wrapper');
+        if (!w) return;
+        const enFs = document.fullscreenElement || document.webkitFullscreenElement;
+        if (enFs) {
+            try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+            return;
+        }
+        const nativo = () => { if (v.webkitEnterFullscreen) { try { v.webkitEnterFullscreen(); } catch (e) {} } else showToast('Tu navegador no permite pantalla completa', 'error'); };
+        const req = w.requestFullscreen || w.webkitRequestFullscreen;
+        if (!req) { nativo(); return; }   // iPhone: usa la pantalla completa del sistema
+        try {
+            const r = req.call(w);
+            if (r && r.catch) r.catch(nativo);
+        } catch (e) { nativo(); }
+    }
+
     function alCambiarPantallaCompleta() {
         const fs = document.fullscreenElement || document.webkitFullscreenElement;
         const o = screen.orientation;
         if (!o) return;
-        if (fs) {
-            const esReproductor = fs.tagName === 'VIDEO' || (fs.querySelector && fs.querySelector('video'));
-            if (!esReproductor) return;
-            // Pequeña espera: el navegador a veces fuerza horizontal al entrar y hay que liberarlo después
-            setTimeout(() => {
-                try {
-                    const modo = getOrient();
-                    const r = o.lock(modo === 'vertical' ? 'portrait' : modo === 'horizontal' ? 'landscape' : 'any');
-                    if (r && r.catch) r.catch(() => { try { o.unlock(); } catch (e) {} });
-                } catch (e) { try { o.unlock(); } catch (e2) {} }
-            }, 150);
-        } else {
-            try { o.unlock(); } catch (e) {}
-        }
+        try {
+            if (fs) {
+                const esReproductor = fs.tagName === 'VIDEO' || (fs.querySelector && fs.querySelector('video'));
+                if (!esReproductor) return;
+                const modo = getOrient();
+                const r = o.lock(modo === 'vertical' ? 'portrait' : modo === 'horizontal' ? 'landscape' : 'any');
+                if (r && r.catch) r.catch(() => {});
+            } else {
+                o.unlock();
+            }
+        } catch (e) { try { o.unlock(); } catch (e2) {} }
     }
     document.addEventListener('fullscreenchange', alCambiarPantallaCompleta);
     document.addEventListener('webkitfullscreenchange', alCambiarPantallaCompleta);
