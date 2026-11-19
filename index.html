@@ -70,6 +70,9 @@
             background-size: cover;
             color: var(--text-light);
             padding-bottom: 60px;
+            box-sizing: border-box;
+            min-height: 100vh;   /* el fondo cubre toda la pantalla aunque la sección sea corta */
+            min-height: 100dvh;
         }
 
         .logo-float { display: block; margin: 20px auto; max-width: 100%; width: 150px; height: auto; filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), calc(0.5 * var(--primary-a)))); padding-top: 20px; }
