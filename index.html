@@ -137,6 +137,9 @@
         
         .fit-menu { position: absolute; left: 8px; right: 8px; background: rgba(20,20,20,0.95); border-radius: 12px; overflow: visible; z-index: 30; display: none; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.7); padding: 10px; box-sizing: border-box; transition: opacity 0.3s ease; }
         .fit-menu.top-menu { top: 45px; }
+        /* En celular el menú puede ser más alto que el reproductor: se desliza para ver todo */
+        .fit-menu.top-menu, .fit-menu.bottom-menu { max-height: calc(100% - 56px); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+        .fit-menu > * { flex-shrink: 0; }
         .fit-menu.bottom-menu { bottom: 45px; left: 8px; right: 8px; }
         .fit-menu.open { display: flex; }
         
