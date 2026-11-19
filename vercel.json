@@ -5,10 +5,13 @@
     { "src": "manifest.json", "use": "@vercel/static" },
     { "src": "sw.js", "use": "@vercel/static" },
     { "src": "icons/*", "use": "@vercel/static" },
-    { "src": "api/proxy.js", "use": "@vercel/node" }
+    { "src": "api/proxy.js", "use": "@vercel/node" },
+    { "src": "api/anuncio.js", "use": "@vercel/node" }
   ],
   "routes": [
     { "src": "/api/proxy", "dest": "/api/proxy.js" },
+    { "src": "/a/([^/]+)/([^/]+)", "dest": "/api/anuncio.js?cat=$1&id=$2" },
+    { "src": "/a/([^/]+)", "dest": "/api/anuncio.js?cat=$1" },
     { "src": "/sw.js", "headers": { "Cache-Control": "no-cache", "Service-Worker-Allowed": "/" }, "continue": true },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }

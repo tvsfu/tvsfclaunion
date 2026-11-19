@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV SFC LA UNION - Firebase</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="TV SFC LA UNION">
+    <meta property="og:title" content="TV SFC LA UNION">
+    <meta property="og:description" content="El canal de la Unión: TV, radio y anuncios en vivo">
+    <meta property="og:image" content="https://tvsfclaunion.vercel.app/icons/icon-512.png">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#020617">
     <meta name="mobile-web-app-capable" content="yes">
@@ -1775,9 +1781,15 @@
             const isLiked = likes[likeId] ? 'active' : '';
             const div = document.createElement("div");
             div.className = "item";
-            div.onclick = () => { window.__ultimoItem = item; window[clickFn](item.url, item); };
+            div.dataset.id = id;
+            div.onclick = () => { window.__ultimoItem = item; window.__canalActual = window.__canalActual || {}; window.__canalActual[cat] = { id: id, item: item }; window[clickFn](item.url, item); };
             div.innerHTML = `<div class="like-container ${isLiked}" onclick="toggleLike(event, '${likeId}')">👍</div><img src="${item.logo}" onerror="this.src='https://via.placeholder.com/80'"><p>${item.nombre}</p>`;
             grid.appendChild(div);
+            // Canal abierto desde un enlace compartido (#categoria/id)
+            if (pendingCanal && pendingCanal.cat === cat && String(id) === pendingCanal.id) {
+                pendingCanal = null;
+                setTimeout(() => { div.scrollIntoView({ behavior: 'smooth', block: 'center' }); div.click(); }, 700);
+            }
         });
     }
 
@@ -1820,6 +1832,7 @@
     };
     const anuncioSel = {};
     let pendingAnuncio = null;
+    let pendingCanal = null;
 
     function esYouTube(url) { return /youtube\.com|youtu\.be/i.test(url || ''); }
     function getAnuncios(cat) { return { ...(dataInicial[cat] || {}), ...(storage[cat] || {}) }; }
@@ -1975,7 +1988,8 @@
     async function compartirAnuncio(cat, id) {
         const item = getAnuncios(cat)[id];
         if (!item) return;
-        const link = `${window.location.origin}${window.location.pathname}#${cat}/${encodeURIComponent(id)}`;
+        // Enlace propio del anuncio: así Facebook/WhatsApp muestran su imagen y nombre
+        const link = `${window.location.origin}/a/${cat}/${encodeURIComponent(id)}`;
         const titulo = item.nombre || 'Anuncio';
         const texto = `📢 ${titulo} - TV SFC LA UNION\n${link}`;
 
@@ -2650,10 +2664,28 @@
         if (navigator.share) navigator.share({ title: 'TV SFC LA UNION', text: 'Mira TV SFC LA UNION', url: window.location.href });
         else navigator.clipboard.writeText(window.location.href).then(() => showToast('✅ Copiado'));
     }
-    function compartirSeccion(section) {
-        const url = `${window.location.origin}${window.location.pathname}#${section}`;
-        if (navigator.share) navigator.share({ title: 'TV SFC', url: url });
-        else navigator.clipboard.writeText(url).then(() => showToast('✅ Copiado'));
+    // Compartir sección o canal: si hay un canal/emisora reproduciéndose en la sección, se comparte ese
+    // (con su nombre y logo en la vista previa); si no, la sección.
+    async function compartirSeccion(section) {
+        const actual = (window.__canalActual || {})[section];
+        const base = window.location.origin;
+        let url = `${base}/a/${section}`;
+        let titulo = 'TV SFC LA UNION';
+        let texto = 'Mira TV SFC LA UNION';
+        if (actual && actual.item) {
+            const q = new URLSearchParams();
+            if (actual.item.nombre) q.set('n', actual.item.nombre);
+            if (/^https?:\/\//i.test(actual.item.logo || '')) q.set('i', actual.item.logo);
+            url = `${base}/a/${section}/${encodeURIComponent(actual.id)}` + (q.toString() ? '?' + q.toString() : '');
+            titulo = actual.item.nombre || titulo;
+            texto = `${section.indexOf('radio') === 0 ? '📻' : '📺'} ${titulo} - TV SFC LA UNION`;
+        }
+        if (navigator.share) {
+            try { await navigator.share({ title: titulo, text: texto, url: url }); } catch (e) {}
+            return;
+        }
+        try { await navigator.clipboard.writeText(url); showToast('✅ Copiado'); }
+        catch (e) { showToast('❌ No se pudo copiar', 'error'); }
     }
 
     function toggleUI(wrapperId) {
@@ -2849,6 +2881,9 @@
         if (extraId && ANUNCIO_CATS[initialId]) {
             pendingAnuncio = { cat: initialId, id: decodeURIComponent(extraId) };
             renderAnuncios(initialId);
+        } else if (extraId) {
+            pendingCanal = { cat: initialId, id: decodeURIComponent(extraId) };
+            renderAllGrids();
         }
         showSection(initialId);
         
@@ -3132,7 +3167,11 @@
         try { v.pause(); } catch (e) {}
         v.removeAttribute('src');
         try { v.load(); } catch (e) {}
-        if (w) { w.classList.remove('playing'); delete w.dataset.url; }
+        if (w) {
+            const ca = window.__canalActual || {};
+            Object.keys(ca).forEach(c => { if (ca[c] && ca[c].item && ca[c].item.url === w.dataset.url) delete ca[c]; });
+            w.classList.remove('playing'); delete w.dataset.url;
+        }
         const bloque = w && w.closest('.mp-block');
         if (bloque) bloque.remove();
         else {
