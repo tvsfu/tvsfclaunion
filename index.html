@@ -125,7 +125,8 @@
         .mp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .mp-btns { display: flex; gap: 6px; flex-shrink: 0; }
         .mp-toggle { background: #3b82f6; color: #fff; border: 0; border-radius: 16px; padding: 5px 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
-        .fit-btn.xclose { background: transparent; border: none; box-shadow: none; color: #fff; padding: 4px 8px; font-size: 1.2rem; font-weight: bold; line-height: 1; text-shadow: 0 0 3px rgba(0,0,0,0.8); }
+        .fit-btn.xclose { background: transparent; border: none; box-shadow: none; padding: 3px; line-height: 0; }
+        .fit-btn.xclose svg { width: 24px; height: 24px; display: block; }
         .mp-bar + .player-wrapper, .mp-block .player-wrapper { margin-top: 6px; }
         .fit-actions { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; z-index: 20; }
         .fit-actions .fit-btn { position: static; }
@@ -2863,7 +2864,7 @@
                 box.appendChild(fsb);
                 const xb = document.createElement('div');
                 xb.className = 'fit-btn xclose';
-                xb.textContent = '✕';
+                xb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>';
                 xb.title = 'Cerrar canal';
                 xb.addEventListener('click', (e) => { e.stopPropagation(); cerrarCanal(el.id); });
                 box.appendChild(xb);
