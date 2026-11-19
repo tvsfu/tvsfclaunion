@@ -396,7 +396,8 @@
     <button class="topbar-link" data-target="canalesDeportesInt">⚽ Deportes Internacional</button>
     <button class="topbar-link" data-target="canalesReligiosoNac">🙏 Religioso Nacional</button>
     <button class="topbar-link" data-target="canalesReligiosoInt">🙏 Religioso Internacional</button>
-    <button class="topbar-link" data-target="radio">📻 Radio Nac/Int</button>
+    <button class="topbar-link" data-target="radio">📻 Radio Nacional</button>
+    <button class="topbar-link" data-target="radioInt">📻 Radio Internacional</button>
     <button class="topbar-link" data-target="radioSFC">📻 Radio SFC</button>
     <button class="topbar-link" data-target="radioCristianaSFC">✝️ Radio Crist. SFC</button>
     <button class="topbar-link" data-target="radioCristianaNac">✝️ Radio Crist. Nac/Int</button>
@@ -804,7 +805,7 @@
 
 <section id="radio">
     <div class="card">
-        <h2>📻 Emisoras Nacionales E Internacionales</h2>
+        <h2>📻 Emisoras Nacionales</h2>
         <div class="grid" id="radioGrid"></div>
         <audio id="radioPlayer" controls></audio>
         <div class="reactions-bar">
@@ -817,6 +818,28 @@
                 <span class="reaction-count" id="radio-love-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('radio')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radioInt">
+    <div class="card">
+        <h2>📻 Emisoras Internacionales</h2>
+        <div class="grid" id="radioIntGrid"></div>
+        <audio id="radioIntPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radioInt', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radioInt-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radioInt', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radioInt-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radioInt')">
                 <span>📤</span>
                 <span>Compartir</span>
             </div>
@@ -1316,7 +1339,8 @@
             <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
             <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
             <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
-            <option value="radio">Emisoras Nacionales E Internacionales</option>
+            <option value="radio">Emisoras Nacionales</option>
+            <option value="radioInt">Emisoras Internacionales</option>
             <option value="radioSFC">Emisoras SFC</option>
             <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
             <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
@@ -1366,7 +1390,8 @@
             <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
             <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
             <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
-            <option value="radio">Emisoras Nacionales E Internacionales</option>
+            <option value="radio">Emisoras Nacionales</option>
+            <option value="radioInt">Emisoras Internacionales</option>
             <option value="radioSFC">Emisoras SFC</option>
             <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
             <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
@@ -1524,6 +1549,7 @@
     const dataInicial = {
         canales: {},
         radio: {},
+        radioInt: {},
         radioSFC: {},
         videos: {},
         noticias: {},
@@ -1748,7 +1774,7 @@
     function updateAllReactionCounts() {
         if (typeof actualizarReaccionesAnuncios === 'function') actualizarReaccionesAnuncios();
         const sections = [
-            'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'radio', 'radioSFC', 
+            'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'radio', 'radioInt', 'radioSFC', 
             'radioCristianaSFC', 'radioCristianaNac', 'radioCatolicaSFC', 'radioCatolicaNac',
             'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'music247', 'peliculas247', 'deportes', 
             'anuncios', 'anunciosCristianos', 'anunciosCatolicos', 'contacto'
@@ -1806,6 +1832,7 @@
         renderGrid('peliculas247', 'peliculas247Grid', 'playPeliculas247');
         renderGrid('videosReligioso', 'videosReligiosoGrid', 'playVideoReligioso');
         renderGrid('radio', 'radioGrid', 'playRadio');
+        renderGrid('radioInt', 'radioIntGrid', 'playRadioInt');
         renderGrid('radioSFC', 'radioSFCGrid', 'playRadioSFC');
         renderGrid('radioCristianaSFC', 'radioCristianaSFCGrid', 'playRadioCristianaSFC');
         renderGrid('radioCristianaNac', 'radioCristianaNacGrid', 'playRadioCristianaNac');
@@ -2587,6 +2614,7 @@
     function playCanalReligiosoNac(url, item) { playMulti("tvPlayerReligiosoNac", url, item); }
     function playCanalReligiosoInt(url, item) { playMulti("tvPlayerReligiosoInt", url, item); }
     function playRadio(url) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); }
+    function playRadioInt(url) { const a = document.getElementById("radioIntPlayer"); a.src = url; a.play(); }
     function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
     function playRadioCristianaSFC(url) { const a = document.getElementById("radioCristianaSFCPlayer"); a.src = url; a.play(); }
     function playRadioCristianaNac(url) { const a = document.getElementById("radioCristianaNacPlayer"); a.src = url; a.play(); }
@@ -2836,7 +2864,7 @@
     });
 
     // --- CONTROL DE BLOQUES/SECCIONES (navegación tipo pestañas) ---
-    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','radio','radioSFC','radioCristianaSFC','radioCristianaNac','radioCatolicaSFC','radioCatolicaNac','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
+    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCatolicaSFC','radioCatolicaNac','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
 
     function showSection(id) {
         if (!sectionOrder.includes(id)) id = 'inicio';
@@ -2860,7 +2888,7 @@
     window.addEventListener('DOMContentLoaded', () => {
         if (!firebaseInitialized) {
             storage = JSON.parse(localStorage.getItem("tv_sfc_data")) || { 
-                canales: {}, canalesInt: {}, canalesDeportes: {}, radio: {}, radioSFC: {}, 
+                canales: {}, canalesInt: {}, canalesDeportes: {}, radio: {}, radioInt: {}, radioSFC: {}, 
                 radioCristianaSFC: {}, radioCristianaNac: {},
                 radioCatolicaSFC: {}, radioCatolicaNac: {},
                 videos: {}, religiosos: {}, videosCatolicos: {},
