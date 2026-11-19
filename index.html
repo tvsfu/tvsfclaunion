@@ -120,6 +120,12 @@
         .fit-btn { position: absolute; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; z-index: 20; display: flex; gap: 5px; align-items: center; backdrop-filter: blur(4px); transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; }
         .fit-btn.top { top: 10px; right: 10px; }
         .fit-btn.bottom { bottom: 10px; left: 10px; }
+        .fit-btn.pip { bottom: 10px; right: 10px; }
+        .orient-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.15); }
+        .orient-title { color: #94a3b8; font-size: 0.75rem; padding: 2px 4px 6px; text-transform: uppercase; letter-spacing: 1px; }
+        .orient-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .orient-opt { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 6px; text-align: center; font-size: 0.8rem; cursor: pointer; border-radius: 8px; }
+        .orient-opt.active { color: var(--primary); font-weight: bold; border-color: var(--primary); }
         .player-wrapper.playing .fit-btn { display: flex; }
         
         /* Ocultar botones cuando hide-ui está activo */
@@ -1485,12 +1491,12 @@
     let editModeId = null;
 
     const dataInicial = {
-        canales: {1: {nombre: "Vision TV", logo: "https://static.wixstatic.com/media/7acae1_a1343f704ae0412ba28bab4239e78411~mv2.png/v1/fill/w_540,h_540,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/visiontv.png", url: "https://cdn.streamhispanatv.net:3531/live/tvsretrogtlive.m3u8"}},
-        radio: {1: {nombre: "EmisorasUnidas", logo: "https://cdn-profiles.tunein.com/s17610/images/logog.png", url: "https://stream-170.zeno.fm/tfcgfdag9ueuv"}},
-        radioSFC: {1: {nombre: "Radio SFU 94.1FM", logo: "https://municipalidadsanfranciscolaunion.gob.gt/wp-content/uploads/2025/12/radio-sfu-portada-pagina-web.png", url: "https://stream-166.zeno.fm/34ctc9etir7uv"}},
-        videos: {1: {nombre: "The Best EDM Mix 2025", logo: "https://www.pikpng.com/pngl/b/417-4170276_24-7-music-bot-graphic-design-clipart.png", url: "https://www.youtube.com/embed/GJ5WqZJVJqc"}},
+        canales: {},
+        radio: {},
+        radioSFC: {},
+        videos: {},
         noticias: {},
-        religiosos: {1: {nombre: "Musica Cristiana 24/7", logo: "https://play-lh.googleusercontent.com/V7i7zLC9dlX62MQCDbvsYD0zpirJp-peQA8SBiOKvxafYB5VRRfj0t0k4pv3h5lyAK4", url: "https://www.youtube.com/embed/VEzQKnsCd3I"}},
+        religiosos: {},
         deportes: {},
         anuncios: {},
         eventos: {},
@@ -1739,7 +1745,7 @@
             const isLiked = likes[likeId] ? 'active' : '';
             const div = document.createElement("div");
             div.className = "item";
-            div.onclick = () => window[clickFn](item.url, item);
+            div.onclick = () => { window.__ultimoItem = item; window[clickFn](item.url, item); };
             div.innerHTML = `<div class="like-container ${isLiked}" onclick="toggleLike(event, '${likeId}')">👍</div><img src="${item.logo}" onerror="this.src='https://via.placeholder.com/80'"><p>${item.nombre}</p>`;
             grid.appendChild(div);
         });
@@ -2767,6 +2773,147 @@
         // Inicializar click handlers para todos los reproductores
         initializeAllClickHandlers();
     });
+
+    // ============================================
+    // MODO FLOTANTE (PiP) + SEGUNDO PLANO
+    // Solo aplica a los reproductores <video> y <audio> (TV y radio).
+    // Las secciones de YouTube (iframes) no se tocan.
+    // ============================================
+    let mediaActual = null;
+
+    function soportaPiP(v) {
+        return !!(document.pictureInPictureEnabled || (v && v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')));
+    }
+
+    async function togglePiP(videoId) {
+        const v = document.getElementById(videoId);
+        if (!v) return;
+        try {
+            if (document.pictureInPictureEnabled) {
+                if (document.pictureInPictureElement === v) { await document.exitPictureInPicture(); return; }
+                if (v.readyState < 1) { showToast('Espera a que cargue el canal', 'error'); return; }
+                if (v.paused) { try { await v.play(); } catch (e) {} }
+                await v.requestPictureInPicture();
+            } else if (v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')) {
+                v.webkitSetPresentationMode(v.webkitPresentationMode === 'picture-in-picture' ? 'inline' : 'picture-in-picture');
+            } else {
+                showToast('Tu navegador no permite el modo flotante', 'error');
+            }
+        } catch (e) {
+            showToast('No se pudo activar el modo flotante', 'error');
+        }
+    }
+
+    function actualizarMediaSession(el) {
+        if (!('mediaSession' in navigator)) return;
+        const item = window.__ultimoItem || {};
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: item.nombre || 'TV SFC LA UNION',
+                artist: 'TV SFC LA UNION',
+                artwork: item.logo ? [{ src: item.logo, sizes: '512x512' }] : [{ src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }]
+            });
+        } catch (e) {}
+        const set = (act, fn) => { try { navigator.mediaSession.setActionHandler(act, fn); } catch (e) {} };
+        set('play', () => { if (mediaActual) { mediaActual._userPaused = false; mediaActual.play().catch(() => {}); } });
+        set('pause', () => { if (mediaActual) { mediaActual._userPaused = true; mediaActual.pause(); } });
+        set('stop', () => { if (mediaActual) { mediaActual._userPaused = true; mediaActual.pause(); } });
+        if (el && el.tagName === 'VIDEO' && soportaPiP(el)) set('enterpictureinpicture', () => togglePiP(el.id));
+        else set('enterpictureinpicture', null);
+    }
+
+    function iniciarSegundoPlano() {
+        document.querySelectorAll('video, audio').forEach(el => {
+            // Safari: entra solo en modo flotante al salir de la app
+            if (el.tagName === 'VIDEO') { try { el.autoPictureInPicture = true; } catch (e) {} }
+
+            // Botón "Flotante" dentro de cada reproductor de TV
+            if (el.tagName === 'VIDEO' && soportaPiP(el)) {
+                const wrapper = el.closest('.player-wrapper');
+                if (wrapper && !wrapper.querySelector('.fit-btn.pip')) {
+                    const btn = document.createElement('div');
+                    btn.className = 'fit-btn pip';
+                    btn.textContent = '⧉ Flotante';
+                    btn.addEventListener('click', (e) => { e.stopPropagation(); togglePiP(el.id); });
+                    wrapper.appendChild(btn);
+                }
+            }
+
+            el.addEventListener('play', () => {
+                el._userPaused = false;
+                mediaActual = el;
+                // Una sola reproducción a la vez (TV o radio), para que no se mezclen en segundo plano
+                document.querySelectorAll('video, audio').forEach(o => {
+                    if (o !== el && !o.paused) { o._userPaused = true; o.pause(); }
+                });
+                actualizarMediaSession(el);
+            });
+            el.addEventListener('pause', () => {
+                // Si se pausó con la app visible fue el usuario; si fue con la app oculta, lo pausó el navegador
+                if (document.visibilityState === 'visible') el._userPaused = true;
+            });
+        });
+
+        // Si el navegador pausa al pasar a segundo plano, se reanuda solo
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'hidden') return;
+            setTimeout(() => {
+                const m = mediaActual;
+                if (m && m.paused && !m._userPaused && !m.ended) m.play().catch(() => {});
+            }, 400);
+        });
+    }
+    window.addEventListener('DOMContentLoaded', iniciarSegundoPlano);
+
+    // ============================================
+    // PANTALLA COMPLETA: gira solo (vertical u horizontal) según el teléfono
+    // La app sigue en vertical; en pantalla completa se aplica la preferencia (Auto / Vertical / Horizontal).
+    // ============================================
+    // Preferencia de giro en pantalla completa: auto | vertical | horizontal
+    function getOrient() {
+        try { const v = localStorage.getItem('tv_orient'); if (v === 'vertical' || v === 'horizontal') return v; } catch (e) {}
+        return 'auto';
+    }
+    function setOrient(m) {
+        try { localStorage.setItem('tv_orient', m); } catch (e) {}
+        document.querySelectorAll('.orient-opt').forEach(b => b.classList.toggle('active', b.dataset.o === m));
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.fit-menu.top-menu').forEach(menu => {
+            if (menu.querySelector('.orient-row')) return;
+            const row = document.createElement('div');
+            row.className = 'orient-row';
+            row.innerHTML = '<div class="orient-title">Pantalla completa</div><div class="orient-group">' +
+                '<div class="orient-opt" data-o="auto">🔄 Auto</div>' +
+                '<div class="orient-opt" data-o="vertical">📱 Vertical</div>' +
+                '<div class="orient-opt" data-o="horizontal">🖥️ Horizontal</div></div>';
+            row.querySelectorAll('.orient-opt').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); setOrient(b.dataset.o); }));
+            menu.appendChild(row);
+        });
+        setOrient(getOrient());
+    });
+
+    function alCambiarPantallaCompleta() {
+        const fs = document.fullscreenElement || document.webkitFullscreenElement;
+        const o = screen.orientation;
+        if (!o) return;
+        if (fs) {
+            const esReproductor = fs.tagName === 'VIDEO' || (fs.querySelector && fs.querySelector('video'));
+            if (!esReproductor) return;
+            // Pequeña espera: el navegador a veces fuerza horizontal al entrar y hay que liberarlo después
+            setTimeout(() => {
+                try {
+                    const modo = getOrient();
+                    const r = o.lock(modo === 'vertical' ? 'portrait' : modo === 'horizontal' ? 'landscape' : 'any');
+                    if (r && r.catch) r.catch(() => { try { o.unlock(); } catch (e) {} });
+                } catch (e) { try { o.unlock(); } catch (e2) {} }
+            }, 150);
+        } else {
+            try { o.unlock(); } catch (e) {}
+        }
+    }
+    document.addEventListener('fullscreenchange', alCambiarPantallaCompleta);
+    document.addEventListener('webkitfullscreenchange', alCambiarPantallaCompleta);
 </script>
 </body>
 </html>
