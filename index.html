@@ -400,9 +400,11 @@
     <button class="topbar-link" data-target="radioInt">📻 Radio Internacional</button>
     <button class="topbar-link" data-target="radioSFC">📻 Radio SFC</button>
     <button class="topbar-link" data-target="radioCristianaSFC">✝️ Radio Crist. SFC</button>
-    <button class="topbar-link" data-target="radioCristianaNac">✝️ Radio Crist. Nac/Int</button>
+    <button class="topbar-link" data-target="radioCristianaNac">✝️ Radio Crist. Nacional</button>
+    <button class="topbar-link" data-target="radioCristianaInt">✝️ Radio Crist. Internacional</button>
     <button class="topbar-link" data-target="radioCatolicaSFC">⛪ Radio Cat. SFC</button>
-    <button class="topbar-link" data-target="radioCatolicaNac">⛪ Radio Cat. Nac/Int</button>
+    <button class="topbar-link" data-target="radioCatolicaNac">⛪ Radio Cat. Nacional</button>
+    <button class="topbar-link" data-target="radioCatolicaInt">⛪ Radio Cat. Internacional</button>
     <button class="topbar-link" data-target="videos">🎬 Entretenimiento 24/7</button>
     <button class="topbar-link" data-target="videosCinema">🎬 24/7 Cinema</button>
     <button class="topbar-link" data-target="noticias">📰 Noticias</button>
@@ -893,7 +895,7 @@
 
 <section id="radioCristianaNac">
     <div class="card">
-        <h2>📻 Emisoras Cristianas Nacionales E Internacionales</h2>
+        <h2>📻 Emisoras Cristianas Nacionales</h2>
         <div class="grid" id="radioCristianaNacGrid"></div>
         <audio id="radioCristianaNacPlayer" controls></audio>
         <div class="reactions-bar">
@@ -906,6 +908,28 @@
                 <span class="reaction-count" id="radioCristianaNac-love-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('radioCristianaNac')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radioCristianaInt">
+    <div class="card">
+        <h2>📻 Emisoras Cristianas Internacionales</h2>
+        <div class="grid" id="radioCristianaIntGrid"></div>
+        <audio id="radioCristianaIntPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radioCristianaInt', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radioCristianaInt-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radioCristianaInt', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radioCristianaInt-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radioCristianaInt')">
                 <span>📤</span>
                 <span>Compartir</span>
             </div>
@@ -937,7 +961,7 @@
 
 <section id="radioCatolicaNac">
     <div class="card">
-        <h2>📻 Emisoras Católicos Nacionales E Internacionales</h2>
+        <h2>📻 Emisoras Católicos Nacionales</h2>
         <div class="grid" id="radioCatolicaNacGrid"></div>
         <audio id="radioCatolicaNacPlayer" controls></audio>
         <div class="reactions-bar">
@@ -950,6 +974,28 @@
                 <span class="reaction-count" id="radioCatolicaNac-love-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('radioCatolicaNac')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="radioCatolicaInt">
+    <div class="card">
+        <h2>📻 Emisoras Católicos Internacionales</h2>
+        <div class="grid" id="radioCatolicaIntGrid"></div>
+        <audio id="radioCatolicaIntPlayer" controls></audio>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('radioCatolicaInt', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="radioCatolicaInt-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('radioCatolicaInt', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="radioCatolicaInt-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('radioCatolicaInt')">
                 <span>📤</span>
                 <span>Compartir</span>
             </div>
@@ -1343,9 +1389,11 @@
             <option value="radioInt">Emisoras Internacionales</option>
             <option value="radioSFC">Emisoras SFC</option>
             <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
-            <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
+            <option value="radioCristianaNac">Emisoras Cristianas Nacionales</option>
+            <option value="radioCristianaInt">Emisoras Cristianas Internacionales</option>
             <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
-            <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
+            <option value="radioCatolicaNac">Emisoras Católicos Nacionales</option>
+            <option value="radioCatolicaInt">Emisoras Católicos Internacionales</option>
             <option value="videos">Entretenimiento 24/7</option>
             <option value="videosCinema">24/7 CINEMA</option>
             <option value="noticias">Noticias 24/7</option>
@@ -1394,9 +1442,11 @@
             <option value="radioInt">Emisoras Internacionales</option>
             <option value="radioSFC">Emisoras SFC</option>
             <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
-            <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
+            <option value="radioCristianaNac">Emisoras Cristianas Nacionales</option>
+            <option value="radioCristianaInt">Emisoras Cristianas Internacionales</option>
             <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
-            <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
+            <option value="radioCatolicaNac">Emisoras Católicos Nacionales</option>
+            <option value="radioCatolicaInt">Emisoras Católicos Internacionales</option>
             <option value="videos">Entretenimiento 24/7</option>
             <option value="videosCinema">24/7 CINEMA</option>
             <option value="noticias">Noticias 24/7</option>
@@ -1566,8 +1616,10 @@
         videosReligioso: {},
         radioCristianaSFC: {},
         radioCristianaNac: {},
+        radioCristianaInt: {},
         radioCatolicaSFC: {},
         radioCatolicaNac: {},
+        radioCatolicaInt: {},
         videosCatolicos: {},
         anunciosCristianos: {},
         anunciosCatolicos: {}
@@ -1775,7 +1827,7 @@
         if (typeof actualizarReaccionesAnuncios === 'function') actualizarReaccionesAnuncios();
         const sections = [
             'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'radio', 'radioInt', 'radioSFC', 
-            'radioCristianaSFC', 'radioCristianaNac', 'radioCatolicaSFC', 'radioCatolicaNac',
+            'radioCristianaSFC', 'radioCristianaNac', 'radioCristianaInt', 'radioCatolicaSFC', 'radioCatolicaNac', 'radioCatolicaInt',
             'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'music247', 'peliculas247', 'deportes', 
             'anuncios', 'anunciosCristianos', 'anunciosCatolicos', 'contacto'
         ];
@@ -1836,8 +1888,10 @@
         renderGrid('radioSFC', 'radioSFCGrid', 'playRadioSFC');
         renderGrid('radioCristianaSFC', 'radioCristianaSFCGrid', 'playRadioCristianaSFC');
         renderGrid('radioCristianaNac', 'radioCristianaNacGrid', 'playRadioCristianaNac');
+        renderGrid('radioCristianaInt', 'radioCristianaIntGrid', 'playRadioCristianaInt');
         renderGrid('radioCatolicaSFC', 'radioCatolicaSFCGrid', 'playRadioCatolicaSFC');
         renderGrid('radioCatolicaNac', 'radioCatolicaNacGrid', 'playRadioCatolicaNac');
+        renderGrid('radioCatolicaInt', 'radioCatolicaIntGrid', 'playRadioCatolicaInt');
         renderGrid('videosCatolicos', 'videosCatolicosGrid', 'playVideoCatolico');
         renderAnuncios('anunciosCristianos');
         renderAnuncios('anunciosCatolicos');
@@ -2618,8 +2672,10 @@
     function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
     function playRadioCristianaSFC(url) { const a = document.getElementById("radioCristianaSFCPlayer"); a.src = url; a.play(); }
     function playRadioCristianaNac(url) { const a = document.getElementById("radioCristianaNacPlayer"); a.src = url; a.play(); }
+    function playRadioCristianaInt(url) { const a = document.getElementById("radioCristianaIntPlayer"); a.src = url; a.play(); }
     function playRadioCatolicaSFC(url) { const a = document.getElementById("radioCatolicaSFCPlayer"); a.src = url; a.play(); }
     function playRadioCatolicaNac(url) { const a = document.getElementById("radioCatolicaNacPlayer"); a.src = url; a.play(); }
+    function playRadioCatolicaInt(url) { const a = document.getElementById("radioCatolicaIntPlayer"); a.src = url; a.play(); }
     function playVideoCatolico(url) { document.getElementById("videosCatolicosFrame").src = url; }
     function playVideo(url) { document.getElementById("videoFrame").src = url; }
     function playVideoCinema(url, item) { playMulti("tvPlayerCinema", url, item); }
@@ -2864,7 +2920,7 @@
     });
 
     // --- CONTROL DE BLOQUES/SECCIONES (navegación tipo pestañas) ---
-    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCatolicaSFC','radioCatolicaNac','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
+    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCristianaInt','radioCatolicaSFC','radioCatolicaNac','radioCatolicaInt','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
 
     function showSection(id) {
         if (!sectionOrder.includes(id)) id = 'inicio';
@@ -2889,8 +2945,8 @@
         if (!firebaseInitialized) {
             storage = JSON.parse(localStorage.getItem("tv_sfc_data")) || { 
                 canales: {}, canalesInt: {}, canalesDeportes: {}, radio: {}, radioInt: {}, radioSFC: {}, 
-                radioCristianaSFC: {}, radioCristianaNac: {},
-                radioCatolicaSFC: {}, radioCatolicaNac: {},
+                radioCristianaSFC: {}, radioCristianaNac: {}, radioCristianaInt: {},
+                radioCatolicaSFC: {}, radioCatolicaNac: {}, radioCatolicaInt: {},
                 videos: {}, religiosos: {}, videosCatolicos: {},
                 noticias: {},
                 deportes: {}, anuncios: {}, anunciosCristianos: {}, anunciosCatolicos: {},
