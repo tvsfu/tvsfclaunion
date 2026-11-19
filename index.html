@@ -2955,7 +2955,7 @@
             bar.id = 'mpbar_' + baseId;
             bar.className = 'mp-bar';
             bar.style.display = 'none';
-            bar.innerHTML = '<span class="mp-name"></span><span class="mp-btns"><button class="mp-toggle" type="button">▲ Ocultar</button></span>';
+            bar.innerHTML = '<span class="mp-name"></span><span class="mp-btns"><button class="mp-toggle" type="button" title="Ocultar / Mostrar">▲</button></span>';
             bar.querySelector('.mp-toggle').addEventListener('click', () => alternarCanal(baseId));
             bw.insertAdjacentElement('beforebegin', bar);
         }
@@ -2979,7 +2979,7 @@
         // Si el reproductor principal está libre, se usa ese
         if (!g.bw.dataset.url) {
             g.bw.style.display = '';
-            const tg = g.bar.querySelector('.mp-toggle'); if (tg) tg.textContent = '▲ Ocultar';
+            const tg = g.bar.querySelector('.mp-toggle'); if (tg) tg.textContent = '▲';
             g.bw.dataset.url = url;
             g.bar.style.display = 'flex';
             g.bar.querySelector('.mp-name').textContent = '📺 ' + nombre;
@@ -3023,7 +3023,7 @@
         block.className = 'mp-block';
         const bar = document.createElement('div');
         bar.className = 'mp-bar';
-        bar.innerHTML = '<span class="mp-name"></span><span class="mp-btns"><button class="mp-toggle" type="button">▲ Ocultar</button></span>';
+        bar.innerHTML = '<span class="mp-name"></span><span class="mp-btns"><button class="mp-toggle" type="button" title="Ocultar / Mostrar">▲</button></span>';
         bar.querySelector('.mp-name').textContent = '📺 ' + nombre;
         bar.querySelector('.mp-toggle').addEventListener('click', () => alternarCanal(v.id));
         block.appendChild(bar);
@@ -3050,7 +3050,7 @@
         try { if (!oculto && document.fullscreenElement === w) document.exitFullscreen(); } catch (e) {}
         w.style.display = oculto ? '' : 'none';
         const tg = bar && bar.querySelector('.mp-toggle');
-        if (tg) tg.textContent = oculto ? '▲ Ocultar' : '▼ Mostrar';
+        if (tg) tg.textContent = oculto ? '▲' : '▼';
     }
 
     function cerrarCanal(videoId) {
@@ -3070,7 +3070,7 @@
         else {
             if (w) w.style.display = '';
             const bar = document.getElementById('mpbar_' + videoId);
-            if (bar) { bar.style.display = 'none'; const tg = bar.querySelector('.mp-toggle'); if (tg) tg.textContent = '▲ Ocultar'; }
+            if (bar) { bar.style.display = 'none'; const tg = bar.querySelector('.mp-toggle'); if (tg) tg.textContent = '▲'; }
         }
     }
 
