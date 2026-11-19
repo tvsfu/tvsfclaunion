@@ -1319,6 +1319,41 @@
         </div>
 
         <div class="admin-sec">
+            <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>Gestionar Contenido</h3><span class="admin-sec-arrow">▾</span></div>
+            <div class="admin-sec-body">
+        <select id="verCategoria" class="admin-select" onchange="mostrarTodosElementos()">
+            <option value="">Seleccionar Categoría</option>
+           <option value="canales">Canales Nacionales</option>
+            <option value="canalesInt">Canales Internacionales</option>
+            <option value="canalesDeportes">Canales De Deportes Nacional</option>
+            <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
+            <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
+            <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
+            <option value="radio">Emisoras Nacionales E Internacionales</option>
+            <option value="radioSFC">Emisoras SFC</option>
+            <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
+            <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
+            <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
+            <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
+            <option value="videos">Entretenimiento 24/7</option>
+            <option value="videosCinema">24/7 CINEMA</option>
+            <option value="noticias">Noticias 24/7</option>
+            <option value="religiosos">Música Cristiano</option>
+            <option value="videosReligioso">24/7 Religioso</option>
+            <option value="videosCatolicos">Música Católica 24/7</option>
+            <option value="music247">Music 24/7</option>
+            <option value="peliculas247">Películas 24/7</option>
+            <option value="deportes">Deportes</option>
+            <option value="anuncios">Anuncios</option>
+            <option value="anunciosCristianos">Anuncios Cristianos</option>
+            <option value="anunciosCatolicos">Anuncios Católicos</option>
+            <option value="eventos">FB Live</option>
+        </select>
+        <div id="listaElementos"></div>
+            </div>
+        </div>
+
+        <div class="admin-sec">
             <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>🎨 Diseño de la página</h3><span class="admin-sec-arrow">▾</span></div>
             <div class="admin-sec-body">
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Los cambios se ven al instante (toca "👁️ Ver página" arriba). Toca <b>Guardar diseño</b> para que lo vea todo el público.</p>
@@ -1382,41 +1417,6 @@
         <input type="text" id="ctGmail" class="admin-input" placeholder="Correo Gmail">
         <input type="text" id="ctIconGmail" class="admin-input" placeholder="URL del icono de Gmail (imagen)">
         <button class="btn" onclick="guardarContacto()" style="width:100%; margin-bottom:20px">💾 Guardar Contacto</button>
-            </div>
-        </div>
-
-        <div class="admin-sec">
-            <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>Gestionar Contenido</h3><span class="admin-sec-arrow">▾</span></div>
-            <div class="admin-sec-body">
-        <select id="verCategoria" class="admin-select" onchange="mostrarTodosElementos()">
-            <option value="">Seleccionar Categoría</option>
-           <option value="canales">Canales Nacionales</option>
-            <option value="canalesInt">Canales Internacionales</option>
-            <option value="canalesDeportes">Canales De Deportes Nacional</option>
-            <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
-            <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
-            <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
-            <option value="radio">Emisoras Nacionales E Internacionales</option>
-            <option value="radioSFC">Emisoras SFC</option>
-            <option value="radioCristianaSFC">Emisoras Cristianas SFC</option>
-            <option value="radioCristianaNac">Emisoras Cristianas Nac/Int</option>
-            <option value="radioCatolicaSFC">Emisoras Católicos SFC</option>
-            <option value="radioCatolicaNac">Emisoras Católicos Nac/Int</option>
-            <option value="videos">Entretenimiento 24/7</option>
-            <option value="videosCinema">24/7 CINEMA</option>
-            <option value="noticias">Noticias 24/7</option>
-            <option value="religiosos">Música Cristiano</option>
-            <option value="videosReligioso">24/7 Religioso</option>
-            <option value="videosCatolicos">Música Católica 24/7</option>
-            <option value="music247">Music 24/7</option>
-            <option value="peliculas247">Películas 24/7</option>
-            <option value="deportes">Deportes</option>
-            <option value="anuncios">Anuncios</option>
-            <option value="anunciosCristianos">Anuncios Cristianos</option>
-            <option value="anunciosCatolicos">Anuncios Católicos</option>
-            <option value="eventos">FB Live</option>
-        </select>
-        <div id="listaElementos"></div>
             </div>
         </div>
 
