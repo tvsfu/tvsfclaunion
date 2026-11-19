@@ -396,6 +396,8 @@
     <button class="topbar-link" data-target="canalesDeportesInt">⚽ Deportes Internacional</button>
     <button class="topbar-link" data-target="canalesReligiosoNac">🙏 Religioso Nacional</button>
     <button class="topbar-link" data-target="canalesReligiosoInt">🙏 Religioso Internacional</button>
+    <button class="topbar-link" data-target="canalesMusic">🎵 Music TV</button>
+    <button class="topbar-link" data-target="canalesInfantil">🧸 Infantiles</button>
     <button class="topbar-link" data-target="radio">📻 Radio Nacional</button>
     <button class="topbar-link" data-target="radioInt">📻 Radio Internacional</button>
     <button class="topbar-link" data-target="radioSFC">📻 Radio SFC</button>
@@ -797,6 +799,112 @@
                 <span class="reaction-count" id="canalesReligiosoInt-wow-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('canalesReligiosoInt')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canalesMusic">
+    <div class="card">
+       <h2>🎵 Canales Music TV</h2>
+        <div class="grid" id="canalesMusicGrid"></div>
+        <div class="player-wrapper" id="wrapperCanalMusic" ondblclick="toggleUI('wrapperCanalMusic')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuMusic')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuMusic">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerMusic','contain','fitMenuMusic',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerMusic','fill','fitMenuMusic',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerMusic','cover','fitMenuMusic',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerMusic','100%','auto','fitMenuMusic',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerMusic','auto','100%','fitMenuMusic',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuMusicQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuMusicQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerMusic', 'auto', 'fitMenuMusicQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerMusic', 180, 'fitMenuMusicQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerMusic', 360, 'fitMenuMusicQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerMusic', 480, 'fitMenuMusicQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerMusic', 720, 'fitMenuMusicQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerMusic" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canalesMusic', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canalesMusic-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesMusic', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canalesMusic-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesMusic', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canalesMusic-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesMusic', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canalesMusic-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canalesMusic')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canalesInfantil">
+    <div class="card">
+       <h2>🧸 Canales Infantiles</h2>
+        <div class="grid" id="canalesInfantilGrid"></div>
+        <div class="player-wrapper" id="wrapperCanalInfantil" ondblclick="toggleUI('wrapperCanalInfantil')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuInfantil')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuInfantil">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerInfantil','contain','fitMenuInfantil',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerInfantil','fill','fitMenuInfantil',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerInfantil','cover','fitMenuInfantil',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerInfantil','100%','auto','fitMenuInfantil',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerInfantil','auto','100%','fitMenuInfantil',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuInfantilQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuInfantilQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerInfantil', 'auto', 'fitMenuInfantilQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerInfantil', 180, 'fitMenuInfantilQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerInfantil', 360, 'fitMenuInfantilQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerInfantil', 480, 'fitMenuInfantilQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerInfantil', 720, 'fitMenuInfantilQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerInfantil" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canalesInfantil', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canalesInfantil-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesInfantil', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canalesInfantil-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesInfantil', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canalesInfantil-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesInfantil', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canalesInfantil-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canalesInfantil')">
                 <span>📤</span>
                 <span>Compartir</span>
             </div>
@@ -1384,6 +1492,8 @@
             <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
             <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
             <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
+            <option value="canalesMusic">Canales Music TV</option>
+            <option value="canalesInfantil">Canales Infantiles</option>
             <option value="radio">Emisoras Nacionales</option>
             <option value="radioInt">Emisoras Internacionales</option>
             <option value="radioSFC">Emisoras SFC</option>
@@ -1437,6 +1547,8 @@
             <option value="canalesDeportesInt">Canales De Deportes Internacional</option>
             <option value="canalesReligiosoNac">Canales Religioso Nacional</option>
             <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
+            <option value="canalesMusic">Canales Music TV</option>
+            <option value="canalesInfantil">Canales Infantiles</option>
             <option value="radio">Emisoras Nacionales</option>
             <option value="radioInt">Emisoras Internacionales</option>
             <option value="radioSFC">Emisoras SFC</option>
@@ -1609,6 +1721,8 @@
         canalesDeportesInt: {},
         canalesReligiosoNac: {},
         canalesReligiosoInt: {},
+        canalesMusic: {},
+        canalesInfantil: {},
         videosCinema: {},
         music247: {},
         peliculas247: {},
@@ -1825,7 +1939,7 @@
     function updateAllReactionCounts() {
         if (typeof actualizarReaccionesAnuncios === 'function') actualizarReaccionesAnuncios();
         const sections = [
-            'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'radio', 'radioInt', 'radioSFC', 
+            'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'canalesMusic', 'canalesInfantil', 'radio', 'radioInt', 'radioSFC', 
             'radioCristianaSFC', 'radioCristianaNac', 'radioCristianaInt', 'radioCatolicaSFC', 'radioCatolicaNac', 'radioCatolicaInt',
             'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'music247', 'peliculas247', 'deportes', 
             'anuncios', 'anunciosCristianos', 'anunciosCatolicos', 'contacto'
@@ -1878,6 +1992,8 @@
         renderGrid('canalesDeportesInt', 'canalesDeportesIntGrid', 'playCanalDeportesInt');
         renderGrid('canalesReligiosoNac', 'canalesReligiosoNacGrid', 'playCanalReligiosoNac');
         renderGrid('canalesReligiosoInt', 'canalesReligiosoIntGrid', 'playCanalReligiosoInt');
+        renderGrid('canalesMusic', 'canalesMusicGrid', 'playCanalMusic');
+        renderGrid('canalesInfantil', 'canalesInfantilGrid', 'playCanalInfantil');
         renderGrid('videosCinema', 'videosCinemaGrid', 'playVideoCinema');
         renderGrid('music247', 'music247Grid', 'playMusic247');
         renderGrid('peliculas247', 'peliculas247Grid', 'playPeliculas247');
@@ -2527,7 +2643,7 @@
     // ============================================
     // REPRODUCTOR DE TV: HLS (.m3u8) y MPEG-TS (.ts)
     // ============================================
-    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'videosCinema', 'videosReligioso'];
+    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'canalesMusic', 'canalesInfantil', 'videosCinema', 'videosReligioso'];
 
     function toggleTipoStream() {
         const cat = document.getElementById("categoria").value;
@@ -2666,6 +2782,8 @@
     function playCanalDeportesInt(url, item) { playMulti("tvPlayerDeportesInt", url, item); }
     function playCanalReligiosoNac(url, item) { playMulti("tvPlayerReligiosoNac", url, item); }
     function playCanalReligiosoInt(url, item) { playMulti("tvPlayerReligiosoInt", url, item); }
+    function playCanalMusic(url, item) { playMulti("tvPlayerMusic", url, item); }
+    function playCanalInfantil(url, item) { playMulti("tvPlayerInfantil", url, item); }
     function playRadio(url) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); }
     function playRadioInt(url) { const a = document.getElementById("radioIntPlayer"); a.src = url; a.play(); }
     function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
@@ -2836,7 +2954,7 @@
 
     // Inicializar todos los click handlers después de que el DOM esté listo
     function initializeAllClickHandlers() {
-        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperVideosCinema', 'wrapperVideosReligioso'];
+        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperCanalMusic', 'wrapperCanalInfantil', 'wrapperVideosCinema', 'wrapperVideosReligioso'];
         wrapperIds.forEach(id => {
             const wrapper = document.getElementById(id);
             if (wrapper) {
@@ -2919,7 +3037,7 @@
     });
 
     // --- CONTROL DE BLOQUES/SECCIONES (navegación tipo pestañas) ---
-    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCristianaInt','radioCatolicaSFC','radioCatolicaNac','radioCatolicaInt','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
+    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','canalesMusic','canalesInfantil','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCristianaInt','radioCatolicaSFC','radioCatolicaNac','radioCatolicaInt','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
 
     function showSection(id) {
         if (!sectionOrder.includes(id)) id = 'inicio';
@@ -3077,6 +3195,8 @@
 
     function iniciarSegundoPlano() {
         document.querySelectorAll('video, audio').forEach(prepararMedia);
+        // Reproductores de TV sin canal: ventana cerrada hasta elegir uno
+        document.querySelectorAll('.player-wrapper').forEach(w => { if (w.querySelector('video') && !w.dataset.url) w.style.display = 'none'; });
 
         // Si el navegador pausa al pasar a segundo plano, se reanuda solo
         document.addEventListener('visibilitychange', () => {
@@ -3167,6 +3287,8 @@
             g.bw.style.display = '';
             const tg = g.bar.querySelector('.mp-toggle'); if (tg) tg.textContent = '▲';
             g.bw.dataset.url = url;
+            g.bw.style.display = '';
+            const tg0 = g.bar.querySelector('.mp-toggle'); if (tg0) tg0.textContent = '▲';
             g.bar.style.display = 'flex';
             g.bar.querySelector('.mp-name').textContent = '📺 ' + nombre;
             playStream(baseId, url, item);
@@ -3258,7 +3380,7 @@
         const bloque = w && w.closest('.mp-block');
         if (bloque) bloque.remove();
         else {
-            if (w) w.style.display = '';
+            if (w) w.style.display = 'none';   // sin canal, la ventana del reproductor se cierra
             const bar = document.getElementById('mpbar_' + videoId);
             if (bar) { bar.style.display = 'none'; const tg = bar.querySelector('.mp-toggle'); if (tg) tg.textContent = '▲'; }
         }
