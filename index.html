@@ -344,10 +344,17 @@
         .anuncio-card p { margin: 0; font-size: 0.85rem; line-height: 1.2; color: var(--text-light); text-align: center; word-break: break-word; }
         .anuncio-share { background: var(--primary); color: var(--on-primary); border: none; border-radius: 8px; padding: 8px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
         .anuncio-share:active { transform: scale(0.97); }
+        .anuncio-actions { display: flex; align-items: center; gap: 6px; }
+        .anuncio-actions .reaction-btn { padding: 4px 9px; font-size: 0.8rem; gap: 4px; box-shadow: none; }
+        .anuncio-actions .reaction-btn:hover { transform: none; }
+        .anuncio-actions .reaction-emoji { width: auto; height: auto; font-size: 0.95rem; }
+        .anuncio-arrow { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25); background: var(--primary); color: var(--on-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0; }
+        .anuncio-arrow svg { width: 18px; height: 18px; display: block; }
+        .anuncio-arrow:active { transform: scale(0.92); }
+        .anuncio-link-mark { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: #fff; border-radius: 12px; padding: 2px 7px; font-size: 0.75rem; font-weight: bold; pointer-events: none; }
         .video-box.anuncio-box { position: relative; }
         .anuncio-box img.anuncio-main { width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; display: block; }
         .anuncio-placeholder { height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: var(--text-gray); font-size: 0.95rem; }
-        .anuncio-expand { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.35); color: white; font-size: 0.8rem; font-weight: bold; padding: 6px 12px; border-radius: 20px; cursor: pointer; backdrop-filter: blur(4px); }
         .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 3500; }
         .lightbox.open { display: flex; }
         .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; touch-action: pinch-zoom pan-x pan-y; }
@@ -1333,6 +1340,9 @@
             </select>
         </div>
         <input type="text" id="logo" class="admin-input" placeholder="URL del logo (opcional)">
+        <div id="enlaceBox" style="display:none;">
+            <input type="text" id="enlaceAnuncio" class="admin-input" placeholder="Enlace directo del anuncio (opcional): al tocar abre una ventana nueva">
+        </div>
         
         <button id="btnGuardar" class="btn" onclick="guardarContenido()" style="width:100%; margin-bottom:10px">💾 Guardar</button>
         <button id="btnCancelar" class="btn btn-gray" onclick="cancelarEdicion()" style="width:100%; margin-bottom:20px; background:#64748b; display:none;">🚫 Cancelar Edición</button>
@@ -1573,6 +1583,7 @@
             document.getElementById("stream1").value = item.url;
             document.getElementById("logo").value = item.logo;
             document.getElementById("tipoStream").value = item.tipo || "auto";
+            document.getElementById("enlaceAnuncio").value = item.enlace || "";
             toggleTipoStream();
             
             editModeId = id;
@@ -1596,6 +1607,7 @@
         document.getElementById("stream1").value = "";
         document.getElementById("logo").value = "";
         document.getElementById("tipoStream").value = "auto";
+        document.getElementById("enlaceAnuncio").value = "";
         document.getElementById("formTitle").textContent = "Agregar Contenido";
         document.getElementById("btnGuardar").textContent = "💾 Guardar en Firebase";
         document.getElementById("btnCancelar").style.display = "none";
@@ -1607,6 +1619,8 @@
         const url = document.getElementById("stream1").value;
         const logo = document.getElementById("logo").value || "https://via.placeholder.com/80";
         const tipo = TV_CATEGORIAS.includes(cat) ? (document.getElementById("tipoStream").value || "auto") : "auto";
+        let enlace = ANUNCIO_CATS[cat] ? (document.getElementById("enlaceAnuncio").value || "").trim() : "";
+        if (enlace && !/^https?:\/\//i.test(enlace)) enlace = "https://" + enlace;
         
         if(!cat || !nombre || !url) return showToast("⚠️ Faltan datos", "error");
         
@@ -1614,7 +1628,7 @@
         
         if (firebaseInitialized) {
             try {
-                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, tipo: tipo, timestamp: Date.now() });
+                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, tipo: tipo, ...(enlace ? { enlace: enlace } : {}), timestamp: Date.now() });
                 showToast(editModeId ? "✅ Contenido Actualizado" : "✅ Guardado en Firebase");
                 cancelarEdicion();
                 mostrarTodosElementos();
@@ -1624,7 +1638,7 @@
             }
         } else {
             if (!storage[cat]) storage[cat] = {};
-            storage[cat][id] = { nombre, url, logo, tipo };
+            storage[cat][id] = { nombre, url, logo, tipo, ...(enlace ? { enlace } : {}) };
             localStorage.setItem("tv_sfc_data", JSON.stringify(storage));
             showToast("✅ Guardado localmente");
             cancelarEdicion();
@@ -1726,6 +1740,7 @@
     }
 
     function updateAllReactionCounts() {
+        if (typeof actualizarReaccionesAnuncios === 'function') actualizarReaccionesAnuncios();
         const sections = [
             'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'radio', 'radioSFC', 
             'radioCristianaSFC', 'radioCristianaNac', 'radioCatolicaSFC', 'radioCatolicaNac',
@@ -1825,6 +1840,7 @@
         if (!item || !cfg) return;
         anuncioSel[cat] = id;
         const box = document.getElementById(cfg.box);
+        box.style.display = '';
         box.innerHTML = '';
         if (esYouTube(item.url)) {
             const f = document.createElement('iframe');
@@ -1836,16 +1852,42 @@
             img.className = 'anuncio-main';
             img.src = item.url;
             img.alt = item.nombre || 'Anuncio';
-            img.onclick = () => abrirImagen(item.url);
+            img.onclick = () => abrirAnuncio(cat, id);
             box.appendChild(img);
-            const btn = document.createElement('button');
-            btn.className = 'anuncio-expand';
-            btn.textContent = '⛶ Expandir';
-            btn.onclick = () => abrirImagen(item.url);
-            box.appendChild(btn);
         }
         document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => {
             c.classList.toggle('selected', c.dataset.id === String(id));
+        });
+    }
+
+    function anuncioKey(cat, id) { return 'anuncio_' + cat + '_' + String(id).replace(/[.#$\[\]\/]/g, '_'); }
+
+    // Al tocar la imagen: con enlace directo abre una ventana nueva; sin enlace, vista previa
+    function abrirAnuncio(cat, id) {
+        const item = getAnuncios(cat)[id];
+        const cfg = ANUNCIO_CATS[cat];
+        if (!item || !cfg) return;
+        if (item.enlace) {
+            window.open(item.enlace, '_blank', 'noopener');
+            return;
+        }
+        anuncioSel[cat] = id;
+        document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => {
+            c.classList.toggle('selected', c.dataset.id === String(id));
+        });
+        if (esYouTube(item.url)) mostrarAnuncio(cat, id);
+        else abrirImagen(item.url);
+    }
+
+    // Reacciones de cada anuncio
+    function actualizarReaccionesAnuncios() {
+        const userId = getUserId();
+        document.querySelectorAll('[data-rx]').forEach(el => {
+            const [key, tipo] = el.dataset.rx.split('|');
+            const r = reactions[key] && reactions[key][tipo];
+            el.textContent = (r && r.count) || 0;
+            const btn = el.closest('.reaction-btn');
+            if (btn) btn.classList.toggle('active', !!(r && r.users && r.users[userId]));
         });
     }
 
@@ -1876,26 +1918,49 @@
                 mark.textContent = '▶';
                 thumb.appendChild(mark);
             }
-            thumb.onclick = () => mostrarAnuncio(cat, id);
+            if (item.enlace) {
+                const lm = document.createElement('div');
+                lm.className = 'anuncio-link-mark';
+                lm.textContent = '↗';
+                thumb.appendChild(lm);
+            }
+            thumb.onclick = () => abrirAnuncio(cat, id);
 
             const name = document.createElement('p');
             name.textContent = item.nombre || '';
 
-            const share = document.createElement('button');
-            share.className = 'anuncio-share';
-            share.textContent = '📤 Compartir';
-            share.onclick = (e) => { e.stopPropagation(); compartirAnuncio(cat, id); };
+            const key = anuncioKey(cat, id);
+            const acciones = document.createElement('div');
+            acciones.className = 'anuncio-actions';
+            [['like', '👍'], ['love', '❤️']].forEach(([tipo, emoji]) => {
+                const b = document.createElement('div');
+                b.className = 'reaction-btn';
+                b.innerHTML = '<span class="reaction-emoji">' + emoji + '</span><span class="reaction-count" data-rx="' + key + '|' + tipo + '">0</span>';
+                b.onclick = (e) => { e.stopPropagation(); toggleReaction(key, tipo); };
+                acciones.appendChild(b);
+            });
+            const flecha = document.createElement('button');
+            flecha.className = 'anuncio-arrow';
+            flecha.type = 'button';
+            flecha.title = 'Compartir';
+            flecha.setAttribute('aria-label', 'Compartir');
+            flecha.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>';
+            flecha.onclick = (e) => { e.stopPropagation(); compartirAnuncio(cat, id); };
+            acciones.appendChild(flecha);
 
-            card.append(thumb, name, share);
+            card.append(thumb, name, acciones);
             grid.appendChild(card);
         });
+
+        actualizarReaccionesAnuncios();
 
         // Conserva el anuncio seleccionado (sin recargarlo) o muestra una indicación
         const sel = anuncioSel[cat];
         if (sel && fusion[sel]) {
             grid.querySelectorAll('.anuncio-card').forEach(c => c.classList.toggle('selected', c.dataset.id === String(sel)));
         } else if (!box.firstChild || box.querySelector('.anuncio-placeholder')) {
-            box.innerHTML = '<div class="anuncio-placeholder">👆 Toca un anuncio para verlo</div>';
+            box.innerHTML = '';
+            box.style.display = 'none';
         }
 
         // Abre el anuncio de un enlace compartido
@@ -2373,6 +2438,8 @@
     function toggleTipoStream() {
         const cat = document.getElementById("categoria").value;
         document.getElementById("tipoStreamBox").style.display = TV_CATEGORIAS.includes(cat) ? "block" : "none";
+        const eb = document.getElementById("enlaceBox");
+        if (eb) eb.style.display = ANUNCIO_CATS[cat] ? "block" : "none";
     }
 
     function proxyUrl(url) {
