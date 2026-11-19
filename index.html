@@ -120,24 +120,6 @@
         .fit-btn { position: absolute; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; z-index: 20; display: flex; gap: 5px; align-items: center; backdrop-filter: blur(4px); transition: opacity 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; }
         .fit-btn.top { top: 10px; right: 10px; }
         .fit-btn.bottom { bottom: 10px; left: 10px; }
-        /* Varios canales a la vez */
-        .mp-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; padding: 6px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; font-size: 0.85rem; color: #fff; }
-        .mp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .mp-btns { display: flex; gap: 6px; flex-shrink: 0; }
-        .mp-toggle { background: #3b82f6; color: #fff; border: 0; border-radius: 16px; padding: 5px 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
-        .fit-btn.xclose { background: transparent; border: none; box-shadow: none; padding: 3px; line-height: 0; }
-        .fit-btn.xclose svg { width: 24px; height: 24px; display: block; }
-        .mp-bar + .player-wrapper, .mp-block .player-wrapper { margin-top: 6px; }
-        .fit-actions { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; z-index: 20; }
-        .fit-actions .fit-btn { position: static; }
-        /* Pantalla completa propia (del contenedor): no obliga a girar el celular */
-        .player-wrapper:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; margin: 0; border: 0; border-radius: 0; }
-        .player-wrapper:-webkit-full-screen { width: 100vw; height: 100vh; aspect-ratio: auto; margin: 0; border: 0; border-radius: 0; }
-        .orient-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.15); }
-        .orient-title { color: #94a3b8; font-size: 0.75rem; padding: 2px 4px 6px; text-transform: uppercase; letter-spacing: 1px; }
-        .orient-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .orient-opt { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 6px; text-align: center; font-size: 0.8rem; cursor: pointer; border-radius: 8px; }
-        .orient-opt.active { color: var(--primary); font-weight: bold; border-color: var(--primary); }
         .player-wrapper.playing .fit-btn { display: flex; }
         
         /* Ocultar botones cuando hide-ui está activo */
@@ -149,9 +131,6 @@
         
         .fit-menu { position: absolute; left: 8px; right: 8px; background: rgba(20,20,20,0.95); border-radius: 12px; overflow: visible; z-index: 30; display: none; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.7); padding: 10px; box-sizing: border-box; transition: opacity 0.3s ease; }
         .fit-menu.top-menu { top: 45px; }
-        /* En celular el menú puede ser más alto que el reproductor: se desliza para ver todo */
-        .fit-menu.top-menu, .fit-menu.bottom-menu { max-height: calc(100% - 56px); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
-        .fit-menu > * { flex-shrink: 0; }
         .fit-menu.bottom-menu { bottom: 45px; left: 8px; right: 8px; }
         .fit-menu.open { display: flex; }
         
@@ -1760,7 +1739,7 @@
             const isLiked = likes[likeId] ? 'active' : '';
             const div = document.createElement("div");
             div.className = "item";
-            div.onclick = () => { window.__ultimoItem = item; window[clickFn](item.url, item); };
+            div.onclick = () => window[clickFn](item.url, item);
             div.innerHTML = `<div class="like-container ${isLiked}" onclick="toggleLike(event, '${likeId}')">👍</div><img src="${item.logo}" onerror="this.src='https://via.placeholder.com/80'"><p>${item.nombre}</p>`;
             grid.appendChild(div);
         });
@@ -2499,12 +2478,12 @@
     }
 
     function playHLS(videoId, url, item) { playStream(videoId, url, item); }
-    function playCanal(url, item) { playMulti("tvPlayer", url, item); }
-    function playCanalInt(url, item) { playMulti("tvPlayerInt", url, item); }
-    function playCanalDeportes(url, item) { playMulti("tvPlayerDeportes", url, item); }
-    function playCanalDeportesInt(url, item) { playMulti("tvPlayerDeportesInt", url, item); }
-    function playCanalReligiosoNac(url, item) { playMulti("tvPlayerReligiosoNac", url, item); }
-    function playCanalReligiosoInt(url, item) { playMulti("tvPlayerReligiosoInt", url, item); }
+    function playCanal(url, item) { playStream("tvPlayer", url, item); }
+    function playCanalInt(url, item) { playStream("tvPlayerInt", url, item); }
+    function playCanalDeportes(url, item) { playStream("tvPlayerDeportes", url, item); }
+    function playCanalDeportesInt(url, item) { playStream("tvPlayerDeportesInt", url, item); }
+    function playCanalReligiosoNac(url, item) { playStream("tvPlayerReligiosoNac", url, item); }
+    function playCanalReligiosoInt(url, item) { playStream("tvPlayerReligiosoInt", url, item); }
     function playRadio(url) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); }
     function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
     function playRadioCristianaSFC(url) { const a = document.getElementById("radioCristianaSFCPlayer"); a.src = url; a.play(); }
@@ -2513,10 +2492,10 @@
     function playRadioCatolicaNac(url) { const a = document.getElementById("radioCatolicaNacPlayer"); a.src = url; a.play(); }
     function playVideoCatolico(url) { document.getElementById("videosCatolicosFrame").src = url; }
     function playVideo(url) { document.getElementById("videoFrame").src = url; }
-    function playVideoCinema(url, item) { playMulti("tvPlayerCinema", url, item); }
+    function playVideoCinema(url, item) { playStream("tvPlayerCinema", url, item); }
     function playMusic247(url) { document.getElementById("music247Frame").src = url; }
     function playPeliculas247(url) { document.getElementById("peliculas247Frame").src = url; }
-    function playVideoReligioso(url, item) { playMulti("tvPlayerVideosReligioso", url, item); }
+    function playVideoReligioso(url, item) { playStream("tvPlayerVideosReligioso", url, item); }
     function playNoticia(url) { document.getElementById("noticiasFrame").src = url; }
     function playReligioso(url) { document.getElementById("religiosoFrame").src = url; }
     function playDeporte(url) { document.getElementById("deportesFrame").src = url; }
@@ -2788,330 +2767,6 @@
         // Inicializar click handlers para todos los reproductores
         initializeAllClickHandlers();
     });
-
-    // ============================================
-    // MODO FLOTANTE (PiP) + SEGUNDO PLANO
-    // Solo aplica a los reproductores <video> y <audio> (TV y radio).
-    // Las secciones de YouTube (iframes) no se tocan.
-    // ============================================
-    let mediaActual = null;
-
-    function soportaPiP(v) {
-        return !!(document.pictureInPictureEnabled || (v && v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')));
-    }
-
-    async function togglePiP(videoId) {
-        const v = document.getElementById(videoId);
-        if (!v) return;
-        try {
-            if (document.pictureInPictureEnabled) {
-                if (document.pictureInPictureElement === v) { await document.exitPictureInPicture(); return; }
-                if (v.readyState < 1) { showToast('Espera a que cargue el canal', 'error'); return; }
-                if (v.paused) { try { await v.play(); } catch (e) {} }
-                await v.requestPictureInPicture();
-            } else if (v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')) {
-                v.webkitSetPresentationMode(v.webkitPresentationMode === 'picture-in-picture' ? 'inline' : 'picture-in-picture');
-            } else {
-                showToast('Tu navegador no permite el modo flotante', 'error');
-            }
-        } catch (e) {
-            showToast('No se pudo activar el modo flotante', 'error');
-        }
-    }
-
-    function actualizarMediaSession(el) {
-        if (!('mediaSession' in navigator)) return;
-        const item = window.__ultimoItem || {};
-        try {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: item.nombre || 'TV SFC LA UNION',
-                artist: 'TV SFC LA UNION',
-                artwork: item.logo ? [{ src: item.logo, sizes: '512x512' }] : [{ src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }]
-            });
-        } catch (e) {}
-        const set = (act, fn) => { try { navigator.mediaSession.setActionHandler(act, fn); } catch (e) {} };
-        set('play', () => { if (mediaActual) { mediaActual._userPaused = false; mediaActual.play().catch(() => {}); } });
-        set('pause', () => { if (mediaActual) { mediaActual._userPaused = true; mediaActual.pause(); } });
-        set('stop', () => { if (mediaActual) { mediaActual._userPaused = true; mediaActual.pause(); } });
-        if (el && el.tagName === 'VIDEO' && soportaPiP(el)) set('enterpictureinpicture', () => togglePiP(el.id));
-        else set('enterpictureinpicture', null);
-    }
-
-    // Prepara un <video>/<audio>: botones, sesión de medios y control de audio
-    function prepararMedia(el) {
-        if (el._preparado) return;
-        el._preparado = true;
-
-        if (el.tagName === 'VIDEO') {
-            // Safari: entra solo en modo flotante al salir de la app
-            try { el.autoPictureInPicture = true; } catch (e) {}
-            el.setAttribute('controlsList', 'nofullscreen');   // la pantalla completa se hace con el botón propio
-            const wrapper = el.closest('.player-wrapper');
-            if (wrapper && !wrapper.querySelector('.fit-actions')) {
-                const box = document.createElement('div');
-                box.className = 'fit-actions';
-                if (soportaPiP(el)) {
-                    const pip = document.createElement('div');
-                    pip.className = 'fit-btn pip';
-                    pip.textContent = '⧉ Flotante';
-                    pip.addEventListener('click', (e) => { e.stopPropagation(); togglePiP(el.id); });
-                    box.appendChild(pip);
-                }
-                const fsb = document.createElement('div');
-                fsb.className = 'fit-btn fs';
-                fsb.textContent = '⛶ Completa';
-                fsb.addEventListener('click', (e) => { e.stopPropagation(); togglePantallaCompleta(el.id); });
-                box.appendChild(fsb);
-                const xb = document.createElement('div');
-                xb.className = 'fit-btn xclose';
-                xb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>';
-                xb.title = 'Cerrar canal';
-                xb.addEventListener('click', (e) => { e.stopPropagation(); cerrarCanal(el.id); });
-                box.appendChild(xb);
-                wrapper.appendChild(box);
-            }
-        }
-
-        el.addEventListener('play', () => {
-            el._userPaused = false;
-            mediaActual = el;
-            actualizarMediaSession(el);
-        });
-        el.addEventListener('pause', () => {
-            // Si se pausó con la app visible fue el usuario; si fue con la app oculta, lo pausó el navegador
-            if (document.visibilityState === 'visible') el._userPaused = true;
-        });
-        // Varios canales a la vez: al activar el sonido de uno, los demás de la sección se silencian
-        el.addEventListener('volumechange', () => {
-            if (el.tagName !== 'VIDEO' || el.muted || el.volume === 0 || el.paused) return;
-            const card = el.closest('.card');
-            if (!card) return;
-            card.querySelectorAll('video').forEach(o => { if (o !== el && !o.muted) o.muted = true; });
-        });
-    }
-
-    function iniciarSegundoPlano() {
-        document.querySelectorAll('video, audio').forEach(prepararMedia);
-
-        // Si el navegador pausa al pasar a segundo plano, se reanuda solo
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState !== 'hidden') return;
-            setTimeout(() => {
-                document.querySelectorAll('video, audio').forEach(m => {
-                    if (m._userPaused === false && m.paused && !m.ended) m.play().catch(() => {});
-                });
-            }, 400);
-        });
-    }
-    window.addEventListener('DOMContentLoaded', iniciarSegundoPlano);
-
-    // ============================================
-    // PANTALLA COMPLETA: gira solo (vertical u horizontal) según el teléfono
-    // La app sigue en vertical; en pantalla completa se aplica la preferencia (Auto / Vertical / Horizontal).
-    // ============================================
-    // Preferencia de giro en pantalla completa: auto | vertical | horizontal
-    function getOrient() {
-        try { const v = localStorage.getItem('tv_orient'); if (v === 'vertical' || v === 'horizontal') return v; } catch (e) {}
-        return 'auto';
-    }
-    function setOrient(m) {
-        try { localStorage.setItem('tv_orient', m); } catch (e) {}
-        document.querySelectorAll('.orient-opt').forEach(b => b.classList.toggle('active', b.dataset.o === m));
-    }
-    function prepararMenuOrient(menu) {
-        if (menu.querySelector('.orient-row')) return;
-        const row = document.createElement('div');
-        row.className = 'orient-row';
-        row.innerHTML = '<div class="orient-title">Pantalla completa</div><div class="orient-group">' +
-            '<div class="orient-opt" data-o="auto">🔄 Auto</div>' +
-            '<div class="orient-opt" data-o="vertical">📱 Vertical</div>' +
-            '<div class="orient-opt" data-o="horizontal">🖥️ Horizontal</div></div>';
-        row.querySelectorAll('.orient-opt').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); setOrient(b.dataset.o); }));
-        menu.appendChild(row);
-    }
-    window.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.fit-menu.top-menu').forEach(prepararMenuOrient);
-        setOrient(getOrient());
-    });
-
-    // ============================================
-    // VARIOS CANALES A LA VEZ (en cada sección de TV)
-    // Cada canal que se toca abre su propio reproductor debajo del anterior.
-    // ============================================
-    const MAX_CANALES_SECCION = 4;
-    let _multiN = 0;
-
-    function _grupoCanales(baseId) {
-        const base = document.getElementById(baseId);
-        const bw = base.closest('.player-wrapper');
-        let extras = document.getElementById('multi_' + baseId);
-        if (!extras) {
-            extras = document.createElement('div');
-            extras.id = 'multi_' + baseId;
-            bw.insertAdjacentElement('afterend', extras);
-        }
-        let bar = document.getElementById('mpbar_' + baseId);
-        if (!bar) {
-            bar = document.createElement('div');
-            bar.id = 'mpbar_' + baseId;
-            bar.className = 'mp-bar';
-            bar.style.display = 'none';
-            bar.innerHTML = '<span class="mp-name"></span><span class="mp-btns"><button class="mp-toggle" type="button" title="Ocultar / Mostrar">▲</button></span>';
-            bar.querySelector('.mp-toggle').addEventListener('click', () => alternarCanal(baseId));
-            bw.insertAdjacentElement('beforebegin', bar);
-        }
-        return { bw, extras, bar };
-    }
-
-    function playMulti(baseId, url, item) {
-        const g = _grupoCanales(baseId);
-        const nombre = (item && item.nombre) || 'Canal';
-        const todos = [g.bw, ...g.extras.querySelectorAll('.player-wrapper')];
-
-        const repetido = todos.find(w => w.dataset.url === url);
-        if (repetido) {
-            const vid = repetido.querySelector('video');
-            if (repetido.style.display === 'none' && vid) alternarCanal(vid.id);
-            showToast('Ese canal ya se está reproduciendo');
-            repetido.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return;
-        }
-
-        // Si el reproductor principal está libre, se usa ese
-        if (!g.bw.dataset.url) {
-            g.bw.style.display = '';
-            const tg = g.bar.querySelector('.mp-toggle'); if (tg) tg.textContent = '▲';
-            g.bw.dataset.url = url;
-            g.bar.style.display = 'flex';
-            g.bar.querySelector('.mp-name').textContent = '📺 ' + nombre;
-            playStream(baseId, url, item);
-            return;
-        }
-
-        if (todos.length >= MAX_CANALES_SECCION) {
-            showToast('Máximo ' + MAX_CANALES_SECCION + ' canales a la vez. Cierra uno para abrir otro', 'error');
-            return;
-        }
-
-        // Reproductor adicional: copia del principal con ids únicos
-        const n = ++_multiN;
-        const suf = '_x' + n;
-        const clone = g.bw.cloneNode(true);
-        const ids = [clone.id, ...[...clone.querySelectorAll('[id]')].map(e => e.id)];
-        [clone, ...clone.querySelectorAll('*')].forEach(e => {
-            if (e.id) e.id = e.id + suf;
-            [...e.attributes].forEach(a => {
-                if (!/^on/i.test(a.name)) return;
-                let val = a.value;
-                ids.forEach(id => { val = val.split("'" + id + "'").join("'" + id + suf + "'"); });
-                e.setAttribute(a.name, val);
-            });
-        });
-        clone.querySelectorAll('.fit-actions, .orient-row').forEach(e => e.remove());
-        clone.classList.remove('playing', 'hide-ui');
-        clone.querySelectorAll('.fit-menu').forEach(m => m.classList.remove('open'));
-        clone.querySelectorAll('.fit-menu button').forEach(b => b.classList.remove('active'));
-        const bf = clone.querySelector('.btn-group button'); if (bf) bf.classList.add('active');
-        const bq = clone.querySelector('.btn-group-quality button'); if (bq) bq.classList.add('active');
-        delete clone.dataset.url;
-
-        const v = clone.querySelector('video');
-        v.removeAttribute('src');
-        v.removeAttribute('style');
-        v._preparado = false;
-
-        const block = document.createElement('div');
-        block.className = 'mp-block';
-        const bar = document.createElement('div');
-        bar.className = 'mp-bar';
-        bar.innerHTML = '<span class="mp-name"></span><span class="mp-btns"><button class="mp-toggle" type="button" title="Ocultar / Mostrar">▲</button></span>';
-        bar.querySelector('.mp-name').textContent = '📺 ' + nombre;
-        bar.querySelector('.mp-toggle').addEventListener('click', () => alternarCanal(v.id));
-        block.appendChild(bar);
-        block.appendChild(clone);
-        g.extras.appendChild(block);
-
-        prepararMedia(v);
-        clone.querySelectorAll('.fit-menu.top-menu').forEach(prepararMenuOrient);
-        setOrient(getOrient());
-        clone.dataset.url = url;
-        v.muted = true;   // los canales adicionales empiezan sin sonido; el altavoz del reproductor lo activa
-        playStream(v.id, url, item);
-        clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    // Oculta o muestra el reproductor (el canal sigue reproduciéndose)
-    function alternarCanal(videoId) {
-        const v = document.getElementById(videoId);
-        const w = v && v.closest('.player-wrapper');
-        if (!w) return;
-        const bloque = w.closest('.mp-block');
-        const bar = bloque ? bloque.querySelector('.mp-bar') : document.getElementById('mpbar_' + videoId);
-        const oculto = w.style.display === 'none';
-        try { if (!oculto && document.fullscreenElement === w) document.exitFullscreen(); } catch (e) {}
-        w.style.display = oculto ? '' : 'none';
-        const tg = bar && bar.querySelector('.mp-toggle');
-        if (tg) tg.textContent = oculto ? '▲' : '▼';
-    }
-
-    function cerrarCanal(videoId) {
-        const v = document.getElementById(videoId);
-        if (!v) return;
-        const w = v.closest('.player-wrapper');
-        v._userPaused = true;
-        try { if (document.fullscreenElement === w) document.exitFullscreen(); } catch (e) {}
-        try { if (document.pictureInPictureElement === v) document.exitPictureInPicture(); } catch (e) {}
-        destroyPlayers(v);
-        try { v.pause(); } catch (e) {}
-        v.removeAttribute('src');
-        try { v.load(); } catch (e) {}
-        if (w) { w.classList.remove('playing'); delete w.dataset.url; }
-        const bloque = w && w.closest('.mp-block');
-        if (bloque) bloque.remove();
-        else {
-            if (w) w.style.display = '';
-            const bar = document.getElementById('mpbar_' + videoId);
-            if (bar) { bar.style.display = 'none'; const tg = bar.querySelector('.mp-toggle'); if (tg) tg.textContent = '▲'; }
-        }
-    }
-
-    // Pantalla completa del reproductor (contenedor completo, con sus botones)
-    function togglePantallaCompleta(videoId) {
-        const v = document.getElementById(videoId);
-        const w = v && v.closest('.player-wrapper');
-        if (!w) return;
-        const enFs = document.fullscreenElement || document.webkitFullscreenElement;
-        if (enFs) {
-            try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
-            return;
-        }
-        const nativo = () => { if (v.webkitEnterFullscreen) { try { v.webkitEnterFullscreen(); } catch (e) {} } else showToast('Tu navegador no permite pantalla completa', 'error'); };
-        const req = w.requestFullscreen || w.webkitRequestFullscreen;
-        if (!req) { nativo(); return; }   // iPhone: usa la pantalla completa del sistema
-        try {
-            const r = req.call(w);
-            if (r && r.catch) r.catch(nativo);
-        } catch (e) { nativo(); }
-    }
-
-    function alCambiarPantallaCompleta() {
-        const fs = document.fullscreenElement || document.webkitFullscreenElement;
-        const o = screen.orientation;
-        if (!o) return;
-        try {
-            if (fs) {
-                const esReproductor = fs.tagName === 'VIDEO' || (fs.querySelector && fs.querySelector('video'));
-                if (!esReproductor) return;
-                const modo = getOrient();
-                const r = o.lock(modo === 'vertical' ? 'portrait' : modo === 'horizontal' ? 'landscape' : 'any');
-                if (r && r.catch) r.catch(() => {});
-            } else {
-                o.unlock();
-            }
-        } catch (e) { try { o.unlock(); } catch (e2) {} }
-    }
-    document.addEventListener('fullscreenchange', alCambiarPantallaCompleta);
-    document.addEventListener('webkitfullscreenchange', alCambiarPantallaCompleta);
 </script>
 </body>
 </html>
