@@ -115,6 +115,8 @@
         .sec-row { border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px; margin-bottom: 10px; }
         .sec-def { font-weight: bold; color: #e2e8f0; margin-bottom: 6px; font-size: 0.9rem; }
         .sec-row label { display: flex; align-items: center; gap: 8px; color: #e2e8f0; font-size: 0.85rem; margin-top: 4px; }
+        .video-box.visor-x-oculta .visor-x { opacity: 0; pointer-events: none; }
+        .visor-x { transition: opacity .2s; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -3057,7 +3059,7 @@
     function abrirVisor(frameId) {
         const f = document.getElementById(frameId);
         const box = f && f.closest('.video-box');
-        if (box) box.style.display = '';
+        if (box) { box.style.display = ''; box.classList.remove('visor-x-oculta'); }
     }
 
     function cerrarVisor(frameId) {
@@ -3090,6 +3092,18 @@
         });
     }
     window.addEventListener('DOMContentLoaded', iniciarVisores);
+
+    // Tocar la pantalla (dentro del reproductor de YouTube/Facebook) oculta la ✕; otro toque la muestra.
+    // Un toque dentro de un iframe mueve el foco al iframe: así se detecta, y luego se devuelve el foco para detectar el siguiente.
+    window.addEventListener('blur', () => {
+        setTimeout(() => {
+            const ae = document.activeElement;
+            if (!ae || ae.tagName !== 'IFRAME' || !VISORES_IFRAME.includes(ae.id)) return;
+            const box = ae.closest('.video-box');
+            if (box) box.classList.toggle('visor-x-oculta');
+            try { ae.blur(); window.focus(); } catch (e) {}
+        }, 0);
+    });
 
     function playFB(url) { abrirVisor("facebookliveFrame"); document.getElementById("facebookliveFrame").src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`; }
 
