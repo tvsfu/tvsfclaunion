@@ -117,6 +117,10 @@
         .sec-row label { display: flex; align-items: center; gap: 8px; color: #e2e8f0; font-size: 0.85rem; margin-top: 4px; }
         .video-box.visor-x-oculta .visor-x { opacity: 0; pointer-events: none; }
         .visor-x { transition: opacity .2s; }
+        .admin-item-row { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        .admin-item-row .item-nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+        .drag-handle { cursor: grab; padding: 6px 10px 6px 2px; touch-action: none; color: #94a3b8; font-size: 1.1rem; }
+        .admin-item-row.dragging { background: rgba(34,197,94,0.28); outline: 2px solid var(--primary); border-radius: 8px; position: relative; z-index: 5; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -410,6 +414,7 @@
     <button class="topbar-link" data-target="canalesReligiosoInt">🙏 Religioso Internacional</button>
     <button class="topbar-link" data-target="canalesMusic">🎵 RITMO TV</button>
     <button class="topbar-link" data-target="canalesInfantil">🧸 Infantiles</button>
+    <button class="topbar-link" data-target="canalesNavidad">🎄 Cine Navidad</button>
     <button class="topbar-link" data-target="radio">📻 Radio Nacional</button>
     <button class="topbar-link" data-target="radioInt">📻 Radio Internacional</button>
     <button class="topbar-link" data-target="radioSFC">📻 Radio SFC</button>
@@ -919,6 +924,59 @@
                 <span class="reaction-count" id="canalesInfantil-wow-count">0</span>
             </div>
             <div class="share-btn" onclick="compartirSeccion('canalesInfantil')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="canalesNavidad">
+    <div class="card">
+       <h2>🎄Navidad 24/7🎁</h2>
+        <div class="grid" id="canalesNavidadGrid"></div>
+        <div class="player-wrapper" id="wrapperCanalNavidad" ondblclick="toggleUI('wrapperCanalNavidad')">
+            <div class="live-badge">🔴 EN VIVO</div>
+            <div class="fit-btn top" onclick="toggleFitMenu('fitMenuNavidad')">⚙️ Pantalla</div>
+            <div class="fit-menu top-menu" id="fitMenuNavidad">
+                <div class="btn-group">
+                    <button class="active" onclick="setFit('tvPlayerNavidad','contain','fitMenuNavidad',this)">Ajustar</button>
+                    <button onclick="setFit('tvPlayerNavidad','fill','fitMenuNavidad',this)">Rellenar</button>
+                    <button onclick="setFit('tvPlayerNavidad','cover','fitMenuNavidad',this)">Zoom</button>
+                    <button onclick="setFitCustom('tvPlayerNavidad','100%','auto','fitMenuNavidad',this)">Alt. fija</button>
+                    <button onclick="setFitCustom('tvPlayerNavidad','auto','100%','fitMenuNavidad',this)">Ancho fijo</button>
+                </div>
+            </div>
+            <div class="fit-btn bottom" onclick="toggleFitMenu('fitMenuNavidadQ')">🎬 Calidad</div>
+            <div class="fit-menu bottom-menu" id="fitMenuNavidadQ">
+                <div class="btn-group-quality">
+                    <button onclick="setQuality('tvPlayerNavidad', 'auto', 'fitMenuNavidadQ', this)" class="active">Auto</button>
+                    <button onclick="setQuality('tvPlayerNavidad', 180, 'fitMenuNavidadQ', this)">180p</button>
+                    <button onclick="setQuality('tvPlayerNavidad', 360, 'fitMenuNavidadQ', this)">360p</button>
+                    <button onclick="setQuality('tvPlayerNavidad', 480, 'fitMenuNavidadQ', this)">480p</button>
+                    <button onclick="setQuality('tvPlayerNavidad', 720, 'fitMenuNavidadQ', this)">720p</button>
+                </div>
+            </div>
+            <video id="tvPlayerNavidad" controls autoplay></video>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('canalesNavidad', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="canalesNavidad-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesNavidad', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="canalesNavidad-love-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesNavidad', 'haha')">
+                <span class="reaction-emoji">😂</span>
+                <span class="reaction-count" id="canalesNavidad-haha-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('canalesNavidad', 'wow')">
+                <span class="reaction-emoji">😮</span>
+                <span class="reaction-count" id="canalesNavidad-wow-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('canalesNavidad')">
                 <span>📤</span>
                 <span>Compartir</span>
             </div>
@@ -1532,6 +1590,7 @@
             <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
             <option value="canalesMusic">Canales de Música 24/7</option>
             <option value="canalesInfantil">Canales Infantiles</option>
+            <option value="canalesNavidad">Navidad 24/7</option>
             <option value="radio">Emisoras Nacionales</option>
             <option value="radioInt">Emisoras Internacionales</option>
             <option value="radioSFC">Emisoras SFC</option>
@@ -1588,6 +1647,7 @@
             <option value="canalesReligiosoInt">Canales Religioso Internacional</option>
             <option value="canalesMusic">Canales de Música 24/7</option>
             <option value="canalesInfantil">Canales Infantiles</option>
+            <option value="canalesNavidad">Navidad 24/7</option>
             <option value="radio">Emisoras Nacionales</option>
             <option value="radioInt">Emisoras Internacionales</option>
             <option value="radioSFC">Emisoras SFC</option>
@@ -1612,6 +1672,7 @@
             <option value="anunciosCatolicos">Anuncios Católicos</option>
             <option value="eventos">FB Live</option>
         </select>
+        <p style="font-size:0.8rem; color:#94a3b8; margin:6px 0;">Para cambiar el lugar: mantén presionado un elemento (o toca ☰) y deslízalo hacia arriba o abajo.</p>
         <div id="listaElementos"></div>
             </div>
         </div>
@@ -1789,6 +1850,7 @@
         canalesReligiosoInt: {},
         canalesMusic: {},
         canalesInfantil: {},
+        canalesNavidad: {},
         videosCinema: {},
         music247: {},
         navidad: {},
@@ -1933,35 +1995,126 @@
         }
     }
 
+    // Orden de los elementos de cada categoría (lo define el administrador arrastrando en Gestionar Contenido)
+    function ordenarIds(cat, ids) {
+        const ord = (storage && storage.ordenConfig && storage.ordenConfig[cat]) || [];
+        const orden = (Array.isArray(ord) ? ord : Object.values(ord)).map(String);
+        const pos = new Map(orden.map((id, i) => [id, i]));
+        const base = new Map(ids.map((id, i) => [String(id), i]));
+        return [...ids].sort((a, b) => {
+            const pa = pos.has(String(a)) ? pos.get(String(a)) : 1e9;
+            const pb = pos.has(String(b)) ? pos.get(String(b)) : 1e9;
+            return pa !== pb ? pa - pb : base.get(String(a)) - base.get(String(b));
+        });
+    }
+
+    async function guardarOrden(cat, ids) {
+        if (firebaseInitialized) {
+            try {
+                await database.ref('contenido/ordenConfig/' + cat).set(ids);
+            } catch (error) {
+                console.error('Error guardando el orden:', error);
+                showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+                return;
+            }
+        } else {
+            storage.ordenConfig = storage.ordenConfig || {};
+            storage.ordenConfig[cat] = ids;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+        }
+        storage.ordenConfig = storage.ordenConfig || {};
+        storage.ordenConfig[cat] = ids;
+        showToast('✅ Orden guardado');
+        renderAllGrids();
+        if (ANUNCIO_CATS[cat]) renderAnuncios(cat);
+    }
+
+    // Mantén presionado un elemento (o usa ☰) y deslízalo hacia arriba o abajo para cambiar su lugar
+    function iniciarArrastreLista(lista, cat) {
+        let fila = null, startY = 0, timer = null, pid = null;
+        const filas = () => [...lista.querySelectorAll('.admin-item-row[data-id]')];
+        const terminar = (guardar) => {
+            clearTimeout(timer);
+            if (lista._arrastrando && fila) {
+                fila.classList.remove('dragging');
+                try { lista.releasePointerCapture(pid); } catch (e) {}
+                if (guardar) guardarOrden(cat, filas().map(r => r.dataset.id));
+            }
+            lista._arrastrando = false; fila = null;
+        };
+        const comenzar = () => {
+            if (!fila) return;
+            lista._arrastrando = true;
+            fila.classList.add('dragging');
+            try { lista.setPointerCapture(pid); } catch (e) {}
+            if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+        };
+        lista.onpointerdown = (e) => {
+            const row = e.target.closest('.admin-item-row[data-id]');
+            if (!row || e.target.closest('button')) return;
+            fila = row; startY = e.clientY; pid = e.pointerId;
+            if (e.target.closest('.drag-handle')) comenzar();
+            else timer = setTimeout(comenzar, 350);
+        };
+        lista.onpointermove = (e) => {
+            if (!fila) return;
+            if (!lista._arrastrando) {
+                if (Math.abs(e.clientY - startY) > 8) { clearTimeout(timer); fila = null; }   // era un desplazamiento normal
+                return;
+            }
+            const y = e.clientY;
+            const otras = filas().filter(r => r !== fila);
+            let ref = null;
+            for (const r of otras) {
+                const b = r.getBoundingClientRect();
+                if (y < b.top + b.height / 2) { ref = r; break; }
+            }
+            if (ref) { if (fila.nextElementSibling !== ref) lista.insertBefore(fila, ref); }
+            else if (fila !== lista.lastElementChild) lista.appendChild(fila);
+            // desplazamiento automático cerca de los bordes
+            const cont = lista.closest('.admin-container');
+            if (cont) {
+                const r = cont.getBoundingClientRect();
+                if (y < r.top + 50) cont.scrollTop -= 12;
+                else if (y > r.bottom - 50) cont.scrollTop += 12;
+            }
+        };
+        lista.onpointerup = () => terminar(true);
+        lista.onpointercancel = () => terminar(false);
+        lista.oncontextmenu = (e) => { if (fila || lista._arrastrando) e.preventDefault(); };
+        if (!lista._tm) {
+            lista._tm = true;
+            lista.addEventListener('touchmove', (e) => { if (lista._arrastrando) e.preventDefault(); }, { passive: false });
+        }
+    }
+
     function mostrarTodosElementos() {
         const cat = document.getElementById("verCategoria").value;
         const lista = document.getElementById("listaElementos");
         lista.innerHTML = "";
         if(!cat) return;
 
+        const filas = [];
         Object.keys(dataInicial[cat] || {}).forEach(id => {
-            if (!storage[cat] || !storage[cat][id]) {
-                lista.innerHTML += `
-                    <div class="admin-item-row">
-                        <span>${dataInicial[cat][id].nombre} (Sistema)</span>
-                        <div class="admin-actions">
-                            <button class="btn btn-edit" onclick="editarElemento('${cat}', '${id}')">✏️</button>
-                            <span style="font-size:0.7rem; color:#64748b; align-self:center;">Fijo</span>
-                        </div>
-                    </div>`;
-            }
+            if (!storage[cat] || !storage[cat][id]) filas.push({ id, nombre: dataInicial[cat][id].nombre, fijo: true });
         });
+        Object.keys(storage[cat] || {}).forEach(id => filas.push({ id, nombre: storage[cat][id].nombre, fijo: false }));
+        const mapa = new Map(filas.map(f => [String(f.id), f]));
 
-        Object.keys(storage[cat] || {}).forEach(id => {
-            lista.innerHTML += `
-                <div class="admin-item-row">
-                    <span>${storage[cat][id].nombre}</span>
-                    <div class="admin-actions">
-                        <button class="btn btn-edit" onclick="editarElemento('${cat}', '${id}')">✏️</button>
-                        <button class="btn btn-danger" onclick="eliminarElemento('${cat}', '${id}')">🗑️</button>
-                    </div>
+        ordenarIds(cat, filas.map(f => f.id)).forEach(id => {
+            const f = mapa.get(String(id));
+            const row = document.createElement('div');
+            row.className = 'admin-item-row';
+            row.dataset.id = id;
+            row.innerHTML = `<span class="drag-handle" title="Mantén presionado y desliza">☰</span><span class="item-nombre"></span>
+                <div class="admin-actions">
+                    <button class="btn btn-edit" onclick="editarElemento('${cat}', '${id}')">✏️</button>
+                    ${f.fijo ? '<span style="font-size:0.7rem; color:#64748b; align-self:center;">Fijo</span>' : `<button class="btn btn-danger" onclick="eliminarElemento('${cat}', '${id}')">🗑️</button>`}
                 </div>`;
+            row.querySelector('.item-nombre').textContent = (f.nombre || '') + (f.fijo ? ' (Sistema)' : '');
+            lista.appendChild(row);
         });
+        iniciarArrastreLista(lista, cat);
     }
 
     async function toggleReaction(section, type) {
@@ -2008,7 +2161,7 @@
     function updateAllReactionCounts() {
         if (typeof actualizarReaccionesAnuncios === 'function') actualizarReaccionesAnuncios();
         const sections = [
-            'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'canalesMusic', 'canalesInfantil', 'radio', 'radioInt', 'radioSFC', 
+            'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'canalesMusic', 'canalesInfantil', 'canalesNavidad', 'radio', 'radioInt', 'radioSFC', 
             'radioCristianaSFC', 'radioCristianaNac', 'radioCristianaInt', 'radioCatolicaSFC', 'radioCatolicaNac', 'radioCatolicaInt',
             'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'music247', 'navidad', 'peliculas247', 'deportes', 
             'anuncios', 'anunciosCristianos', 'anunciosCatolicos', 'contacto'
@@ -2035,7 +2188,7 @@
         if(!grid) return;
         grid.innerHTML = "";
         const fusion = {...dataInicial[cat], ...(storage[cat] || {})};
-        Object.keys(fusion).forEach(id => {
+        ordenarIds(cat, Object.keys(fusion)).forEach(id => {
             const item = fusion[id];
             const likeId = cat + "_" + id;
             const isLiked = likes[likeId] ? 'active' : '';
@@ -2063,6 +2216,7 @@
         renderGrid('canalesReligiosoInt', 'canalesReligiosoIntGrid', 'playCanalReligiosoInt');
         renderGrid('canalesMusic', 'canalesMusicGrid', 'playCanalMusic');
         renderGrid('canalesInfantil', 'canalesInfantilGrid', 'playCanalInfantil');
+        renderGrid('canalesNavidad', 'canalesNavidadGrid', 'playCanalNavidad');
         renderGrid('videosCinema', 'videosCinemaGrid', 'playVideoCinema');
         renderGrid('music247', 'music247Grid', 'playMusic247');
         renderGrid('navidad', 'navidadGrid', 'playNavidad');
@@ -2177,7 +2331,7 @@
         if (!grid || !box) return;
         grid.innerHTML = '';
         const fusion = getAnuncios(cat);
-        Object.keys(fusion).forEach(id => {
+        ordenarIds(cat, Object.keys(fusion)).forEach(id => {
             const item = fusion[id];
             const yt = esYouTube(item.url);
             const card = document.createElement('div');
@@ -2765,9 +2919,22 @@
         if (activa && window.__seccionesOcultas.has(activa.id)) showSection('inicio');
     }
 
+    // Las listas de categorías (Agregar / Gestionar Contenido) usan los nombres que el administrador puso a las secciones
+    function aplicarNombresCategorias() {
+        const cfg = (storage && storage.seccionesConfig) || {};
+        document.querySelectorAll('#categoria option, #verCategoria option').forEach(op => {
+            if (!op.value) return;
+            if (op._orig === undefined) op._orig = op.textContent;
+            const sec = op.value === 'eventos' ? 'facebooklive' : op.value;
+            const c = cfg[sec] || {};
+            op.textContent = c.titulo || c.menu || op._orig;
+        });
+    }
+
     function aplicarSeccionesGuardado() {
         const t = (storage && storage.seccionesConfig) || {};
         renderSecciones(t);
+        aplicarNombresCategorias();
         try { localStorage.setItem('tv_sfc_secciones', JSON.stringify(t)); } catch (e) {}
     }
 
@@ -2922,7 +3089,7 @@
     // ============================================
     // REPRODUCTOR DE TV: HLS (.m3u8) y MPEG-TS (.ts)
     // ============================================
-    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'canalesMusic', 'canalesInfantil', 'videosCinema', 'videosReligioso'];
+    const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'canalesMusic', 'canalesInfantil', 'canalesNavidad', 'videosCinema', 'videosReligioso'];
 
     function toggleTipoStream() {
         const cat = document.getElementById("categoria").value;
@@ -3063,6 +3230,7 @@
     function playCanalReligiosoInt(url, item) { playMulti("tvPlayerReligiosoInt", url, item); }
     function playCanalMusic(url, item) { playMulti("tvPlayerMusic", url, item); }
     function playCanalInfantil(url, item) { playMulti("tvPlayerInfantil", url, item); }
+    function playCanalNavidad(url, item) { playMulti("tvPlayerNavidad", url, item); }
     function playRadio(url) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); }
     function playRadioInt(url) { const a = document.getElementById("radioIntPlayer"); a.src = url; a.play(); }
     function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
@@ -3287,7 +3455,7 @@
 
     // Inicializar todos los click handlers después de que el DOM esté listo
     function initializeAllClickHandlers() {
-        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperCanalMusic', 'wrapperCanalInfantil', 'wrapperVideosCinema', 'wrapperVideosReligioso'];
+        const wrapperIds = ['wrapperCanal', 'wrapperCanalInt', 'wrapperCanalDeportes', 'wrapperCanalDeportesInt', 'wrapperCanalReligiosoNac', 'wrapperCanalReligiosoInt', 'wrapperCanalMusic', 'wrapperCanalInfantil', 'wrapperCanalNavidad', 'wrapperVideosCinema', 'wrapperVideosReligioso'];
         wrapperIds.forEach(id => {
             const wrapper = document.getElementById(id);
             if (wrapper) {
@@ -3370,7 +3538,7 @@
     });
 
     // --- CONTROL DE BLOQUES/SECCIONES (navegación tipo pestañas) ---
-    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','canalesMusic','canalesInfantil','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCristianaInt','radioCatolicaSFC','radioCatolicaNac','radioCatolicaInt','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','navidad','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
+    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','canalesMusic','canalesInfantil','canalesNavidad','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCristianaInt','radioCatolicaSFC','radioCatolicaNac','radioCatolicaInt','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','navidad','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
 
     function showSection(id) {
         if (!sectionOrder.includes(id) || (window.__seccionesOcultas && window.__seccionesOcultas.has(id))) id = 'inicio';
