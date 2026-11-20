@@ -426,6 +426,7 @@
     <button class="topbar-link" data-target="videosReligioso">🙏 24/7 Religioso</button>
     <button class="topbar-link" data-target="videosCatolicos">📿 Música Católica 24/7</button>
     <button class="topbar-link" data-target="music247">🎵 Music 24/7</button>
+    <button class="topbar-link" data-target="navidad">🎄 Música Navideña</button>
     <button class="topbar-link" data-target="peliculas247">🍿 Películas 24/7</button>
     <button class="topbar-link" data-target="deportes">🏆 Deportes</button>
     <button class="topbar-link" data-target="anuncios">📢 Anuncios</button>
@@ -1349,6 +1350,30 @@
     </div>
 </section>
 
+<section id="navidad">
+    <div class="card">
+        <h2>🎄 Música Navideña 24/7</h2>
+        <div class="grid" id="navidadGrid"></div>
+        <div class="video-box">
+            <iframe id="navidadFrame" allowfullscreen></iframe>
+        </div>
+        <div class="reactions-bar">
+            <div class="reaction-btn" onclick="toggleReaction('navidad', 'like')">
+                <span class="reaction-emoji">👍</span>
+                <span class="reaction-count" id="navidad-like-count">0</span>
+            </div>
+            <div class="reaction-btn" onclick="toggleReaction('navidad', 'love')">
+                <span class="reaction-emoji">❤️</span>
+                <span class="reaction-count" id="navidad-love-count">0</span>
+            </div>
+            <div class="share-btn" onclick="compartirSeccion('navidad')">
+                <span>📤</span>
+                <span>Compartir</span>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section id="peliculas247">
     <div class="card">
         <h2>🍿 Películas 24/7</h2>
@@ -1523,6 +1548,7 @@
             <option value="videosReligioso">24/7 Religioso</option>
             <option value="videosCatolicos">Música Católica 24/7</option>
             <option value="music247">Music 24/7</option>
+            <option value="navidad">Música Navideña 24/7</option>
             <option value="peliculas247">Películas 24/7</option>
             <option value="deportes">Deportes</option>
             <option value="anuncios">Anuncios</option>
@@ -1578,6 +1604,7 @@
             <option value="videosReligioso">24/7 Religioso</option>
             <option value="videosCatolicos">Música Católica 24/7</option>
             <option value="music247">Music 24/7</option>
+            <option value="navidad">Música Navideña 24/7</option>
             <option value="peliculas247">Películas 24/7</option>
             <option value="deportes">Deportes</option>
             <option value="anuncios">Anuncios</option>
@@ -1764,6 +1791,7 @@
         canalesInfantil: {},
         videosCinema: {},
         music247: {},
+        navidad: {},
         peliculas247: {},
         videosReligioso: {},
         radioCristianaSFC: {},
@@ -1982,7 +2010,7 @@
         const sections = [
             'inicio', 'facebooklive', 'canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'canalesMusic', 'canalesInfantil', 'radio', 'radioInt', 'radioSFC', 
             'radioCristianaSFC', 'radioCristianaNac', 'radioCristianaInt', 'radioCatolicaSFC', 'radioCatolicaNac', 'radioCatolicaInt',
-            'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'music247', 'peliculas247', 'deportes', 
+            'videos', 'videosCinema', 'religiosos', 'videosReligioso', 'videosCatolicos', 'music247', 'navidad', 'peliculas247', 'deportes', 
             'anuncios', 'anunciosCristianos', 'anunciosCatolicos', 'contacto'
         ];
         const types = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
@@ -2037,6 +2065,7 @@
         renderGrid('canalesInfantil', 'canalesInfantilGrid', 'playCanalInfantil');
         renderGrid('videosCinema', 'videosCinemaGrid', 'playVideoCinema');
         renderGrid('music247', 'music247Grid', 'playMusic247');
+        renderGrid('navidad', 'navidadGrid', 'playNavidad');
         renderGrid('peliculas247', 'peliculas247Grid', 'playPeliculas247');
         renderGrid('videosReligioso', 'videosReligiosoGrid', 'playVideoReligioso');
         renderGrid('radio', 'radioGrid', 'playRadio');
@@ -3047,6 +3076,7 @@
     function playVideo(url) { abrirVisor("videoFrame"); document.getElementById("videoFrame").src = url; }
     function playVideoCinema(url, item) { playMulti("tvPlayerCinema", url, item); }
     function playMusic247(url) { abrirVisor("music247Frame"); document.getElementById("music247Frame").src = url; }
+    function playNavidad(url) { abrirVisor("navidadFrame"); document.getElementById("navidadFrame").src = url; }
     function playPeliculas247(url) { abrirVisor("peliculas247Frame"); document.getElementById("peliculas247Frame").src = url; }
     function playVideoReligioso(url, item) { playMulti("tvPlayerVideosReligioso", url, item); }
     function playNoticia(url) { abrirVisor("noticiasFrame"); document.getElementById("noticiasFrame").src = url; }
@@ -3054,7 +3084,7 @@
     function playDeporte(url) { abrirVisor("deportesFrame"); document.getElementById("deportesFrame").src = url; }
 
     // Pantallas principales de YouTube / Facebook Live: cerradas hasta elegir un video, con ✕ para cerrarlas
-    const VISORES_IFRAME = ['facebookliveFrame', 'videoFrame', 'noticiasFrame', 'religiosoFrame', 'videosCatolicosFrame', 'music247Frame', 'peliculas247Frame', 'deportesFrame'];
+    const VISORES_IFRAME = ['facebookliveFrame', 'videoFrame', 'noticiasFrame', 'religiosoFrame', 'videosCatolicosFrame', 'music247Frame', 'navidadFrame', 'peliculas247Frame', 'deportesFrame'];
 
     function abrirVisor(frameId) {
         const f = document.getElementById(frameId);
@@ -3340,7 +3370,7 @@
     });
 
     // --- CONTROL DE BLOQUES/SECCIONES (navegación tipo pestañas) ---
-    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','canalesMusic','canalesInfantil','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCristianaInt','radioCatolicaSFC','radioCatolicaNac','radioCatolicaInt','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
+    const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','canalesMusic','canalesInfantil','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCristianaInt','radioCatolicaSFC','radioCatolicaNac','radioCatolicaInt','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','navidad','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
 
     function showSection(id) {
         if (!sectionOrder.includes(id) || (window.__seccionesOcultas && window.__seccionesOcultas.has(id))) id = 'inicio';
