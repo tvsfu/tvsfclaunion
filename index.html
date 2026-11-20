@@ -2871,7 +2871,8 @@
     // Compartir sección o canal: si hay un canal/emisora reproduciéndose en la sección, se comparte ese
     // (con su nombre y logo en la vista previa); si no, la sección.
     async function compartirSeccion(section) {
-        const actual = (window.__canalActual || {})[section];
+        const catDatos = section === 'facebooklive' ? 'eventos' : section;   // Facebook Live guarda sus transmisiones en "eventos"
+        const actual = (window.__canalActual || {})[catDatos];
         const base = window.location.origin;
         let url = `${base}/a/${section}`;
         let titulo = 'TV SFC LA UNION';
@@ -2880,7 +2881,7 @@
             const q = new URLSearchParams();
             if (actual.item.nombre) q.set('n', actual.item.nombre);
             if (/^https?:\/\//i.test(actual.item.logo || '')) q.set('i', actual.item.logo);
-            url = `${base}/a/${section}/${encodeURIComponent(actual.id)}` + (q.toString() ? '?' + q.toString() : '');
+            url = `${base}/a/${catDatos}/${encodeURIComponent(actual.id)}` + (q.toString() ? '?' + q.toString() : '');
             titulo = actual.item.nombre || titulo;
             texto = `${section.indexOf('radio') === 0 ? '📻' : '📺'} ${titulo} - TV SFC LA UNION`;
         }
@@ -3086,7 +3087,7 @@
             pendingAnuncio = { cat: initialId, id: decodeURIComponent(extraId) };
             renderAnuncios(initialId);
         } else if (extraId) {
-            pendingCanal = { cat: initialId, id: decodeURIComponent(extraId) };
+            pendingCanal = { cat: initialId === 'facebooklive' ? 'eventos' : initialId, id: decodeURIComponent(extraId) };
             renderAllGrids();
         }
         showSection(initialId);
