@@ -121,6 +121,13 @@
         .admin-item-row .item-nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
         .drag-handle { cursor: grab; padding: 6px 10px 6px 2px; touch-action: none; color: #94a3b8; font-size: 1.1rem; }
         .admin-item-row.dragging { background: rgba(34,197,94,0.28); outline: 2px solid var(--primary); border-radius: 8px; position: relative; z-index: 5; }
+        .subir-label { display: block; background: rgba(255,255,255,0.06); border: 1px dashed rgba(255,255,255,0.35); border-radius: 10px; padding: 12px; color: #e2e8f0; font-size: 0.9rem; margin: 6px 0; }
+        .subir-label input[type=file] { display: block; margin-top: 8px; width: 100%; color: #cbd5e1; }
+        #subirProgreso { margin: 6px 0; font-size: 0.8rem; color: #e2e8f0; }
+        #subirBarraFondo { height: 8px; background: rgba(255,255,255,0.15); border-radius: 6px; overflow: hidden; margin-bottom: 4px; }
+        #subirBarra { height: 100%; width: 0; background: var(--primary); transition: width .15s; }
+        #subirPreview img, #subirPreview video { max-width: 100%; max-height: 150px; border-radius: 8px; margin-top: 6px; display: block; }
+        .lightbox video { max-width: 100%; max-height: 100%; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -1567,6 +1574,7 @@
 <div id="lightbox" class="lightbox" onclick="cerrarImagen()">
     <button class="lightbox-close" onclick="cerrarImagen()">✕</button>
     <img id="lightboxImg" src="" alt="Anuncio" onclick="event.stopPropagation()">
+    <video id="lightboxVideo" controls playsinline style="display:none" onclick="event.stopPropagation()"></video>
 </div>
 
 <div id="adminPanel">
@@ -1617,6 +1625,13 @@
         </select>
         <input type="text" id="nombre" class="admin-input" placeholder="Nombre del contenido">
         <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8 o .ts)">
+        <div id="subirBox" style="display:none;">
+            <label class="subir-label">☁️ Subir foto, imagen o video (se sube a Cloudinary y el enlace se pone solo arriba)
+                <input type="file" id="archivoAnuncio" accept="image/*,video/*,.heic,.heif,.avif,.tif,.tiff,.bmp,.svg,.webp" onchange="subirACloudinary(this)">
+            </label>
+            <div id="subirProgreso" style="display:none;"><div id="subirBarraFondo"><div id="subirBarra"></div></div><span id="subirTexto"></span></div>
+            <div id="subirPreview"></div>
+        </div>
         <div id="tipoStreamBox" style="display:none;">
             <select id="tipoStream" class="admin-select">
                 <option value="auto">Formato: Automático (detecta .m3u8 / .ts)</option>
@@ -1753,6 +1768,17 @@
         <div id="seccionesLista"></div>
         <button class="btn" onclick="guardarSecciones()" style="width:100%; margin-bottom:10px">💾 Guardar Secciones</button>
         <button class="btn" onclick="restablecerSecciones()" style="width:100%; margin-bottom:20px; background:#64748b; color:white;">↩️ Restablecer nombres originales</button>
+            </div>
+        </div>
+
+        <div class="admin-sec">
+            <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>☁️ Cloudinary</h3><span class="admin-sec-arrow">▾</span></div>
+            <div class="admin-sec-body">
+        <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Para subir fotos y videos de los anuncios. En Cloudinary: Settings → Upload → Upload presets → Add upload preset, y en "Signing mode" elige <b>Unsigned</b>. Copia aquí tu Cloud name y el nombre del preset. Nunca pegues aquí el API Secret.</p>
+        <input type="text" id="cldNombre" class="admin-input" placeholder="Cloud name (ej. micuenta)">
+        <input type="text" id="cldPreset" class="admin-input" placeholder="Upload preset sin firmar (unsigned)">
+        <input type="text" id="cldCarpeta" class="admin-input" placeholder="Carpeta (opcional, ej. tv-sfc/anuncios)">
+        <button class="btn" onclick="guardarCloudinary()" style="width:100%; margin-bottom:20px">💾 Guardar Cloudinary</button>
             </div>
         </div>
 
@@ -1936,6 +1962,7 @@
         document.getElementById("logo").value = "";
         document.getElementById("tipoStream").value = "auto";
         document.getElementById("enlaceAnuncio").value = "";
+        limpiarSubida();
         document.getElementById("formTitle").textContent = "Agregar Contenido";
         document.getElementById("btnGuardar").textContent = "💾 Guardar en Firebase";
         document.getElementById("btnCancelar").style.display = "none";
@@ -2254,16 +2281,39 @@
     let pendingAnuncio = null;
     let pendingCanal = null;
 
+    // Videos subidos (Cloudinary u otro archivo de video)
+    function esVideoArchivo(url) {
+        return /\/video\/upload\//i.test(url || '') || /\.(mp4|webm|mov|m4v|ogv|3gp)(\?|#|$)/i.test(url || '');
+    }
+    // Imagen de portada de un video de Cloudinary (primer cuadro)
+    function cloudPoster(url, w) {
+        const m = /^(https:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\/)(?:(?!v\d+\/)[^/]+\/)?(v\d+\/.+?)(?:\.[A-Za-z0-9]+)?(?:\?.*)?$/.exec(url || '');
+        return m ? m[1] + 'so_0,w_' + (w || 600) + ',c_limit,f_jpg/' + m[2] + '.jpg' : null;
+    }
     function esYouTube(url) { return /youtube\.com|youtu\.be/i.test(url || ''); }
     function getAnuncios(cat) { return { ...(dataInicial[cat] || {}), ...(storage[cat] || {}) }; }
 
     function abrirImagen(url) {
-        document.getElementById('lightboxImg').src = url;
+        const v = document.getElementById('lightboxVideo');
+        if (v) { v.pause(); v.style.display = 'none'; }
+        const im = document.getElementById('lightboxImg');
+        im.style.display = '';
+        im.src = url;
         document.getElementById('lightbox').classList.add('open');
+    }
+    function abrirVideo(url) {
+        document.getElementById('lightboxImg').style.display = 'none';
+        const v = document.getElementById('lightboxVideo');
+        v.style.display = '';
+        v.src = url;
+        document.getElementById('lightbox').classList.add('open');
+        v.play().catch(() => {});
     }
     function cerrarImagen() {
         document.getElementById('lightbox').classList.remove('open');
         document.getElementById('lightboxImg').src = '';
+        const v = document.getElementById('lightboxVideo');
+        if (v) { v.pause(); v.removeAttribute('src'); v.load(); }
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarImagen(); });
 
@@ -2280,6 +2330,13 @@
             f.src = item.url;
             f.allowFullscreen = true;
             box.appendChild(f);
+        } else if (esVideoArchivo(item.url)) {
+            const vd = document.createElement('video');
+            vd.className = 'anuncio-main';
+            vd.src = item.url;
+            vd.controls = true;
+            vd.playsInline = true;
+            box.appendChild(vd);
         } else {
             const img = document.createElement('img');
             img.className = 'anuncio-main';
@@ -2309,6 +2366,7 @@
             c.classList.toggle('selected', c.dataset.id === String(id));
         });
         if (esYouTube(item.url)) mostrarAnuncio(cat, id);
+        else if (esVideoArchivo(item.url)) abrirVideo(item.url);
         else abrirImagen(item.url);
     }
 
@@ -2334,6 +2392,7 @@
         ordenarIds(cat, Object.keys(fusion)).forEach(id => {
             const item = fusion[id];
             const yt = esYouTube(item.url);
+            const vid = !yt && esVideoArchivo(item.url);
             const card = document.createElement('div');
             card.className = 'anuncio-card';
             card.dataset.id = id;
@@ -2341,11 +2400,11 @@
             const thumb = document.createElement('div');
             thumb.className = 'anuncio-thumb';
             const img = document.createElement('img');
-            img.src = yt ? item.logo : item.url;
+            img.src = yt ? item.logo : (vid ? (cloudPoster(item.url, 600) || item.logo || 'https://via.placeholder.com/160x100') : item.url);
             img.alt = item.nombre || '';
             img.onerror = () => { img.onerror = null; img.src = item.logo || 'https://via.placeholder.com/160x100'; };
             thumb.appendChild(img);
-            if (yt) {
+            if (yt || vid) {
                 const mark = document.createElement('div');
                 mark.className = 'play-mark';
                 mark.textContent = '▶';
@@ -2415,7 +2474,7 @@
 
         if (navigator.share) {
             // 1) Intenta compartir la imagen del anuncio junto con el enlace
-            if (!esYouTube(item.url)) {
+            if (!esYouTube(item.url) && !esVideoArchivo(item.url)) {
                 try {
                     const resp = await fetch(item.url);
                     const blob = await resp.blob();
@@ -3028,6 +3087,110 @@
     }
 
     // ============================================
+    // CLOUDINARY: subir foto / imagen / video de los anuncios
+    // ============================================
+    function getCloudinaryCfg() {
+        const c = (storage && storage.cloudinaryConfig) || {};
+        return { cloud: (c.cloud || '').trim(), preset: (c.preset || '').trim(), carpeta: (c.carpeta || '').trim() };
+    }
+
+    function cargarFormCloudinary() {
+        const c = getCloudinaryCfg();
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+        set('cldNombre', c.cloud); set('cldPreset', c.preset); set('cldCarpeta', c.carpeta);
+    }
+
+    async function guardarCloudinary() {
+        const cfg = {
+            cloud: document.getElementById('cldNombre').value.trim(),
+            preset: document.getElementById('cldPreset').value.trim(),
+            carpeta: document.getElementById('cldCarpeta').value.trim().replace(/^\/+|\/+$/g, '')
+        };
+        if (!cfg.cloud || !cfg.preset) return showToast('⚠️ Escribe el Cloud name y el Upload preset', 'error');
+        if (firebaseInitialized) {
+            try { await database.ref('contenido/cloudinaryConfig').set(cfg); }
+            catch (error) {
+                console.error('Error guardando Cloudinary:', error);
+                return showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+            }
+        } else {
+            storage.cloudinaryConfig = cfg;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+        }
+        storage.cloudinaryConfig = cfg;
+        showToast('✅ Cloudinary guardado');
+    }
+
+    // Enlace final: las imágenes se entregan en un formato que cualquier navegador muestra (HEIC, TIFF, AVIF, etc.)
+    function entregaCloudinary(secureUrl, tipo) {
+        if (tipo === 'video') return secureUrl.replace('/upload/', '/upload/f_auto,q_auto/');
+        return secureUrl.replace('/upload/', '/upload/f_auto,q_auto,w_1600,c_limit/');
+    }
+
+    function limpiarSubida() {
+        const f = document.getElementById('archivoAnuncio'); if (f) f.value = '';
+        const pg = document.getElementById('subirProgreso'); if (pg) pg.style.display = 'none';
+        const pv = document.getElementById('subirPreview'); if (pv) pv.innerHTML = '';
+    }
+
+    function subirACloudinary(input) {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const cfg = getCloudinaryCfg();
+        if (!cfg.cloud || !cfg.preset) {
+            input.value = '';
+            return showToast('⚠️ Primero configura Cloudinary en ☁️ Cloudinary', 'error');
+        }
+        const pg = document.getElementById('subirProgreso');
+        const barra = document.getElementById('subirBarra');
+        const texto = document.getElementById('subirTexto');
+        const prev = document.getElementById('subirPreview');
+        pg.style.display = 'block'; barra.style.width = '0%'; texto.textContent = 'Subiendo ' + file.name + '…'; prev.innerHTML = '';
+        input.disabled = true;
+
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('upload_preset', cfg.preset);
+        if (cfg.carpeta) fd.append('folder', cfg.carpeta);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + encodeURIComponent(cfg.cloud) + '/auto/upload');
+        xhr.upload.onprogress = (e) => {
+            if (!e.lengthComputable) return;
+            const pct = Math.round(e.loaded / e.total * 100);
+            barra.style.width = pct + '%';
+            texto.textContent = 'Subiendo… ' + pct + '%';
+        };
+        const fallo = (msg) => {
+            input.disabled = false;
+            pg.style.display = 'none';
+            showToast('❌ ' + msg, 'error');
+        };
+        xhr.onerror = () => fallo('No se pudo subir: revisa tu conexión');
+        xhr.onload = () => {
+            let r = {};
+            try { r = JSON.parse(xhr.responseText); } catch (e) {}
+            if (xhr.status >= 200 && xhr.status < 300 && r.secure_url) {
+                const tipo = r.resource_type === 'video' ? 'video' : 'image';
+                const url = entregaCloudinary(r.secure_url, tipo);
+                document.getElementById('stream1').value = url;
+                input.disabled = false;
+                barra.style.width = '100%';
+                texto.textContent = '✅ Subido. Enlace listo; toca 💾 Guardar para publicar el anuncio.';
+                if (tipo === 'video') {
+                    const v = document.createElement('video'); v.src = url; v.controls = true; v.muted = true; v.playsInline = true; prev.appendChild(v);
+                } else {
+                    const im = document.createElement('img'); im.src = url; prev.appendChild(im);
+                }
+                showToast('✅ Subido a Cloudinary');
+            } else {
+                fallo('Cloudinary: ' + ((r.error && r.error.message) || ('error ' + xhr.status)));
+            }
+        };
+        xhr.send(fd);
+    }
+
+    // ============================================
     // INSTALAR COMO APP (PWA)
     // ============================================
     let deferredInstall = null;
@@ -3096,6 +3259,8 @@
         document.getElementById("tipoStreamBox").style.display = TV_CATEGORIAS.includes(cat) ? "block" : "none";
         const eb = document.getElementById("enlaceBox");
         if (eb) eb.style.display = ANUNCIO_CATS[cat] ? "block" : "none";
+        const sb = document.getElementById("subirBox");
+        if (sb) sb.style.display = ANUNCIO_CATS[cat] ? "block" : "none";
     }
 
     function proxyUrl(url) {
@@ -3330,7 +3495,7 @@
                 .then(() => {
                     isAdmin = true;
                     document.getElementById("loginModal").style.display = "none";
-                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo(); cargarFormInicio(); cargarFormSecciones();
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo(); cargarFormInicio(); cargarFormSecciones(); cargarFormCloudinary();
                     showToast("✅ Acceso Concedido");
                 })
                 .catch((error) => {
@@ -3343,7 +3508,7 @@
                 if (hash === PASS_HASH) {
                     isAdmin = true;
                     document.getElementById("loginModal").style.display = "none";
-                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo(); cargarFormInicio(); cargarFormSecciones();
+                    document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo(); cargarFormInicio(); cargarFormSecciones(); cargarFormCloudinary();
                     showToast("✅ Acceso Concedido (modo local)");
                 } else showToast("❌ Contraseña Incorrecta", "error");
             });
@@ -3351,7 +3516,7 @@
     }
     function openLogin() { 
         if (isAdmin) {
-            document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo(); cargarFormInicio(); cargarFormSecciones();
+            document.getElementById("adminPanel").style.display = "block"; cargarFormContacto(); cargarFormTema(); cargarFormLogo(); cargarFormInicio(); cargarFormSecciones(); cargarFormCloudinary();
         } else {
             document.getElementById("loginModal").style.display = "flex";
         }
