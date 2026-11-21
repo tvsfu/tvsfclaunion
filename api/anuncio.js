@@ -82,7 +82,7 @@ export default async function handler(req, res) {
 
   let desc;
   if (!id) desc = 'Mira ' + label + ' en TV SFC LA UNION';
-  else if (esAnuncio) desc = '📢 Mira este anuncio en TV SFC LA UNION';
+  else if (esAnuncio) desc = (item && item.descripcion) ? String(item.descripcion).slice(0, 200) : '📢 Mira este anuncio en TV SFC LA UNION';
   else desc = (esRadio ? '📻 Escucha ' : '📺 Mira ') + titulo + ' en TV SFC LA UNION';
 
   const enlace = origin + '/a/' + cat + (id ? '/' + encodeURIComponent(id) : '');
