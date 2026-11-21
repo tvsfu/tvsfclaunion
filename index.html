@@ -158,6 +158,10 @@
         .av-info { padding: 10px 14px 14px; color: #e2e8f0; font-size: 0.9rem; white-space: pre-line; }
         .av-ir, .av-abrir { display: inline-block; margin-top: 8px; background: var(--primary); color: var(--on-primary); padding: 10px 14px; border-radius: 10px; text-decoration: none; font-weight: bold; }
         .av-abrir { margin: 18px; }
+        .sec-row.dragging { background: rgba(34,197,94,0.28); outline: 2px solid var(--primary); border-radius: 10px; position: relative; z-index: 5; }
+        .sec-row { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        .sec-row input, .sec-row textarea { -webkit-user-select: text; user-select: text; }
+        .sec-def .drag-handle { margin-right: 4px; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -1806,7 +1810,9 @@
             <input type="text" id="nsTitulo" class="admin-input" placeholder="Título de la sección (ej. 🎬 Cine 24/7)">
             <button class="btn" onclick="crearSeccionNueva()" style="width:100%; margin-top:6px">➕ Crear sección</button>
         </div>
+        <p style="font-size:0.8rem; color:#94a3b8; margin:4px 0 8px;">Para cambiar el lugar de una sección en el menú: mantén presionado su nombre (o toca ☰) y deslízala hacia arriba o abajo.</p>
         <div id="seccionesLista"></div>
+        <button class="btn" onclick="restablecerOrdenSecciones()" style="width:100%; margin-bottom:10px; background:#64748b; color:white;">↩️ Restablecer el orden de las secciones</button>
         <button class="btn" onclick="guardarSecciones()" style="width:100%; margin-bottom:10px">💾 Guardar Secciones</button>
         <button class="btn" onclick="restablecerSecciones()" style="width:100%; margin-bottom:20px; background:#64748b; color:white;">↩️ Restablecer nombres originales</button>
             </div>
@@ -2102,15 +2108,16 @@
     }
 
     // Mantén presionado un elemento (o usa ☰) y deslízalo hacia arriba o abajo para cambiar su lugar
-    function iniciarArrastreLista(lista, cat) {
+    function iniciarArrastreLista(lista, cat, opts) {
         let fila = null, startY = 0, timer = null, pid = null;
-        const filas = () => [...lista.querySelectorAll('.admin-item-row[data-id]')];
+        const selFila = (opts && opts.fila) || '.admin-item-row[data-id]';
+        const filas = () => [...lista.querySelectorAll(selFila)];
         const terminar = (guardar) => {
             clearTimeout(timer);
             if (lista._arrastrando && fila) {
                 fila.classList.remove('dragging');
                 try { lista.releasePointerCapture(pid); } catch (e) {}
-                if (guardar) guardarOrden(cat, filas().map(r => r.dataset.id));
+                if (guardar) { const ids = filas().map(r => r.dataset.id); if (opts && opts.guardar) opts.guardar(ids); else guardarOrden(cat, ids); }
             }
             lista._arrastrando = false; fila = null;
         };
@@ -2122,8 +2129,8 @@
             if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
         };
         lista.onpointerdown = (e) => {
-            const row = e.target.closest('.admin-item-row[data-id]');
-            if (!row || e.target.closest('button')) return;
+            const row = e.target.closest(selFila);
+            if (!row || e.target.closest('button, input, textarea, select, label')) return;
             fila = row; startY = e.clientY; pid = e.pointerId;
             if (e.target.closest('.drag-handle')) comenzar();
             else timer = setTimeout(comenzar, 350);
@@ -3222,17 +3229,25 @@
                 o.value = value; o.textContent = text;
                 sel.appendChild(o);
             };
+            const lista = [];
             sel._base.forEach(o => {
                 if (!o.value) { agregar(o.value, o.text); return; }
                 const sec = o.value === 'eventos' ? 'facebooklive' : o.value;
                 const c = cfg[sec] || {};
                 if (c.eliminada) return;                       // sección eliminada: ya no se ofrece
-                agregar(o.value, c.titulo || c.menu || o.text);
+                lista.push({ value: o.value, sec: sec, text: c.titulo || c.menu || o.text });
             });
             Object.keys(custom).forEach(id => {
                 const c = cfg[id] || {};
-                agregar(id, c.titulo || c.menu || custom[id].titulo || custom[id].menu || id);
+                lista.push({ value: id, sec: id, text: c.titulo || c.menu || custom[id].titulo || custom[id].menu || id });
             });
+            // si el administrador cambió el orden de las secciones, las listas lo siguen
+            const ordenMenu = (storage && storage.seccionesOrden) ? [...document.querySelectorAll('#topbarNav .topbar-link[data-target]')].map(b => b.dataset.target) : null;
+            if (ordenMenu) {
+                const pos = x => { const k = ordenMenu.indexOf(x.sec); return k < 0 ? 1e9 : k; };
+                lista.sort((a, b) => pos(a) - pos(b));
+            }
+            lista.forEach(o => agregar(o.value, o.text));
             if ([...sel.options].some(o => o.value === actual)) sel.value = actual;
         });
     }
@@ -3240,6 +3255,7 @@
     function aplicarSeccionesGuardado() {
         const t = (storage && storage.seccionesConfig) || {};
         renderSecciones(t);
+        aplicarOrdenSecciones();
         aplicarNombresCategorias();
         try { localStorage.setItem('tv_sfc_secciones', JSON.stringify(t)); } catch (e) {}
     }
@@ -3265,6 +3281,11 @@
             const nombre = document.createElement('div');
             nombre.className = 'sec-def';
             nombre.textContent = strip(defMenu);
+            const asa = document.createElement('span');
+            asa.className = 'drag-handle';
+            asa.title = 'Mantén presionado y desliza para cambiar el lugar';
+            asa.textContent = '☰';
+            nombre.insertBefore(asa, nombre.firstChild);
             const inMenu = document.createElement('input');
             inMenu.type = 'text'; inMenu.className = 'admin-input sec-menu';
             inMenu.placeholder = 'Nombre en el menú'; inMenu.value = c.menu || strip(defMenu);
@@ -3298,6 +3319,7 @@
             }
             cont.appendChild(row);
         });
+        iniciarArrastreLista(cont, null, { fila: '.sec-row[data-id]', guardar: guardarOrdenSecciones });
     }
 
     function leerFormSecciones() {
@@ -3343,6 +3365,72 @@
     function restablecerSecciones() {
         if (!confirm('¿Restaurar los nombres originales de todas las secciones?')) return;
         persistirSecciones(null, '↩️ Nombres originales restaurados');
+    }
+
+    // ============================================
+    // ORDEN DE LAS SECCIONES (el administrador las cambia de lugar arrastrando en 🗂️ Secciones)
+    // ============================================
+    function aplicarOrdenSecciones() {
+        const nav = document.getElementById('topbarNav');
+        if (!nav) return;
+        const botones = [...nav.querySelectorAll('.topbar-link[data-target]')];
+        if (!botones.length) return;
+        if (!window.__ordenOriginal) window.__ordenOriginal = botones.map(b => b.dataset.target);   // orden de fábrica
+        const cfg = (storage && storage.seccionesOrden) || null;
+        const guardado = cfg ? (Array.isArray(cfg) ? cfg : Object.values(cfg)).map(String) : [];
+        const base = guardado.length ? guardado : window.__ordenOriginal;
+        const existentes = botones.map(b => b.dataset.target);
+        const orden = base.filter(id => existentes.includes(id));
+        // secciones que no están en la lista (nuevas): van antes de Contacto, o al final
+        existentes.filter(id => !orden.includes(id)).forEach(id => {
+            const k = orden.indexOf('contacto');
+            if (k >= 0) orden.splice(k, 0, id); else orden.push(id);
+        });
+        const porId = {};
+        botones.forEach(b => { porId[b.dataset.target] = b; });
+        orden.forEach(id => nav.appendChild(porId[id]));
+        // el botón de iniciar sesión del administrador (sin sección) se queda siempre al final del menú
+        [...nav.children].filter(c => !(c.dataset && c.dataset.target)).forEach(c => nav.appendChild(c));
+        const orderIdx = orden.slice();
+        // el arreglo de secciones válidas sigue el mismo orden
+        sectionOrder.sort((a, b) => (orderIdx.indexOf(a) < 0 ? 1e9 : orderIdx.indexOf(a)) - (orderIdx.indexOf(b) < 0 ? 1e9 : orderIdx.indexOf(b)));
+        try { localStorage.setItem('tv_sfc_orden_secciones', JSON.stringify(guardado)); } catch (e) {}
+    }
+
+    async function guardarOrdenSecciones(ids) {
+        if (firebaseInitialized) {
+            try { await database.ref('contenido/seccionesOrden').set(ids); }
+            catch (error) {
+                console.error('Error guardando el orden de las secciones:', error);
+                return showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+            }
+        } else {
+            storage.seccionesOrden = ids;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+        }
+        storage.seccionesOrden = ids;
+        aplicarOrdenSecciones();
+        aplicarNombresCategorias();
+        showToast('✅ Orden de las secciones guardado');
+    }
+
+    async function restablecerOrdenSecciones() {
+        if (!confirm('¿Volver al orden original de las secciones?')) return;
+        if (firebaseInitialized) {
+            try { await database.ref('contenido/seccionesOrden').remove(); }
+            catch (error) {
+                console.error('Error restableciendo el orden:', error);
+                return showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+            }
+        } else {
+            delete storage.seccionesOrden;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+        }
+        if (storage) delete storage.seccionesOrden;
+        aplicarOrdenSecciones();
+        aplicarNombresCategorias();
+        cargarFormSecciones();
+        showToast('↩️ Orden original restaurado');
     }
 
     // ============================================
@@ -3557,6 +3645,7 @@
                 if (window.__hashPendiente === id) { window.__hashPendiente = null; showSection(id); }
             }
         });
+        aplicarOrdenSecciones();
     }
 
     function renderGridsPersonalizadas() {
@@ -4218,6 +4307,7 @@
         try { renderLogo(JSON.parse(localStorage.getItem('tv_sfc_logo') || '{}')); } catch (e) { renderLogo({}); }
         try { renderInicio(JSON.parse(localStorage.getItem('tv_sfc_inicio') || '{}')); } catch (e) { renderInicio({}); }
         try { renderSecciones(JSON.parse(localStorage.getItem('tv_sfc_secciones') || '{}')); } catch (e) { renderSecciones({}); }
+        try { window.__ordenOriginal = window.__ordenOriginal || [...document.querySelectorAll('#topbarNav .topbar-link[data-target]')].map(b => b.dataset.target); const o = JSON.parse(localStorage.getItem('tv_sfc_orden_secciones') || '[]'); if (o.length) { storage = storage || {}; storage.seccionesOrden = storage.seccionesOrden || o; aplicarOrdenSecciones(); } } catch (e) {}
         iniciarInstalacion();
         const rawHash = window.location.hash ? window.location.hash.substring(1) : 'inicio';
         const [initialId, extraId] = rawHash.split('/');
