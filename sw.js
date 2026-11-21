@@ -1,6 +1,6 @@
 // Service worker de TV SFC LA UNION
 // Solo guarda la "carcasa" de la app. NO toca streams, Firebase ni /api/proxy.
-const CACHE = 'tvsfc-v2';
+const CACHE = 'tvsfc-v3';
 const SHELL = ['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -23,6 +23,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;      // streams, Firebase, CDNs: directo a la red
   if (url.pathname.startsWith('/api/')) return;          // proxy: directo a la red
+  if (url.pathname.startsWith('/a/')) return;            // enlaces de anuncios compartidos: directo a la red
 
   // Páginas: primero la red (siempre la versión más nueva); sin internet, la guardada
   if (req.mode === 'navigate') {

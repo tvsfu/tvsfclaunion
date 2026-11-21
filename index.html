@@ -128,6 +128,12 @@
         #subirBarra { height: 100%; width: 0; background: var(--primary); transition: width .15s; }
         #subirPreview img, #subirPreview video { max-width: 100%; max-height: 150px; border-radius: 8px; margin-top: 6px; display: block; }
         .lightbox video { max-width: 100%; max-height: 100%; }
+        #shareSheet { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 4000; display: flex; align-items: flex-end; justify-content: center; }
+        .share-box { width: 100%; max-width: 520px; background: #1e293b; border-radius: 18px 18px 0 0; padding: 16px 16px 22px; box-sizing: border-box; }
+        .share-titulo { color: #fff; font-weight: bold; text-align: center; margin-bottom: 12px; }
+        .share-op { display: flex; flex-direction: column; align-items: flex-start; width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 12px; padding: 12px 14px; font-size: 1rem; margin-bottom: 8px; cursor: pointer; text-align: left; }
+        .share-op small { color: #94a3b8; font-size: 0.78rem; margin-top: 2px; }
+        .share-cancel { width: 100%; background: transparent; border: none; color: #cbd5e1; font-size: 0.95rem; padding: 10px; cursor: pointer; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -441,9 +447,9 @@
     <button class="topbar-link" data-target="navidad">🎄 Música Navideña</button>
     <button class="topbar-link" data-target="peliculas247">🍿 Películas 24/7</button>
     <button class="topbar-link" data-target="deportes">🏆 Deportes</button>
-    <button class="topbar-link" data-target="anuncios">📢 Anuncios</button>
-    <button class="topbar-link" data-target="anunciosCristianos">📢 Anun. Cristianos</button>
-    <button class="topbar-link" data-target="anunciosCatolicos">📢 Anun. Católicos</button>
+    <button class="topbar-link" data-target="anuncios">Anuncios</button>
+    <button class="topbar-link" data-target="anunciosCristianos">Anun. Cristianos</button>
+    <button class="topbar-link" data-target="anunciosCatolicos">Anun. Católicos</button>
     <button class="topbar-link" data-target="contacto">🛒 Adquirir servicio</button>
     <button class="topbar-link" onclick="openLogin()" style="background:#334155; border-color:#475569;">🛠️ Admin</button>
 </div>
@@ -1489,7 +1495,7 @@
 
 <section id="anuncios">
     <div class="card">
-        <h2>📢 Anuncios</h2>
+        <h2>Anuncios</h2>
         <div class="grid anuncios-grid" id="anunciosGrid"></div>
         <div class="video-box anuncio-box" id="anuncioContent"></div>
         <div class="reactions-bar">
@@ -1511,7 +1517,7 @@
 
 <section id="anunciosCristianos">
     <div class="card">
-        <h2>📢 Anuncios Cristianos</h2>
+        <h2>Anuncios Cristianos</h2>
         <div class="grid anuncios-grid" id="anunciosCristianosGrid"></div>
         <div class="video-box anuncio-box" id="anuncioCristianoContent"></div>
         <div class="reactions-bar">
@@ -1533,7 +1539,7 @@
 
 <section id="anunciosCatolicos">
     <div class="card">
-        <h2>📢 Anuncios Católicos</h2>
+        <h2>Anuncios Católicos</h2>
         <div class="grid anuncios-grid" id="anunciosCatolicosGrid"></div>
         <div class="video-box anuncio-box" id="anuncioCatolicoContent"></div>
         <div class="reactions-bar">
@@ -1972,7 +1978,7 @@
         const cat = document.getElementById("categoria").value;
         const nombre = document.getElementById("nombre").value;
         const url = document.getElementById("stream1").value;
-        const logo = document.getElementById("logo").value || "https://via.placeholder.com/80";
+        const logo = ANUNCIO_CATS[cat] ? "" : (document.getElementById("logo").value || "https://via.placeholder.com/80");
         const tipo = TV_CATEGORIAS.includes(cat) ? (document.getElementById("tipoStream").value || "auto") : "auto";
         let enlace = ANUNCIO_CATS[cat] ? (document.getElementById("enlaceAnuncio").value || "").trim() : "";
         if (enlace && !/^https?:\/\//i.test(enlace)) enlace = "https://" + enlace;
@@ -2290,6 +2296,11 @@
         const m = /^(https:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\/)(?:(?!v\d+\/)[^/]+\/)?(v\d+\/.+?)(?:\.[A-Za-z0-9]+)?(?:\?.*)?$/.exec(url || '');
         return m ? m[1] + 'so_0,w_' + (w || 600) + ',c_limit,f_jpg/' + m[2] + '.jpg' : null;
     }
+    // Miniatura de un video de YouTube a partir de su enlace
+    function ytMiniatura(url) {
+        const m = /(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([\w-]{11})/i.exec(url || '');
+        return m ? 'https://img.youtube.com/vi/' + m[1] + '/hqdefault.jpg' : null;
+    }
     function esYouTube(url) { return /youtube\.com|youtu\.be/i.test(url || ''); }
     function getAnuncios(cat) { return { ...(dataInicial[cat] || {}), ...(storage[cat] || {}) }; }
 
@@ -2400,7 +2411,7 @@
             const thumb = document.createElement('div');
             thumb.className = 'anuncio-thumb';
             const img = document.createElement('img');
-            img.src = yt ? item.logo : (vid ? (cloudPoster(item.url, 600) || item.logo || 'https://via.placeholder.com/160x100') : item.url);
+            img.src = yt ? (ytMiniatura(item.url) || item.logo) : (vid ? (cloudPoster(item.url, 600) || item.logo || 'https://via.placeholder.com/160x100') : item.url);
             img.alt = item.nombre || '';
             img.onerror = () => { img.onerror = null; img.src = item.logo || 'https://via.placeholder.com/160x100'; };
             thumb.appendChild(img);
@@ -2464,31 +2475,15 @@
         }
     }
 
-    async function compartirAnuncio(cat, id) {
+    function linkAnuncio(cat, id) { return `${window.location.origin}/a/${cat}/${encodeURIComponent(id)}`; }
+
+    // Compartir solo el ENLACE del anuncio (Facebook/WhatsApp muestran su imagen y nombre en la vista previa)
+    async function compartirAnuncioEnlace(cat, id) {
         const item = getAnuncios(cat)[id];
         if (!item) return;
-        // Enlace propio del anuncio: así Facebook/WhatsApp muestran su imagen y nombre
-        const link = `${window.location.origin}/a/${cat}/${encodeURIComponent(id)}`;
+        const link = linkAnuncio(cat, id);
         const titulo = item.nombre || 'Anuncio';
-        const texto = `📢 ${titulo} - TV SFC LA UNION\n${link}`;
-
         if (navigator.share) {
-            // 1) Intenta compartir la imagen del anuncio junto con el enlace
-            if (!esYouTube(item.url) && !esVideoArchivo(item.url)) {
-                try {
-                    const resp = await fetch(item.url);
-                    const blob = await resp.blob();
-                    const ext = ((blob.type || 'image/jpeg').split('/')[1] || 'jpg').split('+')[0];
-                    const file = new File([blob], titulo.replace(/[^\w-]+/g, '_') + '.' + ext, { type: blob.type || 'image/jpeg' });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({ files: [file], title: titulo, text: texto });
-                        return;
-                    }
-                } catch (err) {
-                    if (err && err.name === 'AbortError') return;
-                }
-            }
-            // 2) Si no se puede enviar la imagen, comparte el enlace de ese anuncio
             try {
                 await navigator.share({ title: titulo, text: `📢 ${titulo} - TV SFC LA UNION`, url: link });
                 return;
@@ -2496,13 +2491,61 @@
                 if (err && err.name === 'AbortError') return;
             }
         }
-        // 3) Sin menú de compartir: copia el enlace
         try {
             await navigator.clipboard.writeText(link);
             showToast('✅ Enlace del anuncio copiado');
         } catch (err) {
             showToast('❌ No se pudo compartir', 'error');
         }
+    }
+
+    // Compartir la IMAGEN del anuncio (con el enlace en el texto; algunas apps, como Facebook, solo toman la imagen)
+    async function compartirAnuncioImagen(cat, id) {
+        const item = getAnuncios(cat)[id];
+        if (!item) return;
+        const link = linkAnuncio(cat, id);
+        const titulo = item.nombre || 'Anuncio';
+        const texto = `📢 ${titulo} - TV SFC LA UNION\n${link}`;
+        if (navigator.share && !esYouTube(item.url) && !esVideoArchivo(item.url)) {
+            try {
+                const resp = await fetch(item.url);
+                const blob = await resp.blob();
+                const ext = ((blob.type || 'image/jpeg').split('/')[1] || 'jpg').split('+')[0];
+                const file = new File([blob], titulo.replace(/[^\w-]+/g, '_') + '.' + ext, { type: blob.type || 'image/jpeg' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: titulo, text: texto });
+                    return;
+                }
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+            }
+        }
+        compartirAnuncioEnlace(cat, id);   // si no se puede enviar la imagen, se comparte el enlace
+    }
+
+    function cerrarOpcionesCompartir() {
+        const sh = document.getElementById('shareSheet');
+        if (sh) sh.remove();
+    }
+
+    // La flechita pregunta qué compartir: el enlace o la imagen
+    function compartirAnuncio(cat, id) {
+        const item = getAnuncios(cat)[id];
+        if (!item) return;
+        if (esYouTube(item.url) || esVideoArchivo(item.url)) return compartirAnuncioEnlace(cat, id);   // video: solo enlace
+        cerrarOpcionesCompartir();
+        const sh = document.createElement('div');
+        sh.id = 'shareSheet';
+        sh.onclick = cerrarOpcionesCompartir;
+        sh.innerHTML = '<div class="share-box" onclick="event.stopPropagation()">' +
+            '<div class="share-titulo">Compartir anuncio</div>' +
+            '<button type="button" class="share-op" id="shareOpEnlace">🔗 Compartir enlace<small>Se ve con su imagen y nombre</small></button>' +
+            '<button type="button" class="share-op" id="shareOpImagen">🖼️ Compartir imagen<small>Envía la foto del anuncio</small></button>' +
+            '<button type="button" class="share-cancel" id="shareOpCancel">Cancelar</button></div>';
+        document.body.appendChild(sh);
+        document.getElementById('shareOpEnlace').onclick = () => { cerrarOpcionesCompartir(); compartirAnuncioEnlace(cat, id); };
+        document.getElementById('shareOpImagen').onclick = () => { cerrarOpcionesCompartir(); compartirAnuncioImagen(cat, id); };
+        document.getElementById('shareOpCancel').onclick = cerrarOpcionesCompartir;
     }
 
     // ============================================
@@ -3261,6 +3304,8 @@
         if (eb) eb.style.display = ANUNCIO_CATS[cat] ? "block" : "none";
         const sb = document.getElementById("subirBox");
         if (sb) sb.style.display = ANUNCIO_CATS[cat] ? "block" : "none";
+        const lg = document.getElementById("logo");
+        if (lg) lg.style.display = ANUNCIO_CATS[cat] ? "none" : "";   // los anuncios no llevan logo
     }
 
     function proxyUrl(url) {
