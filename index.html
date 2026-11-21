@@ -162,6 +162,12 @@
         .sec-row { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
         .sec-row input, .sec-row textarea { -webkit-user-select: text; user-select: text; }
         .sec-def .drag-handle { margin-right: 4px; }
+        .anuncio-box.vertical { aspect-ratio: auto; height: 76vh; width: min(100%, calc(76vh * 9 / 16)); margin-left: auto; margin-right: auto; }
+        .anuncio-box:fullscreen { aspect-ratio: auto; width: 100%; height: 100%; margin: 0; border-radius: 0; border: 0; }
+        .anuncio-box:-webkit-full-screen { aspect-ratio: auto; width: 100%; height: 100%; margin: 0; border-radius: 0; border: 0; }
+        .anuncio-tools { position: absolute; top: 4px; right: 4px; z-index: 6; display: flex; align-items: center; }
+        .anuncio-box video.anuncio-main { width: 100%; height: 100%; object-fit: contain; }
+        .anuncio-enlace { height: 100%; display: flex; align-items: center; justify-content: center; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -2548,19 +2554,99 @@
         if (rf) { try { const r = rf.call(el); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
     }
 
-    // Toque en la imagen o el video de un anuncio de la lista: abre la ventana; un segundo toque seguido, la pantalla completa
-    function tocarAnuncio(cat, id) {
-        const ahora = Date.now(), k = cat + ':' + id;
-        if (_ultimoToque.k === k && ahora - _ultimoToque.t < 350) {
-            _ultimoToque = { k: '', t: 0 };
-            pantallaCompletaAnuncio(cat, id);
-            return;
+    // El anuncio se muestra ABAJO de la lista (como los videos de YouTube o Facebook);
+    // desde ahí se abre la ventana (⧉ o un toque en la imagen) o la pantalla completa (⛶ o doble toque).
+    function mostrarAnuncioInline(cat, id, desplazar) {
+        const item = getAnuncios(cat)[id];
+        const cfg = ANUNCIO_CATS[cat];
+        if (!item || !cfg) return;
+        anuncioSel[cat] = id;
+        document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => c.classList.toggle('selected', c.dataset.id === String(id)));
+        const box = document.getElementById(cfg.box);
+        if (!box) return;
+        box.querySelectorAll('video').forEach(v => { try { v.pause(); } catch (e) {} });
+        box.innerHTML = '';
+        box.style.display = '';
+        box.dataset.cat = cat;
+        box.dataset.id = id;
+        const med = clasificarMedia(item.url);
+        box.classList.toggle('vertical', med.tipo === 'embed' && !!med.vertical);
+        if (med.tipo === 'embed') {
+            const f = document.createElement('iframe');
+            f.src = med.embed;
+            f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+            f.allowFullscreen = true;
+            box.appendChild(f);
+        } else if (med.tipo === 'video') {
+            const v = document.createElement('video');
+            v.className = 'anuncio-main';
+            v.src = item.url; v.controls = true; v.playsInline = true;
+            v.addEventListener('dblclick', () => pantallaCompletaInline(cat, id));
+            box.appendChild(v);
+            v.play().catch(() => {});
+        } else if (med.tipo === 'enlace') {
+            const a = document.createElement('a');
+            a.className = 'av-abrir'; a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
+            a.textContent = '🔗 Abrir en ' + (med.plataforma || 'una ventana nueva');
+            const c = document.createElement('div');
+            c.className = 'anuncio-enlace';
+            c.appendChild(a);
+            box.appendChild(c);
+        } else {
+            const im = document.createElement('img');
+            im.className = 'anuncio-main';
+            im.src = item.url; im.alt = item.nombre || 'Anuncio';
+            im.onclick = () => tocarMediaInline(cat, id);
+            box.appendChild(im);
         }
-        _ultimoToque = { k, t: ahora };
+        // herramientas: ventana, pantalla completa y cerrar
+        const tools = document.createElement('div');
+        tools.className = 'anuncio-tools';
+        const mk = (txt, titulo, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'av-btn'; b.title = titulo; b.setAttribute('aria-label', titulo); b.innerHTML = txt; b.onclick = (e) => { e.stopPropagation(); fn(); }; return b; };
+        tools.appendChild(mk('⧉', 'Abrir en ventana', () => abrirVentanaAnuncio(cat, id)));
+        if (med.tipo !== 'enlace') tools.appendChild(mk('⛶', 'Pantalla completa', () => pantallaCompletaInline(cat, id)));
+        tools.appendChild(mk('<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" style="width:24px;height:24px;display:block"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>', 'Cerrar', () => cerrarAnuncioInline(cat)));
+        box.appendChild(tools);
+        if (desplazar !== false) setTimeout(() => { try { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }, 80);
+    }
+
+    function cerrarAnuncioInline(cat) {
+        const cfg = ANUNCIO_CATS[cat];
+        const box = cfg && document.getElementById(cfg.box);
+        if (!box) return;
+        try { if (document.fullscreenElement === box) document.exitFullscreen(); } catch (e) {}
+        box.querySelectorAll('video').forEach(v => { try { v.pause(); } catch (e) {} });
+        box.innerHTML = '';
+        box.style.display = 'none';
+        box.classList.remove('vertical');
+        anuncioSel[cat] = null;
+        document.querySelectorAll('#' + cfg.grid + ' .anuncio-card.selected').forEach(c => c.classList.remove('selected'));
+    }
+
+    // Toque en la imagen mostrada abajo: abre la ventana; un segundo toque seguido, la pantalla completa
+    function tocarMediaInline(cat, id) {
+        _ultimoToque = { k: 'v', t: Date.now() };
         abrirVentanaAnuncio(cat, id);
     }
 
-    function mostrarAnuncio(cat, id) { abrirVentanaAnuncio(cat, id); }   // enlaces compartidos
+    function pantallaCompletaInline(cat, id) {
+        const item = getAnuncios(cat)[id];
+        const cfg = ANUNCIO_CATS[cat];
+        if (!item || !cfg) return;
+        const med = clasificarMedia(item.url);
+        if (med.tipo === 'imagen') { abrirImagen(item.url, item.nombre, item.descripcion); return; }
+        if (med.tipo === 'video') { abrirVideo(item.url, item.nombre, item.descripcion); return; }
+        if (med.tipo === 'enlace') { window.open(item.url, '_blank', 'noopener'); return; }
+        const box = document.getElementById(cfg.box);
+        if (!box) return;
+        const rf = box.requestFullscreen || box.webkitRequestFullscreen;
+        if (rf) { try { const r = rf.call(box); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+    }
+
+    // Toque en un anuncio de la lista: aparece abajo
+    function tocarAnuncio(cat, id) { mostrarAnuncioInline(cat, id, true); }
+
+    function mostrarAnuncio(cat, id) { mostrarAnuncioInline(cat, id, true); }   // enlaces compartidos
 
     function anuncioKey(cat, id) { return 'anuncio_' + cat + '_' + String(id).replace(/[.#$\[\]\/]/g, '_'); }
 
@@ -2655,7 +2741,8 @@
         const sel = anuncioSel[cat];
         if (sel && fusion[sel]) {
             grid.querySelectorAll('.anuncio-card').forEach(c => c.classList.toggle('selected', c.dataset.id === String(sel)));
-        } else if (!box.firstChild || box.querySelector('.anuncio-placeholder')) {
+        } else {
+            if (sel) anuncioSel[cat] = null;
             box.innerHTML = '';
             box.style.display = 'none';
         }
