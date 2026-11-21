@@ -11,12 +11,13 @@ const LABELS = {
   canales: 'Canales Nacionales', canalesInt: 'Canales Internacionales',
   canalesDeportes: 'Canales De Deportes Nacional', canalesDeportesInt: 'Canales De Deportes Internacional',
   canalesReligiosoNac: 'Canales Religioso Nacional', canalesReligiosoInt: 'Canales Religioso Internacional',
-  radio: 'Emisoras Nacionales E Internacionales', radioSFC: 'Emisoras SFC',
-  radioCristianaSFC: 'Emisoras Cristianas SFC', radioCristianaNac: 'Emisoras Cristianas Nac/Int',
-  radioCatolicaSFC: 'Emisoras Católicos SFC', radioCatolicaNac: 'Emisoras Católicos Nac/Int',
+  canalesMusic: 'Canales de Música 24/7', canalesInfantil: 'Canales Infantiles', canalesNavidad: 'Navidad 24/7',
+  radio: 'Emisoras Nacionales', radioInt: 'Emisoras Internacionales', radioSFC: 'Emisoras SFC',
+  radioCristianaSFC: 'Emisoras Cristianas SFC', radioCristianaNac: 'Emisoras Cristianas Nacionales', radioCristianaInt: 'Emisoras Cristianas Internacionales',
+  radioCatolicaSFC: 'Emisoras Católicos SFC', radioCatolicaNac: 'Emisoras Católicos Nacionales', radioCatolicaInt: 'Emisoras Católicos Internacionales',
   videos: 'Entretenimiento 24/7', videosCinema: '24/7 CINEMA', noticias: 'Noticias 24/7',
   religiosos: 'Música Cristiano', videosReligioso: '24/7 Religioso', videosCatolicos: 'Música Católica 24/7',
-  music247: 'Music 24/7', peliculas247: 'Películas 24/7', deportes: 'Deportes',
+  music247: 'Music 24/7', navidad: 'Música Navideña 24/7', peliculas247: 'Películas 24/7', deportes: 'Deportes',
   anuncios: 'Anuncios', anunciosCristianos: 'Anuncios Cristianos', anunciosCatolicos: 'Anuncios Católicos'
 };
 const ANUNCIOS = ['anuncios', 'anunciosCristianos', 'anunciosCatolicos'];
@@ -25,6 +26,15 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
 ));
 const esHttp = (u) => /^https?:\/\//i.test(u || '');
+
+// Imagen de vista previa (JPG) de una foto o video subido a Cloudinary
+function cloudOg(url) {
+  const m = /^(https:\/\/res\.cloudinary\.com\/[^/]+\/)(image|video)\/upload\/(?:(?!v\d+\/)[^/]+\/)?(v\d+\/.+?)(?:\.[A-Za-z0-9]+)?(?:\?.*)?$/.exec(url || '');
+  if (!m) return null;
+  return m[2] === 'video'
+    ? m[1] + 'video/upload/so_0,w_1200,c_limit,f_jpg/' + m[3] + '.jpg'
+    : m[1] + 'image/upload/w_1200,c_limit,q_auto,f_jpg/' + m[3] + '.jpg';
+}
 
 function ytThumb(url) {
   const m = /(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([\w-]{11})/i.exec(url || '');
@@ -63,7 +73,9 @@ export default async function handler(req, res) {
   let imagen = origin + '/icons/icon-512.png';
   if (item) {
     const yt = esAnuncio ? ytThumb(item.url) : null;
-    if (yt) imagen = yt;
+    const co = esAnuncio ? cloudOg(item.url) : null;
+    if (co) imagen = co;
+    else if (yt) imagen = yt;
     else if (esAnuncio && esHttp(item.url)) imagen = item.url;       // el anuncio es la imagen
     else if (esHttp(item.logo)) imagen = item.logo;                  // canales y emisoras: su logo
   }
@@ -74,7 +86,8 @@ export default async function handler(req, res) {
   else desc = (esRadio ? '📻 Escucha ' : '📺 Mira ') + titulo + ' en TV SFC LA UNION';
 
   const enlace = origin + '/a/' + cat + (id ? '/' + encodeURIComponent(id) : '');
-  const destino = origin + '/#' + cat + (id ? '/' + encodeURIComponent(id) : '');
+  const seccion = cat === 'eventos' ? 'facebooklive' : cat;   // las transmisiones de Facebook Live se ven en esa sección
+  const destino = origin + '/#' + seccion + (id ? '/' + encodeURIComponent(id) : '');
 
   const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
