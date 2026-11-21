@@ -134,6 +134,13 @@
         .share-op { display: flex; flex-direction: column; align-items: flex-start; width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 12px; padding: 12px 14px; font-size: 1rem; margin-bottom: 8px; cursor: pointer; text-align: left; }
         .share-op small { color: #94a3b8; font-size: 0.78rem; margin-top: 2px; }
         .share-cancel { width: 100%; background: transparent; border: none; color: #cbd5e1; font-size: 0.95rem; padding: 10px; cursor: pointer; }
+        .anuncio-desc { font-size: 0.82rem; opacity: 0.85; margin: 2px 0 8px; white-space: pre-line; }
+        #lightboxCaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 18px 22px; background: linear-gradient(transparent, rgba(0,0,0,0.85)); color: #fff; text-align: center; pointer-events: none; }
+        #lightboxCaption b { display: block; font-size: 1.05rem; }
+        #lightboxCaption span { display: block; font-size: 0.88rem; opacity: 0.9; margin-top: 4px; white-space: pre-line; }
+        .anuncio-caption { padding: 10px 6px 0; text-align: center; }
+        .anuncio-caption b { display: block; }
+        .anuncio-caption span { display: block; font-size: 0.88rem; opacity: 0.85; white-space: pre-line; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -1581,6 +1588,7 @@
     <button class="lightbox-close" onclick="cerrarImagen()">✕</button>
     <img id="lightboxImg" src="" alt="Anuncio" onclick="event.stopPropagation()">
     <video id="lightboxVideo" controls playsinline style="display:none" onclick="event.stopPropagation()"></video>
+    <div id="lightboxCaption" style="display:none"></div>
 </div>
 
 <div id="adminPanel">
@@ -1646,6 +1654,9 @@
             </select>
         </div>
         <input type="text" id="logo" class="admin-input" placeholder="URL del logo (opcional)">
+        <div id="descBox" style="display:none;">
+            <textarea id="descAnuncio" class="admin-input" rows="3" placeholder="Descripción o subtítulo del anuncio (opcional)"></textarea>
+        </div>
         <div id="enlaceBox" style="display:none;">
             <input type="text" id="enlaceAnuncio" class="admin-input" placeholder="Enlace directo del anuncio (opcional): al tocar abre una ventana nueva">
         </div>
@@ -1944,6 +1955,7 @@
             document.getElementById("logo").value = item.logo;
             document.getElementById("tipoStream").value = item.tipo || "auto";
             document.getElementById("enlaceAnuncio").value = item.enlace || "";
+            document.getElementById("descAnuncio").value = item.descripcion || "";
             toggleTipoStream();
             
             editModeId = id;
@@ -1968,6 +1980,7 @@
         document.getElementById("logo").value = "";
         document.getElementById("tipoStream").value = "auto";
         document.getElementById("enlaceAnuncio").value = "";
+        document.getElementById("descAnuncio").value = "";
         limpiarSubida();
         document.getElementById("formTitle").textContent = "Agregar Contenido";
         document.getElementById("btnGuardar").textContent = "💾 Guardar en Firebase";
@@ -1980,6 +1993,7 @@
         const url = document.getElementById("stream1").value;
         const logo = ANUNCIO_CATS[cat] ? "" : (document.getElementById("logo").value || "https://via.placeholder.com/80");
         const tipo = TV_CATEGORIAS.includes(cat) ? (document.getElementById("tipoStream").value || "auto") : "auto";
+        const desc = ANUNCIO_CATS[cat] ? (document.getElementById("descAnuncio").value || "").trim() : "";
         let enlace = ANUNCIO_CATS[cat] ? (document.getElementById("enlaceAnuncio").value || "").trim() : "";
         if (enlace && !/^https?:\/\//i.test(enlace)) enlace = "https://" + enlace;
         
@@ -1989,7 +2003,7 @@
         
         if (firebaseInitialized) {
             try {
-                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, tipo: tipo, ...(enlace ? { enlace: enlace } : {}), timestamp: Date.now() });
+                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, tipo: tipo, ...(enlace ? { enlace: enlace } : {}), ...(desc ? { descripcion: desc } : {}), timestamp: Date.now() });
                 showToast(editModeId ? "✅ Contenido Actualizado" : "✅ Guardado en Firebase");
                 cancelarEdicion();
                 mostrarTodosElementos();
@@ -1999,7 +2013,7 @@
             }
         } else {
             if (!storage[cat]) storage[cat] = {};
-            storage[cat][id] = { nombre, url, logo, tipo, ...(enlace ? { enlace } : {}) };
+            storage[cat][id] = { nombre, url, logo, tipo, ...(enlace ? { enlace } : {}), ...(desc ? { descripcion: desc } : {}) };
             localStorage.setItem("tv_sfc_data", JSON.stringify(storage));
             showToast("✅ Guardado localmente");
             cancelarEdicion();
@@ -2304,7 +2318,19 @@
     function esYouTube(url) { return /youtube\.com|youtu\.be/i.test(url || ''); }
     function getAnuncios(cat) { return { ...(dataInicial[cat] || {}), ...(storage[cat] || {}) }; }
 
-    function abrirImagen(url) {
+    function pieLightbox(titulo, desc) {
+        const c = document.getElementById('lightboxCaption');
+        if (!c) return;
+        c.innerHTML = '';
+        if (titulo || desc) {
+            if (titulo) { const b = document.createElement('b'); b.textContent = titulo; c.appendChild(b); }
+            if (desc) { const sp = document.createElement('span'); sp.textContent = desc; c.appendChild(sp); }
+            c.style.display = '';
+        } else c.style.display = 'none';
+    }
+
+    function abrirImagen(url, titulo, desc) {
+        pieLightbox(titulo, desc);
         const v = document.getElementById('lightboxVideo');
         if (v) { v.pause(); v.style.display = 'none'; }
         const im = document.getElementById('lightboxImg');
@@ -2312,7 +2338,8 @@
         im.src = url;
         document.getElementById('lightbox').classList.add('open');
     }
-    function abrirVideo(url) {
+    function abrirVideo(url, titulo, desc) {
+        pieLightbox(titulo, desc);
         document.getElementById('lightboxImg').style.display = 'none';
         const v = document.getElementById('lightboxVideo');
         v.style.display = '';
@@ -2356,6 +2383,13 @@
             img.onclick = () => abrirAnuncio(cat, id);
             box.appendChild(img);
         }
+        if (item.nombre || item.descripcion) {
+            const cap = document.createElement('div');
+            cap.className = 'anuncio-caption';
+            if (item.nombre) { const b = document.createElement('b'); b.textContent = item.nombre; cap.appendChild(b); }
+            if (item.descripcion) { const sp = document.createElement('span'); sp.textContent = item.descripcion; cap.appendChild(sp); }
+            box.appendChild(cap);
+        }
         document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => {
             c.classList.toggle('selected', c.dataset.id === String(id));
         });
@@ -2377,8 +2411,8 @@
             c.classList.toggle('selected', c.dataset.id === String(id));
         });
         if (esYouTube(item.url)) mostrarAnuncio(cat, id);
-        else if (esVideoArchivo(item.url)) abrirVideo(item.url);
-        else abrirImagen(item.url);
+        else if (esVideoArchivo(item.url)) abrirVideo(item.url, item.nombre, item.descripcion);
+        else abrirImagen(item.url, item.nombre, item.descripcion);
     }
 
     // Reacciones de cada anuncio
@@ -2451,7 +2485,14 @@
             flecha.onclick = (e) => { e.stopPropagation(); compartirAnuncio(cat, id); };
             acciones.appendChild(flecha);
 
-            card.append(thumb, name, acciones);
+            card.append(thumb, name);
+            if (item.descripcion) {
+                const dsc = document.createElement('p');
+                dsc.className = 'anuncio-desc';
+                dsc.textContent = item.descripcion;
+                card.appendChild(dsc);
+            }
+            card.appendChild(acciones);
             grid.appendChild(card);
         });
 
@@ -2485,7 +2526,7 @@
         const titulo = item.nombre || 'Anuncio';
         if (navigator.share) {
             try {
-                await navigator.share({ title: titulo, text: `📢 ${titulo} - TV SFC LA UNION`, url: link });
+                await navigator.share({ title: titulo, text: `📢 ${titulo} - TV SFC LA UNION` + (item.descripcion ? `\n${item.descripcion}` : ''), url: link });
                 return;
             } catch (err) {
                 if (err && err.name === 'AbortError') return;
@@ -2505,7 +2546,7 @@
         if (!item) return;
         const link = linkAnuncio(cat, id);
         const titulo = item.nombre || 'Anuncio';
-        const texto = `📢 ${titulo} - TV SFC LA UNION\n${link}`;
+        const texto = `📢 ${titulo} - TV SFC LA UNION` + (item.descripcion ? `\n${item.descripcion}` : '') + `\n${link}`;
         if (navigator.share && !esYouTube(item.url) && !esVideoArchivo(item.url)) {
             try {
                 const resp = await fetch(item.url);
@@ -3306,6 +3347,10 @@
         if (sb) sb.style.display = ANUNCIO_CATS[cat] ? "block" : "none";
         const lg = document.getElementById("logo");
         if (lg) lg.style.display = ANUNCIO_CATS[cat] ? "none" : "";   // los anuncios no llevan logo
+        const db = document.getElementById("descBox");
+        if (db) db.style.display = ANUNCIO_CATS[cat] ? "block" : "none";
+        const nm = document.getElementById("nombre");
+        if (nm) nm.placeholder = ANUNCIO_CATS[cat] ? "Título del anuncio" : "Nombre del contenido";
     }
 
     function proxyUrl(url) {
