@@ -47,7 +47,8 @@ export default async function handler(req, res) {
   const origin = 'https://' + host;
   const idOk = !id || /^[\w.-]+$/.test(id);
 
-  if (!Object.prototype.hasOwnProperty.call(LABELS, cat) || !idOk) {
+  const esCustom = /^custom_\d+$/.test(cat || '');
+  if ((!Object.prototype.hasOwnProperty.call(LABELS, cat) && !esCustom) || !idOk) {
     res.statusCode = 302;
     res.setHeader('Location', origin + '/');
     return res.end();
@@ -66,9 +67,20 @@ export default async function handler(req, res) {
     if (!item && (n || i)) item = { nombre: String(n || '').slice(0, 90), logo: esHttp(i) ? i : '' };
   }
 
-  const label = LABELS[cat];
-  const esAnuncio = ANUNCIOS.includes(cat);
-  const esRadio = cat.indexOf('radio') === 0;
+  // Secciones agregadas por el administrador: su nombre y tipo vienen de Firebase
+  let cfgCustom = null;
+  if (esCustom) {
+    try {
+      const ctrl2 = new AbortController();
+      const t2 = setTimeout(() => ctrl2.abort(), 4000);
+      const r2 = await fetch(DB + '/contenido/seccionesPersonalizadas/' + cat + '.json', { signal: ctrl2.signal });
+      clearTimeout(t2);
+      if (r2.ok) cfgCustom = await r2.json();
+    } catch (e) { /* sin datos */ }
+  }
+  const label = esCustom ? ((cfgCustom && (cfgCustom.titulo || cfgCustom.menu)) || 'TV SFC LA UNION') : LABELS[cat];
+  const esAnuncio = esCustom ? !!(cfgCustom && cfgCustom.tipo === 'anuncios') : ANUNCIOS.includes(cat);
+  const esRadio = esCustom ? !!(cfgCustom && cfgCustom.tipo === 'radio') : cat.indexOf('radio') === 0;
   const titulo = item && item.nombre ? item.nombre : (esAnuncio && id ? 'Anuncio' : label);
   let imagen = origin + '/icons/icon-512.png';
   if (item) {
