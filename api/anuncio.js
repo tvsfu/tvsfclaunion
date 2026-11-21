@@ -36,6 +36,15 @@ function cloudOg(url) {
     : m[1] + 'image/upload/w_1200,c_limit,q_auto,f_jpg/' + m[3] + '.jpg';
 }
 
+// Enlaces de video que no son una imagen (Facebook, TikTok, archivos de video, etc.)
+function esPaginaVideo(url) {
+  if (/\.(mp4|webm|mov|m4v|ogv|3gp)(\?|#|$)/i.test(url || '')) return true;
+  try {
+    const h = new URL(url).hostname.replace(/^(www\.|m\.|web\.)/, '');
+    return /(^|\.)(facebook\.com|fb\.watch|tiktok\.com|instagram\.com|vimeo\.com|dailymotion\.com|twitter\.com|x\.com|twitch\.tv|rumble\.com|kick\.com)$/.test(h);
+  } catch (e) { return false; }
+}
+
 function ytThumb(url) {
   const m = /(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([\w-]{11})/i.exec(url || '');
   return m ? 'https://img.youtube.com/vi/' + m[1] + '/hqdefault.jpg' : null;
@@ -88,7 +97,7 @@ export default async function handler(req, res) {
     const co = esAnuncio ? cloudOg(item.url) : null;
     if (co) imagen = co;
     else if (yt) imagen = yt;
-    else if (esAnuncio && esHttp(item.url)) imagen = item.url;       // el anuncio es la imagen
+    else if (esAnuncio && esHttp(item.url) && !esPaginaVideo(item.url)) imagen = item.url;       // el anuncio es la imagen
     else if (esHttp(item.logo)) imagen = item.logo;                  // canales y emisoras: su logo
   }
 
