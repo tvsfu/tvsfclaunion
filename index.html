@@ -141,6 +141,23 @@
         .anuncio-caption { padding: 10px 6px 0; text-align: center; }
         .anuncio-caption b { display: block; }
         .anuncio-caption span { display: block; font-size: 0.88rem; opacity: 0.85; white-space: pre-line; }
+        #anuncioVentana { position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 3200; display: none; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; }
+        #anuncioVentana.open { display: flex; }
+        .av-box { width: 100%; max-width: 560px; max-height: 100%; overflow-y: auto; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); display: flex; flex-direction: column; }
+        .av-bar { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; color: #fff; }
+        .av-titulo { flex: 1; min-width: 0; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .av-acciones { display: flex; align-items: center; }
+        .av-btn { background: transparent; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 4px 8px; line-height: 1; }
+        .av-x svg { width: 24px; height: 24px; display: block; }
+        .av-media { display: flex; justify-content: center; background: #000; }
+        .av-media img { max-width: 100%; max-height: 62vh; object-fit: contain; display: block; }
+        .av-media video { width: 100%; max-height: 62vh; display: block; }
+        .av-embed { width: 100%; aspect-ratio: 16 / 9; }
+        .av-embed.vertical { width: min(100%, calc(66vh * 9 / 16)); height: 66vh; aspect-ratio: auto; }
+        .av-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
+        .av-info { padding: 10px 14px 14px; color: #e2e8f0; font-size: 0.9rem; white-space: pre-line; }
+        .av-ir, .av-abrir { display: inline-block; margin-top: 8px; background: var(--primary); color: var(--on-primary); padding: 10px 14px; border-radius: 10px; text-decoration: none; font-weight: bold; }
+        .av-abrir { margin: 18px; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -2365,65 +2382,182 @@
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarImagen(); });
 
-    function mostrarAnuncio(cat, id) {
+    // ============================================
+    // ANUNCIOS: ventana al tocar, pantalla completa con doble toque, y enlaces de video de varias plataformas
+    // ============================================
+    // Tipo de contenido de un enlace: imagen, video (archivo), embed (YouTube, Facebook, TikTok, Instagram, Vimeo, Dailymotion) o enlace (se abre en ventana nueva)
+    function clasificarMedia(url) {
+        url = String(url || '').trim();
+        let u;
+        try { u = new URL(url); } catch (e) { return { tipo: 'imagen', plataforma: '' }; }
+        const h = u.hostname.replace(/^(www\.|m\.|web\.|mobile\.)/, '');
+        const p = u.pathname;
+        let m;
+        if (/(^|\.)youtube(-nocookie)?\.com$/.test(h) || h === 'youtu.be') {
+            let id = null;
+            if (h === 'youtu.be') id = p.slice(1).split('/')[0];
+            else if ((m = p.match(/^\/(?:embed|shorts|live|v)\/([\w-]{11})/))) id = m[1];
+            else id = u.searchParams.get('v');
+            if (id && /^[\w-]{11}$/.test(id)) {
+                return { tipo: 'embed', plataforma: 'YouTube', embed: 'https://www.youtube.com/embed/' + id, poster: 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg', vertical: /^\/shorts\//.test(p) };
+            }
+            return { tipo: 'enlace', plataforma: 'YouTube' };
+        }
+        if (/(^|\.)facebook\.com$/.test(h) || h === 'fb.watch') {
+            if (/^\/plugins\//.test(p)) return { tipo: 'embed', plataforma: 'Facebook', embed: url };
+            return { tipo: 'embed', plataforma: 'Facebook', embed: 'https://www.facebook.com/plugins/video.php?href=' + encodeURIComponent(url) + '&show_text=false', vertical: /^\/reel\//.test(p) };
+        }
+        if (/(^|\.)tiktok\.com$/.test(h)) {
+            if ((m = p.match(/\/video\/(\d+)/))) return { tipo: 'embed', plataforma: 'TikTok', embed: 'https://www.tiktok.com/embed/v2/' + m[1], vertical: true };
+            return { tipo: 'enlace', plataforma: 'TikTok' };      // enlaces cortos (vm.tiktok.com): se abren en ventana nueva
+        }
+        if (/(^|\.)instagram\.com$/.test(h)) {
+            if ((m = p.match(/^\/(p|reel|reels|tv)\/([\w-]+)/))) return { tipo: 'embed', plataforma: 'Instagram', embed: 'https://www.instagram.com/' + (m[1] === 'reels' ? 'reel' : m[1]) + '/' + m[2] + '/embed', vertical: true };
+            return { tipo: 'enlace', plataforma: 'Instagram' };
+        }
+        if (h === 'player.vimeo.com') return { tipo: 'embed', plataforma: 'Vimeo', embed: url };
+        if (/(^|\.)vimeo\.com$/.test(h) && (m = p.match(/^\/(?:video\/)?(\d+)/))) return { tipo: 'embed', plataforma: 'Vimeo', embed: 'https://player.vimeo.com/video/' + m[1] };
+        if (/(^|\.)dailymotion\.com$/.test(h) && (m = p.match(/\/video\/(\w+)/))) return { tipo: 'embed', plataforma: 'Dailymotion', embed: 'https://www.dailymotion.com/embed/video/' + m[1] };
+        if (/(^|\.)(twitter\.com|x\.com|twitch\.tv|rumble\.com|kick\.com|t\.me)$/.test(h)) return { tipo: 'enlace', plataforma: h };
+        if (esVideoArchivo(url)) return { tipo: 'video', plataforma: 'Video' };
+        return { tipo: 'imagen', plataforma: '' };
+    }
+
+    // Imagen de reemplazo para videos sin miniatura (TikTok, Facebook, etc.)
+    function tilePlataforma(nombre) {
+        const colores = { YouTube: '#dc2626', Facebook: '#1877f2', TikTok: '#111827', Instagram: '#c13584', Vimeo: '#1ab7ea', Dailymotion: '#0a74ff' };
+        const c = colores[nombre] || '#475569';
+        const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 200'><rect width='320' height='200' fill='" + c + "'/><circle cx='160' cy='82' r='36' fill='white' fill-opacity='0.92'/><path d='M149 64 L149 100 L180 82 Z' fill='" + c + "'/><text x='160' y='156' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='white'>" + String(nombre || 'Enlace').replace(/[<>&']/g, '') + "</text></svg>";
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    let _ultimoToque = { k: '', t: 0 };
+    let _ventana = null;
+    let _aperturaVentana = 0;
+
+    function asegurarVentanaAnuncio() {
+        let ov = document.getElementById('anuncioVentana');
+        if (ov) return ov;
+        ov = document.createElement('div');
+        ov.id = 'anuncioVentana';
+        ov.innerHTML = '<div class="av-box"><div class="av-bar"><span class="av-titulo"></span><span class="av-acciones">' +
+            '<button type="button" class="av-btn av-fs" title="Pantalla completa" aria-label="Pantalla completa">⛶</button>' +
+            '<button type="button" class="av-btn av-x" title="Cerrar" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></button>' +
+            '</span></div><div class="av-media"></div><div class="av-info"></div></div>';
+        document.body.appendChild(ov);
+        ov.querySelector('.av-x').onclick = cerrarVentanaAnuncio;
+        ov.querySelector('.av-fs').onclick = () => { if (_ventana) pantallaCompletaAnuncio(_ventana.cat, _ventana.id); };
+        // Un segundo toque seguido (doble toque) abre la pantalla completa; tocar fuera de la ventana la cierra
+        ov.addEventListener('click', (e) => {
+            if (e.target.closest('.av-btn, a, video, iframe')) return;
+            const ahora = Date.now();
+            if (ahora - _ultimoToque.t < 350 && _ventana) {
+                _ultimoToque = { k: '', t: 0 };
+                pantallaCompletaAnuncio(_ventana.cat, _ventana.id);
+                return;
+            }
+            if (e.target === ov) { if (ahora - _aperturaVentana > 450) cerrarVentanaAnuncio(); return; }
+            _ultimoToque = { k: 'v', t: ahora };
+        });
+        return ov;
+    }
+
+    function abrirVentanaAnuncio(cat, id) {
         const item = getAnuncios(cat)[id];
         const cfg = ANUNCIO_CATS[cat];
         if (!item || !cfg) return;
         anuncioSel[cat] = id;
-        const box = document.getElementById(cfg.box);
-        box.style.display = '';
-        box.innerHTML = '';
-        if (esYouTube(item.url)) {
+        document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => c.classList.toggle('selected', c.dataset.id === String(id)));
+        const ov = asegurarVentanaAnuncio();
+        _ventana = { cat, id };
+        ov.querySelector('.av-titulo').textContent = item.nombre || 'Anuncio';
+        const media = ov.querySelector('.av-media');
+        media.innerHTML = '';
+        const med = clasificarMedia(item.url);
+        if (med.tipo === 'embed') {
+            const cont = document.createElement('div');
+            cont.className = 'av-embed' + (med.vertical ? ' vertical' : '');
             const f = document.createElement('iframe');
-            f.src = item.url;
+            f.src = med.embed;
+            f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
             f.allowFullscreen = true;
-            box.appendChild(f);
-        } else if (esVideoArchivo(item.url)) {
-            const vd = document.createElement('video');
-            vd.className = 'anuncio-main';
-            vd.src = item.url;
-            vd.controls = true;
-            vd.playsInline = true;
-            box.appendChild(vd);
+            cont.appendChild(f);
+            media.appendChild(cont);
+        } else if (med.tipo === 'video') {
+            const v = document.createElement('video');
+            v.src = item.url; v.controls = true; v.playsInline = true;
+            v.addEventListener('dblclick', () => pantallaCompletaAnuncio(cat, id));
+            media.appendChild(v);
+            v.play().catch(() => {});
+        } else if (med.tipo === 'enlace') {
+            const a = document.createElement('a');
+            a.className = 'av-abrir'; a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
+            a.textContent = '🔗 Abrir en ' + (med.plataforma || 'una ventana nueva');
+            media.appendChild(a);
         } else {
-            const img = document.createElement('img');
-            img.className = 'anuncio-main';
-            img.src = item.url;
-            img.alt = item.nombre || 'Anuncio';
-            img.onclick = () => abrirAnuncio(cat, id);
-            box.appendChild(img);
+            const im = document.createElement('img');
+            im.src = item.url; im.alt = item.nombre || 'Anuncio';
+            media.appendChild(im);
         }
-        if (item.nombre || item.descripcion) {
-            const cap = document.createElement('div');
-            cap.className = 'anuncio-caption';
-            if (item.nombre) { const b = document.createElement('b'); b.textContent = item.nombre; cap.appendChild(b); }
-            if (item.descripcion) { const sp = document.createElement('span'); sp.textContent = item.descripcion; cap.appendChild(sp); }
-            box.appendChild(cap);
+        const info = ov.querySelector('.av-info');
+        info.innerHTML = '';
+        if (item.descripcion) { const d = document.createElement('div'); d.textContent = item.descripcion; info.appendChild(d); }
+        if (item.enlace) {
+            const a = document.createElement('a');
+            a.className = 'av-ir'; a.href = item.enlace; a.target = '_blank'; a.rel = 'noopener';
+            a.textContent = '🔗 Ir al anuncio';
+            info.appendChild(a);
         }
-        document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => {
-            c.classList.toggle('selected', c.dataset.id === String(id));
-        });
+        info.style.display = info.firstChild ? '' : 'none';
+        ov.querySelector('.av-fs').style.display = med.tipo === 'enlace' ? 'none' : '';
+        ov.classList.add('open');
+        _aperturaVentana = Date.now();
     }
+
+    function cerrarVentanaAnuncio() {
+        const ov = document.getElementById('anuncioVentana');
+        if (!ov) return;
+        try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+        const media = ov.querySelector('.av-media');
+        media.querySelectorAll('video').forEach(v => { try { v.pause(); } catch (e) {} });
+        media.innerHTML = '';
+        ov.classList.remove('open');
+        _ventana = null;
+    }
+
+    // Pantalla completa / vista previa grande
+    function pantallaCompletaAnuncio(cat, id) {
+        const item = getAnuncios(cat)[id];
+        if (!item) return;
+        const med = clasificarMedia(item.url);
+        if (med.tipo === 'imagen') { abrirImagen(item.url, item.nombre, item.descripcion); return; }
+        if (med.tipo === 'video') { cerrarVentanaAnuncio(); abrirVideo(item.url, item.nombre, item.descripcion); return; }
+        if (med.tipo === 'enlace') { window.open(item.url, '_blank', 'noopener'); return; }
+        if (!_ventana || _ventana.id !== id) abrirVentanaAnuncio(cat, id);
+        const cont = document.querySelector('#anuncioVentana .av-embed');
+        const el = cont || document.querySelector('#anuncioVentana iframe');
+        if (!el) return;
+        const rf = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (rf) { try { const r = rf.call(el); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+    }
+
+    // Toque en la imagen o el video de un anuncio de la lista: abre la ventana; un segundo toque seguido, la pantalla completa
+    function tocarAnuncio(cat, id) {
+        const ahora = Date.now(), k = cat + ':' + id;
+        if (_ultimoToque.k === k && ahora - _ultimoToque.t < 350) {
+            _ultimoToque = { k: '', t: 0 };
+            pantallaCompletaAnuncio(cat, id);
+            return;
+        }
+        _ultimoToque = { k, t: ahora };
+        abrirVentanaAnuncio(cat, id);
+    }
+
+    function mostrarAnuncio(cat, id) { abrirVentanaAnuncio(cat, id); }   // enlaces compartidos
 
     function anuncioKey(cat, id) { return 'anuncio_' + cat + '_' + String(id).replace(/[.#$\[\]\/]/g, '_'); }
 
-    // Al tocar la imagen: con enlace directo abre una ventana nueva; sin enlace, vista previa
-    function abrirAnuncio(cat, id) {
-        const item = getAnuncios(cat)[id];
-        const cfg = ANUNCIO_CATS[cat];
-        if (!item || !cfg) return;
-        if (item.enlace) {
-            window.open(item.enlace, '_blank', 'noopener');
-            return;
-        }
-        anuncioSel[cat] = id;
-        document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => {
-            c.classList.toggle('selected', c.dataset.id === String(id));
-        });
-        if (esYouTube(item.url)) mostrarAnuncio(cat, id);
-        else if (esVideoArchivo(item.url)) abrirVideo(item.url, item.nombre, item.descripcion);
-        else abrirImagen(item.url, item.nombre, item.descripcion);
-    }
+    function abrirAnuncio(cat, id) { tocarAnuncio(cat, id); }
 
     // Reacciones de cada anuncio
     function actualizarReaccionesAnuncios() {
@@ -2446,8 +2580,7 @@
         const fusion = getAnuncios(cat);
         ordenarIds(cat, Object.keys(fusion)).forEach(id => {
             const item = fusion[id];
-            const yt = esYouTube(item.url);
-            const vid = !yt && esVideoArchivo(item.url);
+            const med = clasificarMedia(item.url);
             const card = document.createElement('div');
             card.className = 'anuncio-card';
             card.dataset.id = id;
@@ -2455,14 +2588,17 @@
             const thumb = document.createElement('div');
             thumb.className = 'anuncio-thumb';
             const img = document.createElement('img');
-            img.src = yt ? (ytMiniatura(item.url) || item.logo) : (vid ? (cloudPoster(item.url, 600) || item.logo || 'https://via.placeholder.com/160x100') : item.url);
+            const respaldo = med.tipo === 'imagen' ? (item.logo || 'https://via.placeholder.com/160x100') : tilePlataforma(med.plataforma || 'Enlace');
+            if (med.tipo === 'imagen') img.src = item.url;
+            else if (med.tipo === 'video') img.src = cloudPoster(item.url, 600) || item.logo || respaldo;
+            else img.src = med.poster || item.logo || respaldo;
             img.alt = item.nombre || '';
-            img.onerror = () => { img.onerror = null; img.src = item.logo || 'https://via.placeholder.com/160x100'; };
+            img.onerror = () => { img.onerror = null; img.src = respaldo; };
             thumb.appendChild(img);
-            if (yt || vid) {
+            if (med.tipo !== 'imagen') {
                 const mark = document.createElement('div');
                 mark.className = 'play-mark';
-                mark.textContent = '▶';
+                mark.textContent = med.tipo === 'enlace' ? '🔗' : '▶';
                 thumb.appendChild(mark);
             }
             if (item.enlace) {
@@ -2471,7 +2607,7 @@
                 lm.textContent = '↗';
                 thumb.appendChild(lm);
             }
-            thumb.onclick = () => abrirAnuncio(cat, id);
+            thumb.onclick = () => tocarAnuncio(cat, id);
 
             const name = document.createElement('p');
             name.textContent = item.nombre || '';
@@ -2522,7 +2658,6 @@
             const pid = pendingAnuncio.id;
             pendingAnuncio = null;
             mostrarAnuncio(cat, pid);
-            setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
         }
     }
 
@@ -2557,7 +2692,7 @@
         const link = linkAnuncio(cat, id);
         const titulo = item.nombre || 'Anuncio';
         const texto = `📢 ${titulo} - TV SFC LA UNION` + (item.descripcion ? `\n${item.descripcion}` : '') + `\n${link}`;
-        if (navigator.share && !esYouTube(item.url) && !esVideoArchivo(item.url)) {
+        if (navigator.share && clasificarMedia(item.url).tipo === 'imagen') {
             try {
                 const resp = await fetch(item.url);
                 const blob = await resp.blob();
@@ -2583,7 +2718,7 @@
     function compartirAnuncio(cat, id) {
         const item = getAnuncios(cat)[id];
         if (!item) return;
-        if (esYouTube(item.url) || esVideoArchivo(item.url)) return compartirAnuncioEnlace(cat, id);   // video: solo enlace
+        if (clasificarMedia(item.url).tipo !== 'imagen') return compartirAnuncioEnlace(cat, id);   // video o enlace: solo enlace
         cerrarOpcionesCompartir();
         const sh = document.createElement('div');
         sh.id = 'shareSheet';
@@ -3595,6 +3730,8 @@
         if (db) db.style.display = ANUNCIO_CATS[cat] ? "block" : "none";
         const nm = document.getElementById("nombre");
         if (nm) nm.placeholder = ANUNCIO_CATS[cat] ? "Título del anuncio" : "Nombre del contenido";
+        const st = document.getElementById("stream1");
+        if (st) st.placeholder = ANUNCIO_CATS[cat] ? "Enlace de la imagen o del video (YouTube, Facebook, TikTok, Instagram, Vimeo…)" : "URL del stream (.m3u8 o .ts)";
     }
 
     function proxyUrl(url) {
