@@ -1782,6 +1782,13 @@
             <div class="admin-sec-head" onclick="toggleAdminSec(this)"><h3>🗂️ Secciones</h3><span class="admin-sec-arrow">▾</span></div>
             <div class="admin-sec-body">
         <p style="font-size:0.8rem; color:#94a3b8; margin-top:-5px;">Cambia el nombre del botón del menú y el título de cada sección, o quítala del menú. Un campo vacío deja el nombre original.</p>
+        <div class="sec-row">
+            <div class="sec-def">➕ Agregar sección nueva</div>
+            <select id="nsTipo" class="admin-select"></select>
+            <input type="text" id="nsMenu" class="admin-input" placeholder="Nombre del botón del menú (ej. 🎬 Cine)">
+            <input type="text" id="nsTitulo" class="admin-input" placeholder="Título de la sección (ej. 🎬 Cine 24/7)">
+            <button class="btn" onclick="crearSeccionNueva()" style="width:100%; margin-top:6px">➕ Crear sección</button>
+        </div>
         <div id="seccionesLista"></div>
         <button class="btn" onclick="guardarSecciones()" style="width:100%; margin-bottom:10px">💾 Guardar Secciones</button>
         <button class="btn" onclick="restablecerSecciones()" style="width:100%; margin-bottom:20px; background:#64748b; color:white;">↩️ Restablecer nombres originales</button>
@@ -1920,6 +1927,7 @@
             const data = snapshot.val();
             if (data) {
                 storage = data;
+                construirSeccionesPersonalizadas();
                 aplicarTemaGuardado();
                 aplicarLogoGuardado();
                 aplicarInicioGuardado();
@@ -2214,6 +2222,7 @@
             'anuncios', 'anunciosCristianos', 'anunciosCatolicos', 'contacto'
         ];
         const types = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
+        Object.keys((storage && storage.seccionesPersonalizadas) || {}).forEach(id => { if (!sections.includes(id)) sections.push(id); });
         const userId = getUserId();
         sections.forEach(section => {
             types.forEach(type => {
@@ -2255,6 +2264,7 @@
 
     function renderAllGrids() {
         renderContacto();
+        renderGridsPersonalizadas();
         renderGrid('canales', 'canalesGrid', 'playCanal');
         renderGrid('canalesInt', 'canalesIntGrid', 'playCanalInt');
         renderGrid('canalesDeportes', 'canalesDeportesGrid', 'playCanalDeportes');
@@ -3054,7 +3064,7 @@
             const c = cfg[id] || {};
             if (c.menu) btn.textContent = c.menu; else btn.innerHTML = btn._orig;
             if (h2) { if (c.titulo) h2.textContent = c.titulo; else h2.innerHTML = h2._orig; }
-            const oculta = id !== 'inicio' && c.oculta === true;
+            const oculta = id !== 'inicio' && (c.oculta === true || c.eliminada === true);
             btn.style.display = oculta ? 'none' : '';
             if (oculta) window.__seccionesOcultas.add(id);
         });
@@ -3065,12 +3075,30 @@
     // Las listas de categorías (Agregar / Gestionar Contenido) usan los nombres que el administrador puso a las secciones
     function aplicarNombresCategorias() {
         const cfg = (storage && storage.seccionesConfig) || {};
-        document.querySelectorAll('#categoria option, #verCategoria option').forEach(op => {
-            if (!op.value) return;
-            if (op._orig === undefined) op._orig = op.textContent;
-            const sec = op.value === 'eventos' ? 'facebooklive' : op.value;
-            const c = cfg[sec] || {};
-            op.textContent = c.titulo || c.menu || op._orig;
+        const custom = (storage && storage.seccionesPersonalizadas) || {};
+        ['categoria', 'verCategoria'].forEach(selId => {
+            const sel = document.getElementById(selId);
+            if (!sel) return;
+            if (!sel._base) sel._base = [...sel.options].map(o => ({ value: o.value, text: o.textContent }));
+            const actual = sel.value;
+            sel.innerHTML = '';
+            const agregar = (value, text) => {
+                const o = document.createElement('option');
+                o.value = value; o.textContent = text;
+                sel.appendChild(o);
+            };
+            sel._base.forEach(o => {
+                if (!o.value) { agregar(o.value, o.text); return; }
+                const sec = o.value === 'eventos' ? 'facebooklive' : o.value;
+                const c = cfg[sec] || {};
+                if (c.eliminada) return;                       // sección eliminada: ya no se ofrece
+                agregar(o.value, c.titulo || c.menu || o.text);
+            });
+            Object.keys(custom).forEach(id => {
+                const c = cfg[id] || {};
+                agregar(id, c.titulo || c.menu || custom[id].titulo || custom[id].menu || id);
+            });
+            if ([...sel.options].some(o => o.value === actual)) sel.value = actual;
         });
     }
 
@@ -3084,6 +3112,7 @@
     function cargarFormSecciones() {
         const cont = document.getElementById('seccionesLista');
         if (!cont) return;
+        cargarTiposSeccion();
         const cfg = (storage && storage.seccionesConfig) || {};
         cont.innerHTML = '';
         document.querySelectorAll('.topbar-link[data-target]').forEach(btn => {
@@ -3122,6 +3151,15 @@
                 ck.type = 'checkbox'; ck.className = 'sec-vis'; ck.checked = c.oculta !== true;
                 lb.append(ck, document.createTextNode(' Mostrar en el menú'));
                 row.appendChild(lb);
+                const eliminada = c.eliminada === true;
+                if (eliminada) { nombre.textContent += ' (eliminada)'; row.style.opacity = '0.6'; }
+                const bt = document.createElement('button');
+                bt.type = 'button';
+                bt.className = 'btn';
+                bt.style.cssText = 'width:100%; margin-top:8px; color:#fff; background:' + (eliminada ? '#64748b' : '#ef4444') + ';';
+                bt.textContent = eliminada ? '↩️ Restaurar sección' : '🗑️ Eliminar sección';
+                bt.onclick = () => { if (eliminada) restaurarSeccion(id); else eliminarSeccion(id); };
+                row.appendChild(bt);
             }
             cont.appendChild(row);
         });
@@ -3135,6 +3173,8 @@
             if (m && m.value.trim() && m.value.trim() !== row.dataset.defMenu) e.menu = m.value.trim();
             if (t && t.value.trim() && t.value.trim() !== row.dataset.defTit) e.titulo = t.value.trim();
             if (v && !v.checked) e.oculta = true;
+            const previa = ((storage && storage.seccionesConfig) || {})[row.dataset.id];
+            if (previa && previa.eliminada) e.eliminada = true;
             if (Object.keys(e).length) cfg[row.dataset.id] = e;
         });
         return cfg;
@@ -3272,6 +3312,210 @@
             }
         };
         xhr.send(fd);
+    }
+
+    // ============================================
+    // SECCIONES PERSONALIZADAS (el administrador agrega y elimina secciones)
+    // ============================================
+    const TIPOS_SECCION = {
+        tv:       { nombre: '📺 Canales de TV (video)',        plantilla: 'canalesMusic' },
+        radio:    { nombre: '📻 Emisoras de radio (audio)',     plantilla: 'radioInt' },
+        youtube:  { nombre: '▶️ Videos de YouTube / Facebook', plantilla: 'navidad' },
+        anuncios: { nombre: '📢 Anuncios (imágenes y videos)',  plantilla: 'anuncios' }
+    };
+
+    // Copia limpia de cada plantilla, tomada al cargar la página antes de que se modifique
+    const PLANTILLAS_SECCION = (() => {
+        const p = {};
+        Object.keys(TIPOS_SECCION).forEach(t => {
+            const el = document.getElementById(TIPOS_SECCION[t].plantilla);
+            p[t] = el ? el.outerHTML : '';
+        });
+        return p;
+    })();
+
+    function crearSeccionDOM(id, c) {
+        const tipo = c.tipo;
+        let html = PLANTILLAS_SECCION[tipo];
+        if (!html) return;
+        const R = (a, b) => { html = html.split(a).join(b); };
+        if (tipo === 'tv') {
+            R('wrapperCanalMusic', 'wrapper_' + id); R('tvPlayerMusic', 'tvPlayer_' + id);
+            R('fitMenuMusic', 'fitMenu_' + id); R('canalesMusic', id);
+        } else if (tipo === 'radio') {
+            R('radioInt', id);
+        } else if (tipo === 'youtube') {
+            R('navidad', id);
+        } else if (tipo === 'anuncios') {
+            R('anuncioContent', id + '_box'); R('grid anuncios-grid', 'grid @@AG@@'); R('anuncios', id); R('@@AG@@', 'anuncios-grid');
+        }
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html.trim();
+        const sec = tmp.firstElementChild;
+        sec.dataset.custom = '1';
+        sec.classList.remove('active-section');
+        const h2 = sec.querySelector('h2');
+        if (h2) h2.textContent = c.titulo || c.menu || 'Sección';
+        const secciones = document.querySelectorAll('section');
+        secciones[secciones.length - 1].insertAdjacentElement('afterend', sec);
+
+        // Botón del menú
+        const btn = document.createElement('button');
+        btn.className = 'topbar-link';
+        btn.dataset.target = id;
+        btn.dataset.custom = '1';
+        btn.textContent = c.menu || c.titulo || 'Sección';
+        btn.addEventListener('click', () => showSection(id));
+        const ref = document.querySelector('.topbar-link[data-target="contacto"]');
+        if (ref) ref.insertAdjacentElement('beforebegin', btn);
+        else document.querySelectorAll('.topbar-link')[document.querySelectorAll('.topbar-link').length - 1].insertAdjacentElement('afterend', btn);
+
+        // Registro de la sección
+        if (!sectionOrder.includes(id)) sectionOrder.push(id);
+        if (!dataInicial[id]) dataInicial[id] = {};
+        if (tipo === 'tv') {
+            if (!TV_CATEGORIAS.includes(id)) TV_CATEGORIAS.push(id);
+            window['play_' + id] = (url, item) => playMulti('tvPlayer_' + id, url, item);
+            const v = sec.querySelector('video');
+            if (v) prepararMedia(v);
+            sec.querySelectorAll('.fit-menu.top-menu').forEach(prepararMenuOrient);
+            setOrient(getOrient());
+            const w = sec.querySelector('.player-wrapper');
+            if (w) w.style.display = 'none';
+        } else if (tipo === 'radio') {
+            window['play_' + id] = (url) => { const a = document.getElementById(id + 'Player'); a.src = url; a.play(); };
+            const a = sec.querySelector('audio');
+            if (a) prepararMedia(a);
+        } else if (tipo === 'youtube') {
+            if (!VISORES_IFRAME.includes(id + 'Frame')) VISORES_IFRAME.push(id + 'Frame');
+            window['play_' + id] = (url) => { abrirVisor(id + 'Frame'); document.getElementById(id + 'Frame').src = url; };
+            iniciarVisores();
+        } else if (tipo === 'anuncios') {
+            ANUNCIO_CATS[id] = { grid: id + 'Grid', box: id + '_box' };
+        }
+    }
+
+    function quitarSeccionDOM(id) {
+        const sec = document.getElementById(id);
+        if (sec) {
+            sec.querySelectorAll('video, audio').forEach(m => { try { m.pause(); } catch (e) {} });
+            sec.querySelectorAll('iframe').forEach(f => { f.src = 'about:blank'; });
+            const activa = sec.classList.contains('active-section');
+            sec.remove();
+            if (activa) showSection('inicio');
+        }
+        document.querySelectorAll('.topbar-link[data-target="' + id + '"]').forEach(b => b.remove());
+        const idx = sectionOrder.indexOf(id); if (idx >= 0) sectionOrder.splice(idx, 1);
+        const it = TV_CATEGORIAS.indexOf(id); if (it >= 0) TV_CATEGORIAS.splice(it, 1);
+        const iv = VISORES_IFRAME.indexOf(id + 'Frame'); if (iv >= 0) VISORES_IFRAME.splice(iv, 1);
+        delete ANUNCIO_CATS[id];
+        delete window['play_' + id];
+        delete dataInicial[id];
+    }
+
+    function construirSeccionesPersonalizadas() {
+        const cfg = (storage && storage.seccionesPersonalizadas) || {};
+        document.querySelectorAll('section[data-custom="1"]').forEach(sec => { if (!cfg[sec.id]) quitarSeccionDOM(sec.id); });
+        Object.keys(cfg).forEach(id => {
+            if (!document.getElementById(id)) {
+                crearSeccionDOM(id, cfg[id]);
+                if (window.__hashPendiente === id) { window.__hashPendiente = null; showSection(id); }
+            }
+        });
+    }
+
+    function renderGridsPersonalizadas() {
+        const cfg = (storage && storage.seccionesPersonalizadas) || {};
+        Object.keys(cfg).forEach(id => {
+            if (!document.getElementById(id)) return;
+            if (cfg[id].tipo === 'anuncios') renderAnuncios(id);
+            else renderGrid(id, id + 'Grid', 'play_' + id);
+        });
+    }
+
+    function cargarTiposSeccion() {
+        const sel = document.getElementById('nsTipo');
+        if (!sel || sel.options.length) return;
+        Object.keys(TIPOS_SECCION).forEach(t => {
+            const o = document.createElement('option');
+            o.value = t; o.textContent = TIPOS_SECCION[t].nombre;
+            sel.appendChild(o);
+        });
+    }
+
+    function refrescarTrasCambioSecciones() {
+        construirSeccionesPersonalizadas();
+        aplicarSeccionesGuardado();
+        renderAllGrids();
+        updateAllReactionCounts();
+        cargarFormSecciones();
+        if (isAdmin) mostrarTodosElementos();
+    }
+
+    async function crearSeccionNueva() {
+        const tipo = document.getElementById('nsTipo').value;
+        const menu = document.getElementById('nsMenu').value.trim();
+        let titulo = document.getElementById('nsTitulo').value.trim();
+        if (!TIPOS_SECCION[tipo]) return showToast('⚠️ Elige el tipo de sección', 'error');
+        if (!menu) return showToast('⚠️ Escribe el nombre del botón del menú', 'error');
+        if (!titulo) titulo = menu;
+        const id = 'custom_' + Date.now();
+        const c = { tipo: tipo, menu: menu, titulo: titulo };
+        if (firebaseInitialized) {
+            try { await database.ref('contenido/seccionesPersonalizadas/' + id).set(c); }
+            catch (error) {
+                console.error('Error creando la sección:', error);
+                return showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+            }
+        } else {
+            storage.seccionesPersonalizadas = storage.seccionesPersonalizadas || {};
+            storage.seccionesPersonalizadas[id] = c;
+            localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+        }
+        storage.seccionesPersonalizadas = storage.seccionesPersonalizadas || {};
+        storage.seccionesPersonalizadas[id] = c;
+        document.getElementById('nsMenu').value = '';
+        document.getElementById('nsTitulo').value = '';
+        refrescarTrasCambioSecciones();
+        showToast('✅ Sección creada: ' + titulo);
+    }
+
+    async function eliminarSeccion(id) {
+        const custom = storage.seccionesPersonalizadas && storage.seccionesPersonalizadas[id];
+        if (custom) {
+            if (!confirm('¿Eliminar la sección "' + (custom.titulo || custom.menu) + '" y todo su contenido? No se puede deshacer.')) return;
+            if (firebaseInitialized) {
+                try {
+                    await database.ref('contenido').update({
+                        ['seccionesPersonalizadas/' + id]: null,
+                        [id]: null,
+                        ['ordenConfig/' + id]: null,
+                        ['seccionesConfig/' + id]: null
+                    });
+                } catch (error) {
+                    console.error('Error eliminando la sección:', error);
+                    return showToast('❌ Error: ' + (error.message || error.code || 'desconocido'), 'error');
+                }
+            }
+            delete storage.seccionesPersonalizadas[id];
+            delete storage[id];
+            if (storage.ordenConfig) delete storage.ordenConfig[id];
+            if (storage.seccionesConfig) delete storage.seccionesConfig[id];
+            if (!firebaseInitialized) localStorage.setItem('tv_sfc_data', JSON.stringify(storage));
+            refrescarTrasCambioSecciones();
+            return showToast('🗑️ Sección eliminada');
+        }
+        // Sección original: se quita del menú y de las listas de contenido; se puede restaurar
+        if (!confirm('¿Eliminar esta sección? Desaparece del menú y de Agregar/Gestionar Contenido. Su contenido se conserva y puedes restaurarla cuando quieras.')) return;
+        const cfg = leerFormSecciones();
+        cfg[id] = { ...(cfg[id] || {}), eliminada: true };
+        persistirSecciones(cfg, '🗑️ Sección eliminada');
+    }
+
+    function restaurarSeccion(id) {
+        const cfg = leerFormSecciones();
+        if (cfg[id]) { delete cfg[id].eliminada; if (!Object.keys(cfg[id]).length) delete cfg[id]; }
+        persistirSecciones(cfg, '↩️ Sección restaurada');
     }
 
     // ============================================
@@ -3796,6 +4040,7 @@
     const sectionOrder = ['inicio','facebooklive','canales','canalesInt','canalesDeportes','canalesDeportesInt','canalesReligiosoNac','canalesReligiosoInt','canalesMusic','canalesInfantil','canalesNavidad','radio','radioInt','radioSFC','radioCristianaSFC','radioCristianaNac','radioCristianaInt','radioCatolicaSFC','radioCatolicaNac','radioCatolicaInt','videos','videosCinema','noticias','religiosos','videosReligioso','videosCatolicos','music247','navidad','peliculas247','deportes','anuncios','anunciosCristianos','anunciosCatolicos','contacto'];
 
     function showSection(id) {
+        if (/^custom_/.test(id) && !sectionOrder.includes(id)) window.__hashPendiente = id;   // sección personalizada que aún no se carga
         if (!sectionOrder.includes(id) || (window.__seccionesOcultas && window.__seccionesOcultas.has(id))) id = 'inicio';
         document.querySelectorAll('section').forEach(sec => {
             sec.classList.toggle('active-section', sec.id === id);
@@ -3826,6 +4071,8 @@
                 eventos: {} 
             };
             reactions = JSON.parse(localStorage.getItem("tv_sfc_reactions")) || {};
+            construirSeccionesPersonalizadas();
+            aplicarSeccionesGuardado();
         }
         renderAllGrids();
         updateAllReactionCounts();
