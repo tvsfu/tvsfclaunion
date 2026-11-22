@@ -2,6 +2,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -15,8 +16,10 @@ export default async function handler(req, res) {
   try {
     const UA_NAVEGADOR = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
     const UA_VLC = 'VLC/3.0.20 LibVLC/3.0.20';
+    // MP4 / fMP4 / DASH: se reenvía el rango pedido para poder adelantar o retroceder
+    const range = req.headers.range;
     const pedir = (ua) => fetch(url, {
-      headers: { 'User-Agent': ua, 'Accept': '*/*', 'Accept-Encoding': 'identity' },
+      headers: { 'User-Agent': ua, 'Accept': '*/*', 'Accept-Encoding': 'identity', ...(range ? { Range: range } : {}) },
       redirect: 'follow',
       signal: controller.signal,
     });
@@ -57,6 +60,10 @@ export default async function handler(req, res) {
     // Segmentos .ts y streams MPEG-TS continuos: se envían en tiempo real
     res.status(response.status);
     res.setHeader('Content-Type', contentType);
+    for (const h of ['content-range', 'accept-ranges', 'content-length']) {
+      const val = response.headers.get(h);
+      if (val) res.setHeader(h, val);
+    }
 
     if (response.body) {
       const reader = response.body.getReader();
