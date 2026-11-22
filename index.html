@@ -171,6 +171,10 @@
         .anuncio-tap { position: absolute; left: 0; right: 0; top: 0; bottom: 56px; z-index: 5; background: transparent; -webkit-tap-highlight-color: transparent; }
         .anuncio-box video.anuncio-main { width: 100%; height: 100%; object-fit: contain; }
         .anuncio-enlace { height: 100%; display: flex; align-items: center; justify-content: center; }
+        /* Canales de TV: sin barra de tiempo ni duración (un canal no tiene final) */
+        .player-wrapper video::-webkit-media-controls-timeline { display: none !important; }
+        .player-wrapper video::-webkit-media-controls-current-time-display { display: none !important; }
+        .player-wrapper video::-webkit-media-controls-time-remaining-display { display: none !important; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -4008,7 +4012,7 @@
         const src = fixStreamUrl(url);
         if (metodo === 'hls') {
             if (typeof Hls === 'undefined' || !Hls.isSupported()) return fallo();
-            const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+            const hls = new Hls({ enableWorker: true, lowLatencyMode: true, backBufferLength: 30 });
             hls.loadSource(src);
             hls.attachMedia(v);
             hls.on(Hls.Events.MANIFEST_PARSED, () => { v.play().catch(() => {}); exito(); });
@@ -4016,7 +4020,7 @@
             v._hls = hls;
         } else if (metodo === 'ts') {
             if (typeof mpegts === 'undefined' || !mpegts.getFeatureList().mseLivePlayback) return fallo();
-            const player = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: new URL(src, location.href).href }, { enableWorker: true });
+            const player = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: new URL(src, location.href).href }, { enableWorker: true, autoCleanupSourceBuffer: true, autoCleanupMaxBackwardDuration: 30, autoCleanupMinBackwardDuration: 15 });
             player.attachMediaElement(v);
             player.on(mpegts.Events.ERROR, () => fallo());
             player.on(mpegts.Events.MEDIA_INFO, () => exito());
@@ -4069,7 +4073,7 @@
         const src = new URL(srcRel, location.href).href;
         const player = mpegts.createPlayer(
             { type: 'mpegts', isLive: true, url: src },
-            { enableWorker: true, liveBufferLatencyChasing: true, liveBufferLatencyMaxLatency: 10, liveBufferLatencyMinRemain: 1 }
+            { enableWorker: true, liveBufferLatencyChasing: true, liveBufferLatencyMaxLatency: 10, liveBufferLatencyMinRemain: 1, autoCleanupSourceBuffer: true, autoCleanupMaxBackwardDuration: 30, autoCleanupMinBackwardDuration: 15 }
         );
         player.attachMediaElement(v);
         player.on(mpegts.Events.ERROR, (type, detail, info) => {
@@ -4090,6 +4094,7 @@
             }
             showToast('Error al reproducir .ts: ' + motivo, 'error');
         });
+        player.on(mpegts.Events.LOADING_COMPLETE, () => reconectarCanal(v, 'terminó'));   // el servidor cerró la conexión
         v._ts = player;
         player.load();
         const p = player.play();
@@ -4100,7 +4105,7 @@
     function playHLSStream(v, wrapper, url, allowTSFallback, tsUrl) {
         const streamUrl = fixStreamUrl(url);
         if (Hls.isSupported()) {
-            const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+            const hls = new Hls({ enableWorker: true, lowLatencyMode: true, backBufferLength: 30 });
             hls.loadSource(streamUrl);
             hls.attachMedia(v);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -4121,11 +4126,8 @@
                     playTS(v, wrapper, url, false);
                     return;
                 }
-                hls.destroy();
-                v._hls = null;
-                v.src = streamUrl;
-                v.play().catch(() => {});
-                markPlaying(wrapper);
+                destroyPlayers(v);
+                reconectarCanal(v, 'error');
             });
             v._hls = hls;
         } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
@@ -4137,11 +4139,54 @@
         }
     }
 
-    function playStream(videoId, url, item) {
+    // ============================================
+    // CANALES EN CONTINUO: si el canal se corta o termina, se reconecta solo (como un reproductor sin fin)
+    // ============================================
+    function reconectarCanal(v, motivo) {
+        const f = v._fuente;
+        if (!f || !v.isConnected) return;
+        const ahora = Date.now();
+        v._recons = (v._recons || []).filter(t => ahora - t < 120000);
+        if (v._recons.length >= 8) {            // demasiados cortes seguidos: se avisa y se detiene
+            v._fuente = null;
+            showToast('❌ El canal no responde. Toca el canal para intentar de nuevo', 'error');
+            return;
+        }
+        v._recons.push(ahora);
+        clearTimeout(v._rcTimer);
+        v._ultimoAvance = ahora;
+        v._ultimoTiempo = -1;
+        v._rcTimer = setTimeout(() => {
+            if (!v.isConnected || v._fuente !== f) return;   // se cerró el canal o se eligió otro
+            playStream(v.id, f.url, f.item, { reconexion: true });
+        }, 700);
+    }
+
+    // Vigilante: si un canal en reproducción deja de avanzar unos segundos, se reconecta
+    function vigilarCanal(v) {
+        if (v._vigCanal) return;
+        v._vigCanal = setInterval(() => {
+            if (!v.isConnected) { clearInterval(v._vigCanal); v._vigCanal = null; return; }
+            if (!v._fuente) return;
+            const ahora = Date.now();
+            if (v.paused || document.hidden) { v._ultimoAvance = ahora; return; }
+            if (v.currentTime !== v._ultimoTiempo) { v._ultimoTiempo = v.currentTime; v._ultimoAvance = ahora; return; }
+            if (ahora - v._ultimoAvance > (v.currentTime === 0 ? 25000 : 15000)) reconectarCanal(v, 'congelado');
+        }, 3000);
+    }
+
+    function playStream(videoId, url, item, opts) {
         const v = document.getElementById(videoId);
         if (!v) return;
         const wrapper = v.closest(".player-wrapper");
         destroyPlayers(v);
+        if (!(opts && opts.reconexion)) {
+            v._fuente = { url: url, item: item };
+            v._recons = [];
+            v._ultimoAvance = Date.now();
+            v._ultimoTiempo = -1;
+        }
+        vigilarCanal(v);
         const type = getStreamType(url, item);
         if (type === 'dash') { playDASH(v, wrapper, url); return; }
         if (type === 'mp4' || type === 'fmp4') { playNativo(v, wrapper, url, type === 'fmp4'); return; }
@@ -4624,6 +4669,7 @@
             if (document.visibilityState === 'visible') el._userPaused = true;
         });
         // Varios canales a la vez: al activar el sonido de uno, los demás de la sección se silencian
+        el.addEventListener('ended', () => reconectarCanal(el, 'terminó'));   // solo actúa en canales (con fuente)
         el.addEventListener('volumechange', () => {
             if (el.tagName !== 'VIDEO' || el.muted || el.volume === 0 || el.paused) return;
             const card = el.closest('.card');
@@ -4805,6 +4851,8 @@
         if (!v) return;
         const w = v.closest('.player-wrapper');
         v._userPaused = true;
+        v._fuente = null;
+        clearTimeout(v._rcTimer);
         try { if (document.fullscreenElement === w) document.exitFullscreen(); } catch (e) {}
         try { if (document.pictureInPictureElement === v) document.exitPictureInPicture(); } catch (e) {}
         destroyPlayers(v);
