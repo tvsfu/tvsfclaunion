@@ -1668,7 +1668,7 @@
             <option value="eventos">FB Live</option>
         </select>
         <input type="text" id="nombre" class="admin-input" placeholder="Nombre del contenido">
-        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8, .ts, .mpd, .mp4 o sin extensión)">
+        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8 o .ts)">
         <div id="subirBox" style="display:none;">
             <label class="subir-label">☁️ Subir foto, imagen o video (se sube a Cloudinary y el enlace se pone solo arriba)
                 <input type="file" id="archivoAnuncio" accept="image/*,video/*,.heic,.heif,.avif,.tif,.tiff,.bmp,.svg,.webp" onchange="subirACloudinary(this)">
@@ -1678,15 +1678,10 @@
         </div>
         <div id="tipoStreamBox" style="display:none;">
             <select id="tipoStream" class="admin-select">
-                <option value="auto">Formato: Automático (detecta .m3u8 / .ts / .mp2t)</option>
+                <option value="auto">Formato: Automático (detecta .m3u8 / .ts)</option>
                 <option value="hls">Formato: HLS (.m3u8)</option>
-                <option value="ts">Formato: MPEGTS (.ts)</option>
-                <option value="mpegts">Formato: MPEG-TS (.ts)</option>
-                <option value="mp2t">Formato: MPEG-2 (.mp2t)</option>
-                <option value="dash">Formato: MPEG-DASH (.mpd)</option>
-                <option value="fmp4">Formato: fMP4 (MP4 fragmentado)</option>
-                <option value="mp4">Formato: MP4</option>
-                <option value="any">Formato: Sin formato (probar todos)</option>
+                <option value="ts">Formato: MPEG-TS directo (.ts)</option>
+                <option value="libre">Sin formato (prueba todos)</option>
             </select>
         </div>
         <input type="text" id="logo" class="admin-input" placeholder="URL del logo (opcional)">
@@ -2568,7 +2563,7 @@
     }
 
     // El anuncio se muestra ABAJO de la lista (como los videos de YouTube o Facebook);
-    // desde ahí se abre la ventana (⧉) o la pantalla completa (⛶ o doble toque). Un toque en la imagen o el video oculta/muestra los botones.
+    // desde ahí se abre la ventana (⧉ o un toque en la imagen) o la pantalla completa (⛶ o doble toque).
     function mostrarAnuncioInline(cat, id, desplazar) {
         const item = getAnuncios(cat)[id];
         const cfg = ANUNCIO_CATS[cat];
@@ -3919,7 +3914,7 @@
         return url;
     }
     // ============================================
-    // REPRODUCTOR DE TV: HLS (.m3u8) y MPEG-TS (.ts)
+    // REPRODUCTOR DE TV: HLS (.m3u8), MPEG-TS (.ts), MPEG-DASH (.mpd), MP4 y fMP4
     // ============================================
     const TV_CATEGORIAS = ['canales', 'canalesInt', 'canalesDeportes', 'canalesDeportesInt', 'canalesReligiosoNac', 'canalesReligiosoInt', 'canalesMusic', 'canalesInfantil', 'canalesNavidad', 'videosCinema', 'videosReligioso'];
 
@@ -3937,28 +3932,21 @@
         const nm = document.getElementById("nombre");
         if (nm) nm.placeholder = ANUNCIO_CATS[cat] ? "Título del anuncio" : "Nombre del contenido";
         const st = document.getElementById("stream1");
-        if (st) st.placeholder = ANUNCIO_CATS[cat] ? "Enlace de la imagen o del video (YouTube, Facebook, TikTok, Instagram, Vimeo…)" : "URL del stream (.m3u8, .ts, .mpd, .mp4 o sin extensión)";
+        if (st) st.placeholder = ANUNCIO_CATS[cat] ? "Enlace de la imagen o del video (YouTube, Facebook, TikTok, Instagram, Vimeo…)" : "URL del stream (.m3u8 o .ts)";
     }
 
     function proxyUrl(url) {
         return '/api/proxy?url=' + encodeURIComponent(url);
     }
 
-    const TIPOS_STREAM = ['hls', 'ts', 'mpegts', 'mp2t', 'dash', 'fmp4', 'mp4'];
-
-    // Decide el formato del canal: el elegido a mano o, si no, por la extensión.
-    // Devuelve 'unknown' cuando la URL no tiene formato conocido (se probarán todos).
+    // Decide si el canal es HLS o MPEG-TS (por la opción elegida o por la extensión)
     function getStreamType(url, item) {
-        if (item && (item.tipo === 'mp2t' || item.tipo === 'mpegts')) return 'ts';   // MPEG-TS y MPEG-2 (MP2T) son el mismo transporte que .ts
-        if (item && TIPOS_STREAM.includes(item.tipo)) return item.tipo;
-        if (item && item.tipo === 'any') return 'unknown';
+        if (item && ['ts', 'hls', 'dash', 'fmp4', 'mp4', 'libre'].includes(item.tipo)) return item.tipo;
         const path = (url || '').split('#')[0].split('?')[0].toLowerCase();
-        if (/\.(m3u8|m3u)$/.test(path)) return 'hls';
-        if (/\.(ts|m2ts|mts|m2t|mp2t)$/.test(path)) return 'ts';
+        if (path.endsWith('.ts')) return 'ts';
         if (path.endsWith('.mpd')) return 'dash';
-        if (/\.(m4s|fmp4|cmfv|cmfa)$/.test(path)) return 'fmp4';
-        if (/\.(mp4|m4v|mov|webm|mkv|ogv|3gp)$/.test(path)) return 'mp4';
-        return 'unknown';
+        if (/\.(mp4|m4v|webm|mov|ogv)$/.test(path)) return 'mp4';
+        return 'hls';
     }
 
     // Si la URL es tipo Xtream (/live/usuario/clave/ID.ts) devuelve la versión .m3u8
@@ -3967,9 +3955,96 @@
         return m ? m[1] + '.m3u8' : null;
     }
 
+    // Formatos de video para los canales: MPEG-DASH (.mpd), MP4, fMP4 y "sin formato" (prueba todos)
+    function playDASH(v, wrapper, url) {
+        if (typeof dashjs === 'undefined') { showToast('No se pudo cargar el reproductor MPEG-DASH', 'error'); return; }
+        const player = dashjs.MediaPlayer().create();
+        player.initialize(v, fixStreamUrl(url), true);
+        player.on(dashjs.MediaPlayer.events.ERROR, (e) => {
+            console.warn('Error MPEG-DASH:', e);
+            showToast('Error al reproducir MPEG-DASH', 'error');
+        });
+        v._dash = player;
+        markPlaying(wrapper);
+    }
+
+    // MP4 directo y fMP4 (MP4 fragmentado): lo reproduce el propio navegador
+    function playNativo(v, wrapper, url, esFmp4) {
+        if (esFmp4 && /\.m3u8(\?|#|$)/i.test(url || '')) { playHLSStream(v, wrapper, url, false, null); return; }   // fMP4 dentro de una lista HLS
+        v._nativo = true;
+        v.onerror = () => showToast('No se pudo reproducir este video (formato no compatible)', 'error');
+        v.src = fixStreamUrl(url);
+        v.play().catch(() => {});
+        markPlaying(wrapper);
+    }
+
+    // Sin formato: prueba uno por uno HLS, MP4/nativo, MPEG-TS y MPEG-DASH hasta que alguno funcione
+    function playLibre(v, wrapper, url) {
+        const token = {};
+        const ext = (((url || '').split('#')[0].split('?')[0].match(/\.(\w+)$/) || [])[1] || '').toLowerCase();
+        let orden;
+        if (ext === 'ts') orden = ['ts', 'hls', 'nativo', 'dash'];
+        else if (ext === 'mpd') orden = ['dash', 'hls', 'nativo', 'ts'];
+        else if (['mp4', 'm4v', 'webm', 'mov', 'ogv', 'mp3', 'aac'].includes(ext)) orden = ['nativo', 'hls', 'ts', 'dash'];
+        else orden = ['hls', 'ts', 'nativo', 'dash'];
+        let i = 0;
+        markPlaying(wrapper);
+        const siguiente = () => {
+            if (v._libreToken !== undefined && v._libreToken !== token && v._libreToken !== null) return;
+            destroyPlayers(v);
+            v._libreToken = token;
+            if (i >= orden.length) { showToast('No se pudo reproducir este enlace en ningún formato', 'error'); return; }
+            const metodo = orden[i++];
+            let resuelto = false, timer = null;
+            const fallo = () => { if (resuelto || v._libreToken !== token) return; resuelto = true; clearTimeout(timer); siguiente(); };
+            const exito = () => { if (resuelto) return; resuelto = true; clearTimeout(timer); };
+            timer = setTimeout(fallo, 9000);
+            try { probarFormato(metodo, v, wrapper, url, exito, fallo); } catch (e) { fallo(); }
+        };
+        siguiente();
+    }
+
+    function probarFormato(metodo, v, wrapper, url, exito, fallo) {
+        const src = fixStreamUrl(url);
+        if (metodo === 'hls') {
+            if (typeof Hls === 'undefined' || !Hls.isSupported()) return fallo();
+            const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+            hls.loadSource(src);
+            hls.attachMedia(v);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => { v.play().catch(() => {}); exito(); });
+            hls.on(Hls.Events.ERROR, (e, d) => { if (d && d.fatal) fallo(); });
+            v._hls = hls;
+        } else if (metodo === 'ts') {
+            if (typeof mpegts === 'undefined' || !mpegts.getFeatureList().mseLivePlayback) return fallo();
+            const player = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: new URL(src, location.href).href }, { enableWorker: true });
+            player.attachMediaElement(v);
+            player.on(mpegts.Events.ERROR, () => fallo());
+            player.on(mpegts.Events.MEDIA_INFO, () => exito());
+            v._ts = player;
+            player.load();
+            const p = player.play();
+            if (p && p.catch) p.catch(() => {});
+        } else if (metodo === 'nativo') {
+            v._nativo = true;
+            v.onerror = () => fallo();
+            v.onloadeddata = () => exito();
+            v.src = src;
+            v.play().catch(() => {});
+        } else if (metodo === 'dash') {
+            if (typeof dashjs === 'undefined') return fallo();
+            const player = dashjs.MediaPlayer().create();
+            player.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => exito());
+            player.on(dashjs.MediaPlayer.events.ERROR, () => fallo());
+            player.initialize(v, src, true);
+            v._dash = player;
+        } else fallo();
+    }
+
     function destroyPlayers(v) {
+        if (v._dash) { try { v._dash.reset(); } catch (e) {} v._dash = null; }
+        if (v._nativo) { v.onerror = null; v.onloadeddata = null; try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} v._nativo = false; }
+        v._libreToken = null;
         if (v._hls) { try { v._hls.destroy(); } catch (e) {} v._hls = null; }
-        if (v._dash) { try { v._dash.destroy(); } catch (e) {} v._dash = null; }
         if (v._ts) {
             try { v._ts.pause(); v._ts.unload(); v._ts.detachMediaElement(); v._ts.destroy(); } catch (e) {}
             v._ts = null;
@@ -3983,9 +4058,8 @@
     }
 
     // Reproduce un stream MPEG-TS continuo (.ts) con mpegts.js
-    function playTS(v, wrapper, url, viaProxy, noAlt, onFail, tsType) {
+    function playTS(v, wrapper, url, viaProxy, noAlt) {
         if (typeof mpegts === 'undefined' || !mpegts.getFeatureList().mseLivePlayback) {
-            if (onFail) { onFail(); return; }
             showToast('Tu navegador no soporta canales .ts directos', 'error');
             return;
         }
@@ -3994,7 +4068,7 @@
         // El Worker de mpegts.js no entiende rutas relativas: se usa la URL completa
         const src = new URL(srcRel, location.href).href;
         const player = mpegts.createPlayer(
-            { type: tsType || 'mpegts', isLive: true, url: src },
+            { type: 'mpegts', isLive: true, url: src },
             { enableWorker: true, liveBufferLatencyChasing: true, liveBufferLatencyMaxLatency: 10, liveBufferLatencyMinRemain: 1 }
         );
         player.attachMediaElement(v);
@@ -4004,7 +4078,7 @@
             // 1) Si falló directo (CORS, etc.), reintenta una vez por el proxy
             if (!usingProxy) {
                 destroyPlayers(v);
-                playTS(v, wrapper, url, true, noAlt, onFail, tsType);
+                playTS(v, wrapper, url, true, noAlt);
                 return;
             }
             // 2) Si es una URL tipo Xtream, prueba la versión HLS (.m3u8)
@@ -4014,8 +4088,7 @@
                 playHLSStream(v, wrapper, alt, false, null);
                 return;
             }
-            if (onFail) { destroyPlayers(v); onFail(); return; }
-            showToast('Error al reproducir el canal: ' + motivo, 'error');
+            showToast('Error al reproducir .ts: ' + motivo, 'error');
         });
         v._ts = player;
         player.load();
@@ -4024,7 +4097,7 @@
         markPlaying(wrapper);
     }
 
-    function playHLSStream(v, wrapper, url, allowTSFallback, tsUrl, onFail) {
+    function playHLSStream(v, wrapper, url, allowTSFallback, tsUrl) {
         const streamUrl = fixStreamUrl(url);
         if (Hls.isSupported()) {
             const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
@@ -4048,7 +4121,6 @@
                     playTS(v, wrapper, url, false);
                     return;
                 }
-                if (onFail) { destroyPlayers(v); onFail(); return; }
                 hls.destroy();
                 v._hls = null;
                 v.src = streamUrl;
@@ -4061,66 +4133,8 @@
             v.play().catch(() => {});
             markPlaying(wrapper);
         } else {
-            if (onFail) { onFail(); return; }
             alert('Tu navegador no soporta HLS. Usa Chrome, Firefox o Safari.');
         }
-    }
-
-    // MP4 / fMP4 / cualquier video que el navegador reproduce directo
-    function playNative(v, wrapper, url, viaProxy, onFail) {
-        const src = viaProxy ? proxyUrl(url) : fixStreamUrl(url);
-        const usingProxy = src.startsWith('/api/proxy');
-        v.removeAttribute('src');
-        v.src = src;
-        v.addEventListener('error', function fallo() {
-            v.removeEventListener('error', fallo);
-            if (!usingProxy) { playNative(v, wrapper, url, true, onFail); return; }   // reintento por el proxy
-            v.removeAttribute('src'); try { v.load(); } catch (e) {}
-            if (onFail) onFail(); else showToast('No se pudo reproducir el video', 'error');
-        });
-        v.play().catch(() => {});
-        markPlaying(wrapper);
-    }
-
-    // MPEG-DASH (.mpd) con dash.js
-    function playDASH(v, wrapper, url, viaProxy, onFail) {
-        if (typeof dashjs === 'undefined') { if (onFail) onFail(); else showToast('Tu navegador no soporta DASH', 'error'); return; }
-        const usarProxy = viaProxy || (location.protocol === 'https:' && url.startsWith('http://'));
-        const player = dashjs.MediaPlayer().create();
-        if (usarProxy) {
-            // Todas las peticiones (manifiesto y segmentos) pasan por el proxy
-            player.extend('RequestModifier', function () {
-                return {
-                    modifyRequestURL: function (u) { return /^https?:\/\//i.test(u) ? proxyUrl(u) : u; },
-                    modifyRequestHeader: function (xhr) { return xhr; }
-                };
-            }, true);
-        }
-        player.updateSettings({ streaming: { lowLatencyEnabled: true } });
-        player.on(dashjs.MediaPlayer.events.ERROR, () => {
-            try { player.destroy(); } catch (e) {}
-            v._dash = null;
-            if (!usarProxy) { playDASH(v, wrapper, url, true, onFail); return; }   // reintento por el proxy
-            if (onFail) onFail(); else showToast('Error al reproducir DASH (.mpd)', 'error');
-        });
-        player.initialize(v, url, true);
-        v._dash = player;
-        markPlaying(wrapper);
-    }
-
-    // Prueba los formatos uno por uno hasta que alguno reproduzca
-    function playChain(v, wrapper, url, tipos) {
-        const siguiente = () => {
-            destroyPlayers(v);
-            if (!tipos.length) { showToast('No se pudo reproducir este canal', 'error'); return; }
-            playChain(v, wrapper, url, tipos);
-        };
-        const t = tipos.shift();
-        if (t === 'hls') playHLSStream(v, wrapper, url, false, null, siguiente);
-        else if (t === 'ts') playTS(v, wrapper, url, false, true, siguiente);
-        else if (t === 'dash') playDASH(v, wrapper, url, false, siguiente);
-        else if (t === 'fmp4') playNative(v, wrapper, url, false, () => playTS(v, wrapper, url, false, true, siguiente, 'mse'));
-        else playNative(v, wrapper, url, false, siguiente);
     }
 
     function playStream(videoId, url, item) {
@@ -4129,11 +4143,10 @@
         const wrapper = v.closest(".player-wrapper");
         destroyPlayers(v);
         const type = getStreamType(url, item);
-        if (type === 'unknown') { playChain(v, wrapper, url, ['hls', 'ts', 'mp4', 'dash']); return; }   // sin formato: prueba todos
-        if (type === 'dash') { playDASH(v, wrapper, url, false, null); return; }
-        if (type === 'mp4') { playNative(v, wrapper, url, false, null); return; }
-        if (type === 'fmp4') { playChain(v, wrapper, url, ['fmp4']); return; }
-        const alt = (type === 'ts' && !(item && (item.tipo === 'ts' || item.tipo === 'mpegts' || item.tipo === 'mp2t'))) ? xtreamM3u8(url) : null;
+        if (type === 'dash') { playDASH(v, wrapper, url); return; }
+        if (type === 'mp4' || type === 'fmp4') { playNativo(v, wrapper, url, type === 'fmp4'); return; }
+        if (type === 'libre') { playLibre(v, wrapper, url); return; }
+        const alt = (type === 'ts' && !(item && item.tipo === 'ts')) ? xtreamM3u8(url) : null;
         if (alt) playHLSStream(v, wrapper, alt, false, url);   // Xtream: .m3u8 primero, .ts de respaldo
         else if (type === 'ts') playTS(v, wrapper, url, false, false);
         else playHLSStream(v, wrapper, url, !(item && item.tipo === 'hls'));
