@@ -1678,10 +1678,11 @@
         </div>
         <div id="tipoStreamBox" style="display:none;">
             <select id="tipoStream" class="admin-select">
-                <option value="auto">Formato: Automático (detecta el formato; si no tiene, prueba todos)</option>
+                <option value="auto">Formato: Automático (detecta .m3u8 / .ts / .mp2t)</option>
                 <option value="hls">Formato: HLS (.m3u8)</option>
                 <option value="ts">Formato: MPEGTS (.ts)</option>
-                <option value="mp2t">Formato: MPEG-2 (MP2T)</option>
+                <option value="mpegts">Formato: MPEG-TS (.ts)</option>
+                <option value="mp2t">Formato: MPEG-2 (.mp2t)</option>
                 <option value="dash">Formato: MPEG-DASH (.mpd)</option>
                 <option value="fmp4">Formato: fMP4 (MP4 fragmentado)</option>
                 <option value="mp4">Formato: MP4</option>
@@ -3943,17 +3944,17 @@
         return '/api/proxy?url=' + encodeURIComponent(url);
     }
 
-    const TIPOS_STREAM = ['hls', 'ts', 'mp2t', 'dash', 'fmp4', 'mp4'];
+    const TIPOS_STREAM = ['hls', 'ts', 'mpegts', 'mp2t', 'dash', 'fmp4', 'mp4'];
 
     // Decide el formato del canal: el elegido a mano o, si no, por la extensión.
     // Devuelve 'unknown' cuando la URL no tiene formato conocido (se probarán todos).
     function getStreamType(url, item) {
-        if (item && item.tipo === 'mp2t') return 'ts';   // MPEG-2 (MP2T) es el mismo transporte que .ts
+        if (item && (item.tipo === 'mp2t' || item.tipo === 'mpegts')) return 'ts';   // MPEG-TS y MPEG-2 (MP2T) son el mismo transporte que .ts
         if (item && TIPOS_STREAM.includes(item.tipo)) return item.tipo;
         if (item && item.tipo === 'any') return 'unknown';
         const path = (url || '').split('#')[0].split('?')[0].toLowerCase();
         if (/\.(m3u8|m3u)$/.test(path)) return 'hls';
-        if (/\.(ts|m2ts|mts|m2t)$/.test(path)) return 'ts';
+        if (/\.(ts|m2ts|mts|m2t|mp2t)$/.test(path)) return 'ts';
         if (path.endsWith('.mpd')) return 'dash';
         if (/\.(m4s|fmp4|cmfv|cmfa)$/.test(path)) return 'fmp4';
         if (/\.(mp4|m4v|mov|webm|mkv|ogv|3gp)$/.test(path)) return 'mp4';
@@ -4132,7 +4133,7 @@
         if (type === 'dash') { playDASH(v, wrapper, url, false, null); return; }
         if (type === 'mp4') { playNative(v, wrapper, url, false, null); return; }
         if (type === 'fmp4') { playChain(v, wrapper, url, ['fmp4']); return; }
-        const alt = (type === 'ts' && !(item && (item.tipo === 'ts' || item.tipo === 'mp2t'))) ? xtreamM3u8(url) : null;
+        const alt = (type === 'ts' && !(item && (item.tipo === 'ts' || item.tipo === 'mpegts' || item.tipo === 'mp2t'))) ? xtreamM3u8(url) : null;
         if (alt) playHLSStream(v, wrapper, alt, false, url);   // Xtream: .m3u8 primero, .ts de respaldo
         else if (type === 'ts') playTS(v, wrapper, url, false, false);
         else playHLSStream(v, wrapper, url, !(item && item.tipo === 'hls'));
