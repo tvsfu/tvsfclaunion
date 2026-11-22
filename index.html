@@ -168,6 +168,7 @@
         .anuncio-box:-webkit-full-screen { aspect-ratio: auto; width: 100%; height: 100%; margin: 0; border-radius: 0; border: 0; }
         .anuncio-tools { position: absolute; top: 4px; right: 4px; z-index: 6; display: flex; align-items: center; transition: opacity .2s; }
         .anuncio-box.tools-oculta .anuncio-tools { opacity: 0; pointer-events: none; }
+        .anuncio-tap { position: absolute; left: 0; right: 0; top: 0; bottom: 56px; z-index: 5; background: transparent; -webkit-tap-highlight-color: transparent; }
         .anuncio-box video.anuncio-main { width: 100%; height: 100%; object-fit: contain; }
         .anuncio-enlace { height: 100%; display: flex; align-items: center; justify-content: center; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
@@ -2574,6 +2575,7 @@
         document.querySelectorAll('#' + cfg.grid + ' .anuncio-card').forEach(c => c.classList.toggle('selected', c.dataset.id === String(id)));
         const box = document.getElementById(cfg.box);
         if (!box) return;
+        if (box._poll) { clearInterval(box._poll); box._poll = null; }
         box.querySelectorAll('video').forEach(v => { try { v.pause(); } catch (e) {} });
         box.innerHTML = '';
         box.style.display = '';
@@ -2588,13 +2590,25 @@
             f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
             f.allowFullscreen = true;
             box.appendChild(f);
+            // Un toque dentro del reproductor (YouTube, Facebook...) le da el foco al iframe: así se detecta
+            box._poll = setInterval(() => {
+                if (!f.isConnected) { clearInterval(box._poll); box._poll = null; return; }
+                if (document.activeElement === f) {
+                    box.classList.toggle('tools-oculta');
+                    try { f.blur(); window.focus(); } catch (e) {}
+                }
+            }, 200);
         } else if (med.tipo === 'video') {
             const v = document.createElement('video');
             v.className = 'anuncio-main';
             v.src = item.url; v.controls = true; v.playsInline = true;
-            v.addEventListener('dblclick', () => pantallaCompletaInline(cat, id));
-            v.addEventListener('click', () => box.classList.toggle('tools-oculta'));   // tocar el video oculta o muestra los botones
             box.appendChild(v);
+            // Capa transparente sobre el video (deja libre la barra de controles de abajo): un toque oculta o muestra los botones
+            const tap = document.createElement('div');
+            tap.className = 'anuncio-tap';
+            tap.addEventListener('click', () => box.classList.toggle('tools-oculta'));
+            tap.addEventListener('dblclick', () => pantallaCompletaInline(cat, id));
+            box.appendChild(tap);
             v.play().catch(() => {});
         } else if (med.tipo === 'enlace') {
             const a = document.createElement('a');
@@ -2627,6 +2641,7 @@
         const cfg = ANUNCIO_CATS[cat];
         const box = cfg && document.getElementById(cfg.box);
         if (!box) return;
+        if (box._poll) { clearInterval(box._poll); box._poll = null; }
         try { if (document.fullscreenElement === box) document.exitFullscreen(); } catch (e) {}
         box.querySelectorAll('video').forEach(v => { try { v.pause(); } catch (e) {} });
         box.innerHTML = '';
@@ -4199,8 +4214,7 @@
             if (!ae || ae.tagName !== 'IFRAME') return;
             const box = ae.closest('.video-box');
             if (VISORES_IFRAME.includes(ae.id)) { if (box) box.classList.toggle('visor-x-oculta'); }
-            else if (box && box.classList.contains('anuncio-box')) box.classList.toggle('tools-oculta');   // anuncios: botones ⧉ ⛶ ✕
-            else return;
+            else return;   // los anuncios se manejan con su propio sondeo en mostrarAnuncioInline
             try { ae.blur(); window.focus(); } catch (e) {}
         }, 0);
     });
