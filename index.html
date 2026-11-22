@@ -2565,7 +2565,7 @@
     }
 
     // El anuncio se muestra ABAJO de la lista (como los videos de YouTube o Facebook);
-    // desde ahí se abre la ventana (⧉ o un toque en la imagen) o la pantalla completa (⛶ o doble toque).
+    // desde ahí se abre la ventana (⧉) o la pantalla completa (⛶ o doble toque). Un toque en la imagen o el video oculta/muestra los botones.
     function mostrarAnuncioInline(cat, id, desplazar) {
         const item = getAnuncios(cat)[id];
         const cfg = ANUNCIO_CATS[cat];
@@ -2608,7 +2608,8 @@
             const im = document.createElement('img');
             im.className = 'anuncio-main';
             im.src = item.url; im.alt = item.nombre || 'Anuncio';
-            im.onclick = () => tocarMediaInline(cat, id);
+            im.onclick = () => box.classList.toggle('tools-oculta');   // tocar la imagen oculta o muestra los botones ⧉ ⛶ ✕
+            im.addEventListener('dblclick', () => pantallaCompletaInline(cat, id));
             box.appendChild(im);
         }
         // herramientas: ventana, pantalla completa y cerrar
