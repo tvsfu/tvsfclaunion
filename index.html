@@ -165,11 +165,10 @@
         .anuncio-box.vertical { aspect-ratio: auto; height: 76vh; width: min(100%, calc(76vh * 9 / 16)); margin-left: auto; margin-right: auto; }
         .anuncio-box:fullscreen { aspect-ratio: auto; width: 100%; height: 100%; margin: 0; border-radius: 0; border: 0; }
         .anuncio-box:-webkit-full-screen { aspect-ratio: auto; width: 100%; height: 100%; margin: 0; border-radius: 0; border: 0; }
-        .anuncio-tools { position: absolute; top: 4px; right: 4px; z-index: 6; display: flex; align-items: center; }
+        .anuncio-tools { position: absolute; top: 4px; right: 4px; z-index: 6; display: flex; align-items: center; transition: opacity .2s; }
+        .anuncio-box.tools-oculta .anuncio-tools { opacity: 0; pointer-events: none; }
         .anuncio-box video.anuncio-main { width: 100%; height: 100%; object-fit: contain; }
         .anuncio-enlace { height: 100%; display: flex; align-items: center; justify-content: center; }
-        .visor-recargar { position: absolute; top: 6px; right: 40px; z-index: 5; width: 30px; height: 30px; background: transparent; border: none; color: #fff; font-size: 1.35rem; line-height: 1; cursor: pointer; padding: 0; transition: opacity .2s; }
-        .video-box.visor-x-oculta .visor-recargar { opacity: 0; pointer-events: none; }
         .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
@@ -1688,6 +1687,7 @@
         </div>
         <div id="enlaceBox" style="display:none;">
             <input type="text" id="enlaceAnuncio" class="admin-input" placeholder="Enlace directo del anuncio (opcional): al tocar abre una ventana nueva">
+            <input type="text" id="enlaceTitulo" class="admin-input" placeholder="Título del botón del enlace (opcional, ej. Inscríbete aquí)">
         </div>
         
         <button id="btnGuardar" class="btn" onclick="guardarContenido()" style="width:100%; margin-bottom:10px">💾 Guardar</button>
@@ -1994,6 +1994,7 @@
             document.getElementById("logo").value = item.logo;
             document.getElementById("tipoStream").value = item.tipo || "auto";
             document.getElementById("enlaceAnuncio").value = item.enlace || "";
+            document.getElementById("enlaceTitulo").value = item.enlaceTitulo || "";
             document.getElementById("descAnuncio").value = item.descripcion || "";
             toggleTipoStream();
             
@@ -2019,6 +2020,7 @@
         document.getElementById("logo").value = "";
         document.getElementById("tipoStream").value = "auto";
         document.getElementById("enlaceAnuncio").value = "";
+        document.getElementById("enlaceTitulo").value = "";
         document.getElementById("descAnuncio").value = "";
         limpiarSubida();
         document.getElementById("formTitle").textContent = "Agregar Contenido";
@@ -2033,6 +2035,7 @@
         const logo = ANUNCIO_CATS[cat] ? "" : (document.getElementById("logo").value || "https://via.placeholder.com/80");
         const tipo = TV_CATEGORIAS.includes(cat) ? (document.getElementById("tipoStream").value || "auto") : "auto";
         const desc = ANUNCIO_CATS[cat] ? (document.getElementById("descAnuncio").value || "").trim() : "";
+        const enlaceTitulo = ANUNCIO_CATS[cat] ? (document.getElementById("enlaceTitulo").value || "").trim().slice(0, 40) : "";
         let enlace = ANUNCIO_CATS[cat] ? (document.getElementById("enlaceAnuncio").value || "").trim() : "";
         if (enlace && !/^https?:\/\//i.test(enlace)) enlace = "https://" + enlace;
         
@@ -2042,7 +2045,7 @@
         
         if (firebaseInitialized) {
             try {
-                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, tipo: tipo, ...(enlace ? { enlace: enlace } : {}), ...(desc ? { descripcion: desc } : {}), timestamp: Date.now() });
+                await database.ref(`contenido/${cat}/${id}`).set({ nombre: nombre, url: url, logo: logo, tipo: tipo, ...(enlace ? { enlace: enlace } : {}), ...(desc ? { descripcion: desc } : {}), ...(enlace && enlaceTitulo ? { enlaceTitulo: enlaceTitulo } : {}), timestamp: Date.now() });
                 showToast(editModeId ? "✅ Contenido Actualizado" : "✅ Guardado en Firebase");
                 cancelarEdicion();
                 mostrarTodosElementos();
@@ -2052,7 +2055,7 @@
             }
         } else {
             if (!storage[cat]) storage[cat] = {};
-            storage[cat][id] = { nombre, url, logo, tipo, ...(enlace ? { enlace } : {}), ...(desc ? { descripcion: desc } : {}) };
+            storage[cat][id] = { nombre, url, logo, tipo, ...(enlace ? { enlace } : {}), ...(desc ? { descripcion: desc } : {}), ...(enlace && enlaceTitulo ? { enlaceTitulo } : {}) };
             localStorage.setItem("tv_sfc_data", JSON.stringify(storage));
             showToast("✅ Guardado localmente");
             cancelarEdicion();
@@ -2409,7 +2412,6 @@
         const p = u.pathname;
         let m;
         if (/(^|\.)youtube(-nocookie)?\.com$/.test(h) || h === 'youtu.be') {
-            if (/^\/embed\/(live_stream|videoseries)/.test(p)) return { tipo: 'embed', plataforma: 'YouTube', embed: url };   // canal en vivo / lista: se conserva el enlace
             let id = null;
             if (h === 'youtu.be') id = p.slice(1).split('/')[0];
             else if ((m = p.match(/^\/(?:embed|shorts|live|v)\/([\w-]{11})/))) id = m[1];
@@ -2497,7 +2499,6 @@
             f.src = med.embed;
             f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
             f.allowFullscreen = true;
-            f.referrerPolicy = 'strict-origin-when-cross-origin';
             cont.appendChild(f);
             media.appendChild(cont);
         } else if (med.tipo === 'video') {
@@ -2522,7 +2523,7 @@
         if (item.enlace) {
             const a = document.createElement('a');
             a.className = 'av-ir'; a.href = item.enlace; a.target = '_blank'; a.rel = 'noopener';
-            a.textContent = '🔗 Ir al anuncio';
+            a.textContent = '🔗 ' + (item.enlaceTitulo || 'Ir al anuncio');
             info.appendChild(a);
         }
         info.style.display = info.firstChild ? '' : 'none';
@@ -2575,18 +2576,19 @@
         box.dataset.id = id;
         const med = clasificarMedia(item.url);
         box.classList.toggle('vertical', med.tipo === 'embed' && !!med.vertical);
+        box.classList.remove('tools-oculta');
         if (med.tipo === 'embed') {
             const f = document.createElement('iframe');
             f.src = med.embed;
             f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
             f.allowFullscreen = true;
-            f.referrerPolicy = 'strict-origin-when-cross-origin';
             box.appendChild(f);
         } else if (med.tipo === 'video') {
             const v = document.createElement('video');
             v.className = 'anuncio-main';
             v.src = item.url; v.controls = true; v.playsInline = true;
             v.addEventListener('dblclick', () => pantallaCompletaInline(cat, id));
+            v.addEventListener('click', () => box.classList.toggle('tools-oculta'));   // tocar el video oculta o muestra los botones
             box.appendChild(v);
             v.play().catch(() => {});
         } else if (med.tipo === 'enlace') {
@@ -2608,7 +2610,6 @@
         const tools = document.createElement('div');
         tools.className = 'anuncio-tools';
         const mk = (txt, titulo, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'av-btn'; b.title = titulo; b.setAttribute('aria-label', titulo); b.innerHTML = txt; b.onclick = (e) => { e.stopPropagation(); fn(); }; return b; };
-        if (med.tipo === 'embed') tools.appendChild(mk('⟳', 'Recargar', () => recargarIframe(box.querySelector('iframe'))));
         tools.appendChild(mk('⧉', 'Abrir en ventana', () => abrirVentanaAnuncio(cat, id)));
         if (med.tipo !== 'enlace') tools.appendChild(mk('⛶', 'Pantalla completa', () => pantallaCompletaInline(cat, id)));
         tools.appendChild(mk('<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" style="width:24px;height:24px;display:block"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>', 'Cerrar', () => cerrarAnuncioInline(cat)));
@@ -3699,12 +3700,12 @@
             const w = sec.querySelector('.player-wrapper');
             if (w) w.style.display = 'none';
         } else if (tipo === 'radio') {
-            window['play_' + id] = (url) => playAudio(id + 'Player', url);
+            window['play_' + id] = (url) => { const a = document.getElementById(id + 'Player'); a.src = url; a.play(); };
             const a = sec.querySelector('audio');
             if (a) prepararMedia(a);
         } else if (tipo === 'youtube') {
             if (!VISORES_IFRAME.includes(id + 'Frame')) VISORES_IFRAME.push(id + 'Frame');
-            window['play_' + id] = (url) => reproducirVisor(id + 'Frame', url);
+            window['play_' + id] = (url) => { abrirVisor(id + 'Frame'); document.getElementById(id + 'Frame').src = url; };
             iniciarVisores();
         } else if (tipo === 'anuncios') {
             ANUNCIO_CATS[id] = { grid: id + 'Grid', box: id + '_box' };
@@ -3933,146 +3934,7 @@
         return m ? m[1] + '.m3u8' : null;
     }
 
-    // ============================================
-    // REPRODUCTOR ROBUSTO: reconecta solo cuando un canal o emisora se congela o se corta
-    // ============================================
-    const REINTENTOS_MAX = 6;
-    let _sinRed = false;
-
-    function registrarFuente(v, url, item) {
-        v._fuente = { url: url, item: item };
-        v._reintentos = 0;
-        v._netReint = 0;
-        v._medReint = 0;
-        v._ultimoAvance = Date.now();
-        v._ultimoTiempo = -1;
-    }
-
-    // Reproduce; si el navegador bloquea el sonido automático, inicia sin sonido en lugar de quedarse detenido
-    function reproducirSeguro(v, wrapper) {
-        const p = v.play();
-        if (p && p.catch) {
-            p.catch(err => {
-                if (err && err.name === 'NotAllowedError') {
-                    v.muted = true;
-                    v.play().catch(() => {});
-                    showToast('🔇 Toca el altavoz del reproductor para activar el sonido');
-                }
-            });
-        }
-        if (wrapper) markPlaying(wrapper);
-        vigilar(v);
-    }
-
-    // Vigilante: si el video avanza nada durante unos segundos mientras debería estar reproduciendo, se reconecta
-    function vigilar(el) {
-        if (el._vig) return;
-        el._vig = setInterval(() => {
-            if (!el.isConnected) { clearInterval(el._vig); el._vig = null; return; }
-            if (!el._fuente) return;
-            const ahora = Date.now();
-            if (el.paused || el.ended || document.hidden) { el._ultimoAvance = ahora; return; }
-            if (el.currentTime !== el._ultimoTiempo) {
-                el._ultimoTiempo = el.currentTime;
-                el._ultimoAvance = ahora;
-                if (el._reintentos && ahora - (el._ultimoReintento || 0) > 30000) el._reintentos = 0;
-                return;
-            }
-            const limite = el.currentTime === 0 ? 20000 : 12000;
-            if (ahora - el._ultimoAvance > limite) reintentarReproductor(el, 'congelado');
-        }, 3000);
-    }
-
-    function reintentarReproductor(el, motivo) {
-        const f = el._fuente;
-        if (!f) return;
-        clearTimeout(el._retryTimer);
-        if (el._reintentos >= REINTENTOS_MAX) {
-            el._fuente = null;
-            showToast('❌ No se pudo reconectar. Toca el canal otra vez', 'error');
-            return;
-        }
-        el._reintentos++;
-        el._ultimoReintento = Date.now();
-        el._ultimoAvance = Date.now();
-        if (el._reintentos === 1) showToast('🔄 Reconectando…');
-        el._retryTimer = setTimeout(() => {
-            if (!el.isConnected || !el._fuente) return;
-            if (el.tagName === 'VIDEO') {
-                playStream(el.id, f.url, f.item, { reintento: true });
-            } else {
-                el._ultimoAvance = Date.now(); el._ultimoTiempo = -1;
-                el.src = f.url;
-                const p = el.play();
-                if (p && p.catch) p.catch(() => {});
-            }
-        }, 700 * el._reintentos);
-    }
-
-    // Emisoras (audio)
-    function playAudio(id, url) {
-        const a = document.getElementById(id);
-        if (!a) return;
-        clearTimeout(a._retryTimer);
-        registrarFuente(a, url, null);
-        a.src = url;
-        const p = a.play();
-        if (p && p.catch) p.catch(err => { if (err && err.name === 'NotAllowedError') showToast('Toca play para escuchar la emisora', 'error'); });
-        vigilar(a);
-    }
-
-    // Enlace para mostrar en pantallas incrustadas: los enlaces normales de YouTube/Facebook/TikTok no se pueden incrustar tal cual
-    function urlVisor(url) {
-        const u = String(url || '').trim();
-        if (/youtube(-nocookie)?\.com\/embed\//i.test(u)) return u + (/[?&]autoplay=/.test(u) ? '' : (u.includes('?') ? '&' : '?') + 'autoplay=1&playsinline=1');
-        const m = clasificarMedia(u);
-        if (m.tipo === 'embed') return m.plataforma === 'YouTube' ? m.embed + '?autoplay=1&playsinline=1&rel=0' : m.embed;
-        return u;
-    }
-
-    function reproducirVisor(frameId, url) {
-        const f = document.getElementById(frameId);
-        if (!f) return;
-        abrirVisor(frameId);
-        f.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; fullscreen');
-        f.setAttribute('allowfullscreen', '');
-        f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-        f.src = urlVisor(url);
-    }
-
-    function recargarIframe(f) {
-        if (!f) return;
-        const u = f.src;
-        if (!u || u === 'about:blank') return;
-        f.src = 'about:blank';
-        setTimeout(() => { f.src = u; }, 150);
-    }
-
-    window.addEventListener('offline', () => { _sinRed = true; });
-    window.addEventListener('online', () => {
-        if (!_sinRed) return;
-        _sinRed = false;
-        document.querySelectorAll('video, audio').forEach(el => {
-            if (el._fuente && !el._userPaused) { el._reintentos = 0; reintentarReproductor(el, 'red'); }
-        });
-        document.querySelectorAll('.video-box iframe').forEach(f => {
-            const box = f.closest('.video-box');
-            if (box && box.style.display !== 'none') recargarIframe(f);
-        });
-    });
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) return;
-        document.querySelectorAll('video').forEach(v => {
-            v._ultimoAvance = Date.now();
-            // tras estar un rato en segundo plano, los canales en vivo regresan al punto actual
-            if (v._hls && !v.paused && v._hls.liveSyncPosition && v.currentTime < v._hls.liveSyncPosition - 20) {
-                try { v.currentTime = v._hls.liveSyncPosition; } catch (e) {}
-            }
-        });
-    });
-
     function destroyPlayers(v) {
-        clearTimeout(v._retryTimer);
         if (v._hls) { try { v._hls.destroy(); } catch (e) {} v._hls = null; }
         if (v._ts) {
             try { v._ts.pause(); v._ts.unload(); v._ts.detachMediaElement(); v._ts.destroy(); } catch (e) {}
@@ -4124,28 +3986,18 @@
         const p = player.play();
         if (p && p.catch) p.catch(() => {});
         markPlaying(wrapper);
-        vigilar(v);
     }
 
     function playHLSStream(v, wrapper, url, allowTSFallback, tsUrl) {
         const streamUrl = fixStreamUrl(url);
         if (Hls.isSupported()) {
-            const hls = new Hls({
-                enableWorker: true,
-                lowLatencyMode: false,                 // más estable en canales en vivo comunes
-                liveSyncDurationCount: 3,
-                liveMaxLatencyDurationCount: 12,
-                maxBufferLength: 30, maxMaxBufferLength: 60, backBufferLength: 30,
-                maxBufferHole: 0.5, nudgeMaxRetry: 8,
-                manifestLoadingMaxRetry: 4, manifestLoadingRetryDelay: 1000,
-                levelLoadingMaxRetry: 4, levelLoadingRetryDelay: 1000,
-                fragLoadingMaxRetry: 6, fragLoadingRetryDelay: 1000
-            });
-            v._netReint = 0; v._medReint = 0;
+            const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
             hls.loadSource(streamUrl);
             hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => { reproducirSeguro(v, wrapper); });
-            hls.on(Hls.Events.FRAG_BUFFERED, () => { v._netReint = 0; });   // flujo sano: se reinician los contadores
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                v.play().catch(() => {});
+                markPlaying(wrapper);
+            });
             hls.on(Hls.Events.ERROR, (event, data) => {
                 if (!data.fatal) return;
                 // Si el .m3u8 no funciona, vuelve al .ts original
@@ -4160,39 +4012,27 @@
                     playTS(v, wrapper, url, false);
                     return;
                 }
-                // Error de red: se reintenta la carga sin recrear el reproductor
-                if (data.type === Hls.ErrorTypes.NETWORK_ERROR && v._netReint < 4) {
-                    v._netReint++;
-                    setTimeout(() => { if (v._hls === hls) hls.startLoad(); }, 1000 * v._netReint);
-                    return;
-                }
-                // Error de video/audio: se intenta recuperar
-                if (data.type === Hls.ErrorTypes.MEDIA_ERROR && v._medReint < 3) {
-                    v._medReint++;
-                    if (v._medReint === 2) hls.swapAudioCodec();
-                    hls.recoverMediaError();
-                    return;
-                }
-                // Sin recuperación posible: se vuelve a crear el reproductor
-                destroyPlayers(v);
-                reintentarReproductor(v, 'error');
+                hls.destroy();
+                v._hls = null;
+                v.src = streamUrl;
+                v.play().catch(() => {});
+                markPlaying(wrapper);
             });
             v._hls = hls;
         } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
             v.src = streamUrl;
-            reproducirSeguro(v, wrapper);
+            v.play().catch(() => {});
+            markPlaying(wrapper);
         } else {
             alert('Tu navegador no soporta HLS. Usa Chrome, Firefox o Safari.');
         }
     }
 
-    function playStream(videoId, url, item, opts) {
+    function playStream(videoId, url, item) {
         const v = document.getElementById(videoId);
         if (!v) return;
         const wrapper = v.closest(".player-wrapper");
         destroyPlayers(v);
-        if (opts && opts.reintento) { v._ultimoAvance = Date.now(); v._ultimoTiempo = -1; }
-        else registrarFuente(v, url, item);
         const type = getStreamType(url, item);
         const alt = (type === 'ts' && !(item && item.tipo === 'ts')) ? xtreamM3u8(url) : null;
         if (alt) playHLSStream(v, wrapper, alt, false, url);   // Xtream: .m3u8 primero, .ts de respaldo
@@ -4210,25 +4050,25 @@
     function playCanalMusic(url, item) { playMulti("tvPlayerMusic", url, item); }
     function playCanalInfantil(url, item) { playMulti("tvPlayerInfantil", url, item); }
     function playCanalNavidad(url, item) { playMulti("tvPlayerNavidad", url, item); }
-    function playRadio(url) { playAudio("radioPlayer", url); }
-    function playRadioInt(url) { playAudio("radioIntPlayer", url); }
-    function playRadioSFC(url) { playAudio("radioSFCPlayer", url); }
-    function playRadioCristianaSFC(url) { playAudio("radioCristianaSFCPlayer", url); }
-    function playRadioCristianaNac(url) { playAudio("radioCristianaNacPlayer", url); }
-    function playRadioCristianaInt(url) { playAudio("radioCristianaIntPlayer", url); }
-    function playRadioCatolicaSFC(url) { playAudio("radioCatolicaSFCPlayer", url); }
-    function playRadioCatolicaNac(url) { playAudio("radioCatolicaNacPlayer", url); }
-    function playRadioCatolicaInt(url) { playAudio("radioCatolicaIntPlayer", url); }
-    function playVideoCatolico(url) { reproducirVisor("videosCatolicosFrame", url); }
-    function playVideo(url) { reproducirVisor("videoFrame", url); }
+    function playRadio(url) { const a = document.getElementById("radioPlayer"); a.src = url; a.play(); }
+    function playRadioInt(url) { const a = document.getElementById("radioIntPlayer"); a.src = url; a.play(); }
+    function playRadioSFC(url) { const a = document.getElementById("radioSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCristianaSFC(url) { const a = document.getElementById("radioCristianaSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCristianaNac(url) { const a = document.getElementById("radioCristianaNacPlayer"); a.src = url; a.play(); }
+    function playRadioCristianaInt(url) { const a = document.getElementById("radioCristianaIntPlayer"); a.src = url; a.play(); }
+    function playRadioCatolicaSFC(url) { const a = document.getElementById("radioCatolicaSFCPlayer"); a.src = url; a.play(); }
+    function playRadioCatolicaNac(url) { const a = document.getElementById("radioCatolicaNacPlayer"); a.src = url; a.play(); }
+    function playRadioCatolicaInt(url) { const a = document.getElementById("radioCatolicaIntPlayer"); a.src = url; a.play(); }
+    function playVideoCatolico(url) { abrirVisor("videosCatolicosFrame"); document.getElementById("videosCatolicosFrame").src = url; }
+    function playVideo(url) { abrirVisor("videoFrame"); document.getElementById("videoFrame").src = url; }
     function playVideoCinema(url, item) { playMulti("tvPlayerCinema", url, item); }
-    function playMusic247(url) { reproducirVisor("music247Frame", url); }
-    function playNavidad(url) { reproducirVisor("navidadFrame", url); }
-    function playPeliculas247(url) { reproducirVisor("peliculas247Frame", url); }
+    function playMusic247(url) { abrirVisor("music247Frame"); document.getElementById("music247Frame").src = url; }
+    function playNavidad(url) { abrirVisor("navidadFrame"); document.getElementById("navidadFrame").src = url; }
+    function playPeliculas247(url) { abrirVisor("peliculas247Frame"); document.getElementById("peliculas247Frame").src = url; }
     function playVideoReligioso(url, item) { playMulti("tvPlayerVideosReligioso", url, item); }
-    function playNoticia(url) { reproducirVisor("noticiasFrame", url); }
-    function playReligioso(url) { reproducirVisor("religiosoFrame", url); }
-    function playDeporte(url) { reproducirVisor("deportesFrame", url); }
+    function playNoticia(url) { abrirVisor("noticiasFrame"); document.getElementById("noticiasFrame").src = url; }
+    function playReligioso(url) { abrirVisor("religiosoFrame"); document.getElementById("religiosoFrame").src = url; }
+    function playDeporte(url) { abrirVisor("deportesFrame"); document.getElementById("deportesFrame").src = url; }
 
     // Pantallas principales de YouTube / Facebook Live: cerradas hasta elegir un video, con ✕ para cerrarlas
     const VISORES_IFRAME = ['facebookliveFrame', 'videoFrame', 'noticiasFrame', 'religiosoFrame', 'videosCatolicosFrame', 'music247Frame', 'navidadFrame', 'peliculas247Frame', 'deportesFrame'];
@@ -4263,14 +4103,6 @@
                 x.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>';
                 x.addEventListener('click', (e) => { e.stopPropagation(); cerrarVisor(id); });
                 box.appendChild(x);
-                const r = document.createElement('button');
-                r.type = 'button';
-                r.className = 'visor-recargar';
-                r.title = 'Recargar';
-                r.setAttribute('aria-label', 'Recargar');
-                r.textContent = '⟳';
-                r.addEventListener('click', (e) => { e.stopPropagation(); recargarIframe(f); });
-                box.appendChild(r);
             }
             const src = f.getAttribute('src');
             if (!src || src === 'about:blank') box.style.display = 'none';
@@ -4283,14 +4115,16 @@
     window.addEventListener('blur', () => {
         setTimeout(() => {
             const ae = document.activeElement;
-            if (!ae || ae.tagName !== 'IFRAME' || !VISORES_IFRAME.includes(ae.id)) return;
+            if (!ae || ae.tagName !== 'IFRAME') return;
             const box = ae.closest('.video-box');
-            if (box) box.classList.toggle('visor-x-oculta');
+            if (VISORES_IFRAME.includes(ae.id)) { if (box) box.classList.toggle('visor-x-oculta'); }
+            else if (box && box.classList.contains('anuncio-box')) box.classList.toggle('tools-oculta');   // anuncios: botones ⧉ ⛶ ✕
+            else return;
             try { ae.blur(); window.focus(); } catch (e) {}
         }, 0);
     });
 
-    function playFB(url) { reproducirVisor("facebookliveFrame", url); }
+    function playFB(url) { abrirVisor("facebookliveFrame"); document.getElementById("facebookliveFrame").src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`; }
 
     function toggleLike(e, id) { e.stopPropagation(); likes[id] = !likes[id]; localStorage.setItem("tv_sfc_likes", JSON.stringify(likes)); renderAllGrids(); }
     function showToast(msg, type = 'success') {
@@ -4860,7 +4694,6 @@
         if (!v) return;
         const w = v.closest('.player-wrapper');
         v._userPaused = true;
-        v._fuente = null;
         try { if (document.fullscreenElement === w) document.exitFullscreen(); } catch (e) {}
         try { if (document.pictureInPictureElement === v) document.exitPictureInPicture(); } catch (e) {}
         destroyPlayers(v);
