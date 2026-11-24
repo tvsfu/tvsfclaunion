@@ -2726,7 +2726,7 @@
             if (med.tipo !== 'imagen') {
                 const mark = document.createElement('div');
                 mark.className = 'play-mark';
-                mark.textContent = med.tipo === 'enlace' ? '🔗' : '▶';
+                mark.textContent = med.tipo === 'enlace' ? '??' : '▶';
                 thumb.appendChild(mark);
             }
             if (item.enlace) {
@@ -3918,7 +3918,7 @@
 
     // Dirección del proxy. Con Cloudflare Workers: 'https://tv-sfc-proxy.TU-USUARIO.workers.dev/'
     // Si se deja '/api/proxy' se usa el proxy de Vercel (consume la transferencia de Vercel).
-    const PROXY_BASE = '/api/proxy';
+    const PROXY_BASE = 'https://tvsfclaunion-proxy.launiontvsfc.workers.dev/';
     const PROXY_PREFIX = PROXY_BASE + '?url=';
 
     function fixStreamUrl(url) {
