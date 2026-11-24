@@ -171,11 +171,12 @@
         .anuncio-tap { position: absolute; left: 0; right: 0; top: 0; bottom: 56px; z-index: 5; background: transparent; -webkit-tap-highlight-color: transparent; }
         .anuncio-box video.anuncio-main { width: 100%; height: 100%; object-fit: contain; }
         .anuncio-enlace { height: 100%; display: flex; align-items: center; justify-content: center; }
+        .visor-x svg { width: 24px; height: 24px; display: block; }
+
         /* Canales de TV: sin barra de tiempo ni duración (un canal no tiene final) */
         .player-wrapper video::-webkit-media-controls-timeline { display: none !important; }
         .player-wrapper video::-webkit-media-controls-current-time-display { display: none !important; }
         .player-wrapper video::-webkit-media-controls-time-remaining-display { display: none !important; }
-        .visor-x svg { width: 24px; height: 24px; display: block; }
 
         /* Reproductor personalizado EN VIVO */
         .player-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-top: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.1); }
@@ -1672,7 +1673,7 @@
             <option value="eventos">FB Live</option>
         </select>
         <input type="text" id="nombre" class="admin-input" placeholder="Nombre del contenido">
-        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8 o .ts)">
+        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8, .ts, .mpd, .mp4 o sin extensión)">
         <div id="subirBox" style="display:none;">
             <label class="subir-label">☁️ Subir foto, imagen o video (se sube a Cloudinary y el enlace se pone solo arriba)
                 <input type="file" id="archivoAnuncio" accept="image/*,video/*,.heic,.heif,.avif,.tif,.tiff,.bmp,.svg,.webp" onchange="subirACloudinary(this)">
@@ -1682,10 +1683,15 @@
         </div>
         <div id="tipoStreamBox" style="display:none;">
             <select id="tipoStream" class="admin-select">
-                <option value="auto">Formato: Automático (detecta .m3u8 / .ts)</option>
+                <option value="auto">Formato: Automático (detecta .m3u8 / .ts / .mp2t)</option>
                 <option value="hls">Formato: HLS (.m3u8)</option>
-                <option value="ts">Formato: MPEG-TS directo (.ts)</option>
-                <option value="libre">Sin formato (prueba todos)</option>
+                <option value="ts">Formato: MPEGTS (.ts)</option>
+                <option value="mpegts">Formato: MPEG-TS (.ts)</option>
+                <option value="mp2t">Formato: MPEG-2 (.mp2t)</option>
+                <option value="dash">Formato: MPEG-DASH (.mpd)</option>
+                <option value="fmp4">Formato: fMP4 (MP4 fragmentado)</option>
+                <option value="mp4">Formato: MP4</option>
+                <option value="libre">Formato: Sin formato (probar todos)</option>
             </select>
         </div>
         <input type="text" id="logo" class="admin-input" placeholder="URL del logo (opcional)">
@@ -2567,7 +2573,7 @@
     }
 
     // El anuncio se muestra ABAJO de la lista (como los videos de YouTube o Facebook);
-    // desde ahí se abre la ventana (⧉ o un toque en la imagen) o la pantalla completa (⛶ o doble toque).
+    // desde ahí se abre la ventana (⧉) o la pantalla completa (⛶ o doble toque). Un toque en la imagen o el video oculta/muestra los botones.
     function mostrarAnuncioInline(cat, id, desplazar) {
         const item = getAnuncios(cat)[id];
         const cfg = ANUNCIO_CATS[cat];
@@ -2720,7 +2726,7 @@
             if (med.tipo !== 'imagen') {
                 const mark = document.createElement('div');
                 mark.className = 'play-mark';
-                mark.textContent = med.tipo === 'enlace' ? '🔗' : '▶';
+                mark.textContent = med.tipo === 'enlace' ? '??' : '▶';
                 thumb.appendChild(mark);
             }
             if (item.enlace) {
@@ -3941,7 +3947,7 @@
         const nm = document.getElementById("nombre");
         if (nm) nm.placeholder = ANUNCIO_CATS[cat] ? "Título del anuncio" : "Nombre del contenido";
         const st = document.getElementById("stream1");
-        if (st) st.placeholder = ANUNCIO_CATS[cat] ? "Enlace de la imagen o del video (YouTube, Facebook, TikTok, Instagram, Vimeo…)" : "URL del stream (.m3u8 o .ts)";
+        if (st) st.placeholder = ANUNCIO_CATS[cat] ? "Enlace de la imagen o del video (YouTube, Facebook, TikTok, Instagram, Vimeo…)" : "URL del stream (.m3u8, .ts, .mpd, .mp4 o sin extensión)";
     }
 
     function proxyUrl(url) {
@@ -3950,9 +3956,11 @@
 
     // Decide si el canal es HLS o MPEG-TS (por la opción elegida o por la extensión)
     function getStreamType(url, item) {
+        if (item && (item.tipo === 'mp2t' || item.tipo === 'mpegts')) return 'ts';   // MPEG-TS y MPEG-2 (MP2T) son el mismo transporte que .ts
+        if (item && item.tipo === 'any') return 'libre';
         if (item && ['ts', 'hls', 'dash', 'fmp4', 'mp4', 'libre'].includes(item.tipo)) return item.tipo;
         const path = (url || '').split('#')[0].split('?')[0].toLowerCase();
-        if (path.endsWith('.ts')) return 'ts';
+        if (/\.(ts|m2ts|mts|m2t|mp2t)$/.test(path)) return 'ts';
         if (path.endsWith('.mpd')) return 'dash';
         if (/\.(mp4|m4v|webm|mov|ogv)$/.test(path)) return 'mp4';
         return 'hls';
@@ -4196,7 +4204,7 @@
         if (type === 'dash') { playDASH(v, wrapper, url); return; }
         if (type === 'mp4' || type === 'fmp4') { playNativo(v, wrapper, url, type === 'fmp4'); return; }
         if (type === 'libre') { playLibre(v, wrapper, url); return; }
-        const alt = (type === 'ts' && !(item && item.tipo === 'ts')) ? xtreamM3u8(url) : null;
+        const alt = (type === 'ts' && !(item && (item.tipo === 'ts' || item.tipo === 'mpegts' || item.tipo === 'mp2t'))) ? xtreamM3u8(url) : null;
         if (alt) playHLSStream(v, wrapper, alt, false, url);   // Xtream: .m3u8 primero, .ts de respaldo
         else if (type === 'ts') playTS(v, wrapper, url, false, false);
         else playHLSStream(v, wrapper, url, !(item && item.tipo === 'hls'));
