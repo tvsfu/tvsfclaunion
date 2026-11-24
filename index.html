@@ -1672,7 +1672,7 @@
             <option value="eventos">FB Live</option>
         </select>
         <input type="text" id="nombre" class="admin-input" placeholder="Nombre del contenido">
-        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8 o .ts)">
+        <input type="text" id="stream1" class="admin-input" placeholder="URL del stream (.m3u8, fmp4.m3u8 o .ts)">
         <div id="subirBox" style="display:none;">
             <label class="subir-label">☁️ Subir foto, imagen o video (se sube a Cloudinary y el enlace se pone solo arriba)
                 <input type="file" id="archivoAnuncio" accept="image/*,video/*,.heic,.heif,.avif,.tif,.tiff,.bmp,.svg,.webp" onchange="subirACloudinary(this)">
@@ -1682,8 +1682,9 @@
         </div>
         <div id="tipoStreamBox" style="display:none;">
             <select id="tipoStream" class="admin-select">
-                <option value="auto">Formato: Automático (detecta .m3u8 / .ts)</option>
+                <option value="auto">Formato: Automático (detecta .m3u8 / .ts / fmp4.m3u8)</option>
                 <option value="hls">Formato: HLS (.m3u8)</option>
+                <option value="fmp4">Formato: fMP4 (fmp4.m3u8)</option>
                 <option value="ts">Formato: MPEG-TS directo (.ts)</option>
                 <option value="libre">Sin formato (prueba todos)</option>
             </select>
@@ -3941,7 +3942,7 @@
         const nm = document.getElementById("nombre");
         if (nm) nm.placeholder = ANUNCIO_CATS[cat] ? "Título del anuncio" : "Nombre del contenido";
         const st = document.getElementById("stream1");
-        if (st) st.placeholder = ANUNCIO_CATS[cat] ? "Enlace de la imagen o del video (YouTube, Facebook, TikTok, Instagram, Vimeo…)" : "URL del stream (.m3u8 o .ts)";
+        if (st) st.placeholder = ANUNCIO_CATS[cat] ? "Enlace de la imagen o del video (YouTube, Facebook, TikTok, Instagram, Vimeo…)" : "URL del stream (.m3u8, fmp4.m3u8 o .ts)";
     }
 
     function proxyUrl(url) {
@@ -3954,6 +3955,7 @@
         const path = (url || '').split('#')[0].split('?')[0].toLowerCase();
         if (path.endsWith('.ts')) return 'ts';
         if (path.endsWith('.mpd')) return 'dash';
+        if (path.endsWith('fmp4.m3u8')) return 'fmp4';
         if (/\.(mp4|m4v|webm|mov|ogv)$/.test(path)) return 'mp4';
         return 'hls';
     }
